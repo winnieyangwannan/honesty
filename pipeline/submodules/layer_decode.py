@@ -152,14 +152,12 @@ def generate_and_decode(model_base,
                 completions.append({
                     'prompt': dataset[id + generation_idx],
                     'response': tokenizer.decode(generation, skip_special_tokens=True).strip(),
-                    'label': labels[id + generation_idx],
-                    'ID': id+generation_idx
                 })
-            else:
-                completions.append({
-                    'prompt': dataset[id + generation_idx],
-                    'response': tokenizer.decode(generation, skip_special_tokens=True).strip(),
-                    'ID': id + generation_idx
-                })
+            # else: try
+            #     completions.append({
+            #         'prompt': dataset[id + generation_idx],
+            #         'response': tokenizer.decode(generation, skip_special_tokens=True).strip(),
+            #         'ID': id + generation_idx
+            #     })
 
     return cache_probs_all, cache_tokens_all, completions

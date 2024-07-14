@@ -1,0 +1,60 @@
+Config(model_alias='Yi-1.5-6B-Chat', model_path='01-ai/Yi-1.5-6B-Chat', n_train=100, n_test=32, data_category='facts', batch_size=16, source_layer=10, intervention='diff addition', target_layer=10, max_new_tokens=100, dataset_id=3)
+Downloading shards:   0%|          | 0/3 [00:00<?, ?it/s]Downloading shards:  33%|███▎      | 1/3 [22:15<44:31, 1335.68s/it]Downloading shards:  33%|███▎      | 1/3 [49:01<1:38:03, 2941.92s/it]
+Traceback (most recent call last):
+  File "/gpfs/home/wy547/.conda/envs/urial/lib/python3.10/site-packages/urllib3/response.py", line 748, in _error_catcher
+    yield
+  File "/gpfs/home/wy547/.conda/envs/urial/lib/python3.10/site-packages/urllib3/response.py", line 894, in _raw_read
+    raise IncompleteRead(self._fp_bytes_read, self.length_remaining)
+urllib3.exceptions.IncompleteRead: IncompleteRead(4438201636 bytes read, 538601180 more expected)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/gpfs/home/wy547/.conda/envs/urial/lib/python3.10/site-packages/requests/models.py", line 820, in generate
+    yield from self.raw.stream(chunk_size, decode_content=True)
+  File "/gpfs/home/wy547/.conda/envs/urial/lib/python3.10/site-packages/urllib3/response.py", line 1060, in stream
+    data = self.read(amt=amt, decode_content=decode_content)
+  File "/gpfs/home/wy547/.conda/envs/urial/lib/python3.10/site-packages/urllib3/response.py", line 977, in read
+    data = self._raw_read(amt)
+  File "/gpfs/home/wy547/.conda/envs/urial/lib/python3.10/site-packages/urllib3/response.py", line 872, in _raw_read
+    with self._error_catcher():
+  File "/gpfs/home/wy547/.conda/envs/urial/lib/python3.10/contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/gpfs/home/wy547/.conda/envs/urial/lib/python3.10/site-packages/urllib3/response.py", line 772, in _error_catcher
+    raise ProtocolError(arg, e) from e
+urllib3.exceptions.ProtocolError: ('Connection broken: IncompleteRead(4438201636 bytes read, 538601180 more expected)', IncompleteRead(4438201636 bytes read, 538601180 more expected))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/gpfs/data/buzsakilab/wy547/Code/model_steering/pipeline/honesty_pipeline/run_pipeline_honesty_performance.py", line 145, in <module>
+    run_pipeline(model_path=args.model_path, batch_size=args.batch_size)
+  File "/gpfs/data/buzsakilab/wy547/Code/model_steering/pipeline/honesty_pipeline/run_pipeline_honesty_performance.py", line 134, in run_pipeline
+    model_base = construct_model_base(cfg.model_path)
+  File "/gpfs/data/buzsakilab/wy547/Code/model_steering/pipeline/model_utils/model_factory.py", line 19, in construct_model_base
+    return GemmaModel(model_path)
+  File "/gpfs/data/buzsakilab/wy547/Code/model_steering/pipeline/model_utils/model_base.py", line 12, in __init__
+    self.model: AutoModelForCausalLM = self._load_model(model_name_or_path)
+  File "/gpfs/data/buzsakilab/wy547/Code/model_steering/pipeline/model_utils/yi_model.py", line 197, in _load_model
+    model = AutoModelForCausalLM.from_pretrained(
+  File "/gpfs/home/wy547/.conda/envs/urial/lib/python3.10/site-packages/transformers/models/auto/auto_factory.py", line 564, in from_pretrained
+    return model_class.from_pretrained(
+  File "/gpfs/home/wy547/.conda/envs/urial/lib/python3.10/site-packages/transformers/modeling_utils.py", line 3593, in from_pretrained
+    resolved_archive_file, sharded_metadata = get_checkpoint_shard_files(
+  File "/gpfs/home/wy547/.conda/envs/urial/lib/python3.10/site-packages/transformers/utils/hub.py", line 1079, in get_checkpoint_shard_files
+    cached_filename = cached_file(
+  File "/gpfs/home/wy547/.conda/envs/urial/lib/python3.10/site-packages/transformers/utils/hub.py", line 402, in cached_file
+    resolved_file = hf_hub_download(
+  File "/gpfs/home/wy547/.conda/envs/urial/lib/python3.10/site-packages/huggingface_hub/utils/_validators.py", line 114, in _inner_fn
+    return fn(*args, **kwargs)
+  File "/gpfs/home/wy547/.conda/envs/urial/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 1221, in hf_hub_download
+    return _hf_hub_download_to_cache_dir(
+  File "/gpfs/home/wy547/.conda/envs/urial/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 1367, in _hf_hub_download_to_cache_dir
+    _download_to_tmp_and_move(
+  File "/gpfs/home/wy547/.conda/envs/urial/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 1884, in _download_to_tmp_and_move
+    http_get(
+  File "/gpfs/home/wy547/.conda/envs/urial/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 539, in http_get
+    for chunk in r.iter_content(chunk_size=DOWNLOAD_CHUNK_SIZE):
+  File "/gpfs/home/wy547/.conda/envs/urial/lib/python3.10/site-packages/requests/models.py", line 822, in generate
+    raise ChunkedEncodingError(e)
+requests.exceptions.ChunkedEncodingError: ('Connection broken: IncompleteRead(4438201636 bytes read, 538601180 more expected)', IncompleteRead(4438201636 bytes read, 538601180 more expected))
