@@ -5,7 +5,7 @@ import os
 import argparse
 import pickle
 from datasets import load_dataset
-from pipeline.honesty_pipeline.honesty_config_generation_trajectory import Config
+from pipeline.honesty_config_generation_trajectory import Config
 from pipeline.model_utils.model_factory import construct_model_base
 from pipeline.submodules.select_direction import get_refusal_scores
 from pipeline.submodules.activation_pca import plot_contrastive_activation_pca_with_trajectory, generate_and_get_activations
@@ -16,7 +16,7 @@ def parse_arguments():
     """Parse model path argument from command line."""
     parser = argparse.ArgumentParser(description="Parse model path argument.")
     parser.add_argument('--model_path', type=str, required=True, help='Path to the model')
-    parser.add_argument('--save_path', type=int, required=False, default=16)
+    parser.add_argument('--save_path', type=str, required=False, default=16)
 
     return parser.parse_args()
 

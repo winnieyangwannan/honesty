@@ -6,16 +6,11 @@ import argparse
 
 
 from datasets import load_dataset
-from torch.utils.data import DataLoader
-from pipeline.submodules.evaluate_truthful import plot_lying_honest_accuracy, get_statement_accuracy_cache_activation
-from pipeline.honesty_pipeline.honesty_config_generation import Config
+from pipeline.honesty_config_generation import Config
 from pipeline.model_utils.model_factory import construct_model_base
 from pipeline.submodules.activation_pca import plot_contrastive_activation_pca, plot_contrastive_activation_intervention_pca
 from pipeline.submodules.select_direction import select_direction, get_refusal_scores
 from pipeline.submodules.activation_pca import get_activations, get_intervention_activations_and_generation, generate_and_get_activations
-from pipeline.submodules.activation_pca import generate_and_get_activation_trajectory
-# from pipeline.submodules.evaluate_jailbreak import evaluate_jailbreak
-from pipeline.submodules.evaluate_loss import evaluate_loss
 
 
 def parse_arguments():
@@ -23,7 +18,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description="Parse model path argument.")
     parser.add_argument('--model_path', type=str, required=True, help='Path to the model')
     parser.add_argument('--batch_size', type=int, required=False, default=16)
-    parser.add_argument('--save_path', type=int, required=False, default=16)
+    parser.add_argument('--save_path', type=str, required=False, default=16)
 
     return parser.parse_args()
 

@@ -8,7 +8,7 @@ import pickle
 from datasets import load_dataset
 from torch.utils.data import DataLoader
 from pipeline.submodules.evaluate_truthful import plot_lying_honest_accuracy, get_statement_accuracy_cache_activation
-from pipeline.honesty_pipeline.honesty_config_performance import Config
+from pipeline.honesty_config_performance import Config
 from pipeline.model_utils.model_factory import construct_model_base
 from pipeline.submodules.activation_pca import plot_contrastive_activation_pca
 from pipeline.submodules.select_direction import select_direction, get_refusal_scores
@@ -19,7 +19,7 @@ def parse_arguments():
     """Parse model path argument from command line."""
     parser = argparse.ArgumentParser(description="Parse model path argument.")
     parser.add_argument('--model_path', type=str, required=True, help='Path to the model')
-    parser.add_argument('--save_path', type=int, required=False, default=16)
+    parser.add_argument('--save_path', type=str, required=False, default=16)
     parser.add_argument('--batch_size', type=int, required=False, default=16)
 
     return parser.parse_args()
