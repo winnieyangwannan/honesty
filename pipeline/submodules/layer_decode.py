@@ -152,8 +152,8 @@ def generate_and_decode(model_base,
                 completions.append({
                     'prompt': dataset[id + generation_idx],
                     'response': tokenizer.decode(generation, skip_special_tokens=True).strip(),
-                })
-            # else: try try try
+                }) 
+            # else: try try try try
             #     completions.append({
             #         'prompt': dataset[id + generation_idx],
             #         'response': tokenizer.decode(generation, skip_special_tokens=True).strip(),
