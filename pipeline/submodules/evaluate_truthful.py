@@ -17,22 +17,12 @@ from pipeline.utils.hook_utils import get_and_cache_direction_ablation_output_ho
 from pipeline.utils.hook_utils import get_and_cache_activation_addition_output_hook
 
 
-def get_accuracy_and_probability(outputs, labels, tokenizer, true_token_id, false_token_id):
-    probs = softmax(outputs, dim=-1)
-
-    # Sort the probabilities in descending order and get the top tokens
-    top_probs, top_indices = torch.topk(probs, k=5)  # Get top 5 for demonstration
-
-    # Get the top token and its probability
-    top_token_id = top_indices[:,0]
-    top_token_str = tokenizer.batch_decode(top_token_id)
-    top_token_prob = top_probs[:, 0]
-
+def get_accuracy_and_unexpected(top_token_id, top_token_str, labels, true_token_id, false_token_id):
     label_strs = ["true" if label == 1 else "false" for label in labels]
 
-    unexpected = [] # neither true nor false
+    unexpected = []  # neither true nor false
     correct = []
-    for ii,label_str in enumerate(label_strs):
+    for ii, label_str in enumerate(label_strs):
         if label_str == top_token_str[ii].lower().strip():
             correct.append(1)
         else:
@@ -44,7 +34,24 @@ def get_accuracy_and_probability(outputs, labels, tokenizer, true_token_id, fals
             print(top_token_str[ii])
         else:
             unexpected.append(0)
+    return correct, unexpected
 
+
+def get_accuracy_and_probability(outputs, labels, tokenizer, true_token_id, false_token_id):
+    probs = softmax(outputs, dim=-1)
+
+    # Sort the probabilities in descending order and get the top tokens
+    top_probs, top_indices = torch.topk(probs, k=5)  # Get top 5 for demonstration
+
+    # Get the top token and its probability
+    top_token_id = top_indices[:,0]
+    top_token_str = tokenizer.batch_decode(top_token_id)
+    top_token_prob = top_probs[:, 0]
+
+
+    correct, unexpected = get_accuracy_and_unexpected(top_token_id, top_token_str,
+                                                      labels,
+                                                      true_token_id, false_token_id)
     return correct, top_token_prob, unexpected
 
 

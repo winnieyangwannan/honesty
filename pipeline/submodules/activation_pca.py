@@ -113,102 +113,6 @@ def get_ablation_activations(model, tokenizer, instructions, tokenize_instructio
     return activation_pre
 
 
-def get_intervention_activations_and_generation(cfg, model_base, dataset,
-                                                tokenize_fn,
-                                                mean_diff,
-                                                positions=[-1],
-                                                target_layer=None,
-                                                max_new_tokens=64,
-                                                system_type=None,
-                                                labels=None):
-    torch.cuda.empty_cache()
-
-    model_name = cfg.model_alias
-    batch_size = cfg.batch_size
-    intervention = cfg.intervention
-    model = model_base.model
-    block_modules = model_base.model_block_modules
-    tokenizer = model_base.tokenizer
-    n_layers = model.config.num_hidden_layers
-    d_model = model.config.hidden_size
-
-    n_samples = len(dataset)
-
-    # if not specified, ablate all layers by default
-    if target_layer == None:
-        target_layer = np.arange(n_layers)
-
-    generation_config = GenerationConfig(max_new_tokens=max_new_tokens, do_sample=False)
-    generation_config.pad_token_id = tokenizer.pad_token_id
-
-    completions = []
-    # we store the mean activations in high-precision to avoid numerical issues
-    activations = torch.zeros((n_samples, n_layers, d_model), dtype=torch.float64, device=model.device)
-    for i in tqdm(range(0, len(dataset), batch_size)):
-        inputs = tokenize_fn(prompts=dataset[i:i+batch_size], system_type=system_type)
-        len_inputs = inputs.input_ids.shape[1]
-
-        if intervention == 'direction ablation':
-            fwd_pre_hooks = [(block_modules[layer],
-                              get_and_cache_direction_ablation_input_pre_hook(
-                                                       mean_diff=mean_diff,
-                                                       cache=activations,
-                                                       layer=layer,
-                                                       positions=positions,
-                                                       batch_id=i,
-                                                       batch_size=batch_size,
-                                                       target_layer=target_layer,
-                                                       len_prompt=len_inputs),
-                                                    ) for layer in range(n_layers)]
-            fwd_hooks = [(block_modules[layer],
-                          get_and_cache_direction_ablation_output_hook(
-                                                   mean_diff=mean_diff,
-                                                   layer=layer,
-                                                   positions=positions,
-                                                   batch_id=i,
-                                                   batch_size=batch_size,
-                                                   target_layer=target_layer,
-                                                   ),
-                                                ) for layer in range(n_layers)]
-        elif intervention == 'diff addition':
-            fwd_pre_hooks = [(block_modules[layer],
-                              get_and_cache_diff_addition_input_pre_hook(
-                                                       mean_diff=mean_diff,
-                                                       cache=activations,
-                                                       layer=layer,
-                                                       positions=positions,
-                                                       batch_id=i,
-                                                       batch_size=batch_size,
-                                                       target_layer=target_layer,
-                                                       len_prompt=len_inputs),
-                                                    ) for layer in range(n_layers)]
-            fwd_hooks = []
-
-        with add_hooks(module_forward_pre_hooks=fwd_pre_hooks, module_forward_hooks=fwd_hooks):
-            generation_toks = model.generate(
-                input_ids=inputs.input_ids.to(model.device),
-                attention_mask=inputs.attention_mask.to(model.device),
-                generation_config=generation_config,
-            )
-
-            generation_toks = generation_toks[:, inputs.input_ids.shape[-1]:]
-
-            for generation_idx, generation in enumerate(generation_toks):
-                if labels is not None:
-                    completions.append({
-                        'prompt': dataset[i + generation_idx],
-                        'response': tokenizer.decode(generation, skip_special_tokens=True).strip(),
-                        'label': labels[i + generation_idx],
-                        'ID': i + generation_idx
-
-                    })
-                else:
-                    completions.append({
-                        'prompt': dataset[i + generation_idx],
-                        'response': tokenizer.decode(generation, skip_special_tokens=True).strip(),
-                        'ID': i + generation_idx
-                    })
-    return activations, completions
 
 
 def get_addition_activations_generation(model, tokenizer, instructions, tokenize_instructions_fn, block_modules: List[torch.nn.Module],
@@ -436,13 +340,16 @@ def generate_and_get_activations(cfg, model_base, dataset,
     return activations, completions
 
 
-def get_activations(model, block_modules: List[torch.nn.Module],
+def get_activations(cfg, model_base, dataset,
                     tokenize_fn,
-                    dataset,
-                    batch_size=32, positions=[-1],
+                    positions=[-1],
                     system_type=None):
 
     torch.cuda.empty_cache()
+    model_name = cfg.model_alias
+    batch_size = cfg.batch_size
+    model = model_base.model
+    block_modules = model_base.model_block_modules
 
     n_layers = model.config.num_hidden_layers
     n_samples = len(dataset)
