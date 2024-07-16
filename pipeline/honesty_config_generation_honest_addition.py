@@ -21,6 +21,7 @@ class Config:
     save_path: str
     target_layer: int
     source_layer: int
+    intervention: str
     n_train: int = 32
     n_test: int = 32
     data_category: str = "facts"
@@ -28,7 +29,6 @@ class Config:
     max_new_tokens: int = 100
     # for generation_trajectory
     dataset_id: list[int] = 3
-    intervention: str = "honest_addition"
 
 
 

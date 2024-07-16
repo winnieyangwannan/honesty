@@ -150,11 +150,11 @@ def generate_with_intervention_cache_contrastive_activations_and_plot_pca(cfg,
         os.makedirs(os.path.join(cfg.artifact_path(), intervention))
 
     with open(
-            artifact_dir + os.sep + intervention + os.sep + f'{data_category}_{intervention}_completions_honest_layer_{target_layer}_{source_layer}.json',
+            artifact_dir + os.sep + intervention + os.sep + f'{data_category}_{intervention}_completions_honest_layer_{source_layer}_{target_layer}.json',
             "w") as f:
         json.dump(intervention_completions_honest, f, indent=4)
     with open(
-            artifact_dir + os.sep + intervention + os.sep + f'{data_category}_{intervention}_completions_lying_layer_{target_layer}_{source_layer}.json',
+            artifact_dir + os.sep + intervention + os.sep + f'{data_category}_{intervention}_completions_lying_layer_{source_layer}_{target_layer}.json',
             "w") as f:
         json.dump(intervention_completions_lying, f, indent=4)
 
@@ -168,7 +168,7 @@ def generate_with_intervention_cache_contrastive_activations_and_plot_pca(cfg,
                                                        contrastive_label,
                                                        labels)
     fig.write_html(
-        artifact_dir + os.sep + intervention + os.sep + model_name + '_' + 'refusal_generation_activation_' + intervention +
+        artifact_dir + os.sep + intervention + os.sep + model_name + '_'  + intervention +
         '_pca_layer_' + str(source_layer) + '_' + str(target_layer) + '.html')
 
     # 4. get accuracy
@@ -201,7 +201,7 @@ def generate_with_intervention_cache_contrastive_activations_and_plot_pca(cfg,
         "unexpected_honest_rate": unexpected_honest_rate
     }
 
-    with open(artifact_dir + os.sep + intervention + os.sep + model_name + '_' + 'model_performance.csv',
+    with open(artifact_dir + os.sep + intervention + os.sep + model_name + '_' + f'model_performance_layer_{source_layer}_{target_layer}.csv',
               'w') as f:
         w = csv.writer(f)
         w.writerows(model_performance.items())
@@ -222,16 +222,18 @@ def contrastive_extraction_generation_skip_generation_and_plot_pca(cfg, model_ba
     print("done extraction")
 
     # # 2. get steering vector = get mean difference of the source layer
-    # mean_activation_honest = activations_honest.mean(dim=0)
-    # mean_activation_lying = activations_lying.mean(dim=0)
-    # mean_diff = mean_activation_honest - mean_activation_lying
+    mean_activation_honest = activations_honest.mean(dim=0)
+    mean_activation_lying = activations_lying.mean(dim=0)
+    mean_diff = mean_activation_honest - mean_activation_lying
 
     # 2. generate with adding steering vector
+    source_layer = cfg.source_layer
     generate_with_intervention_cache_contrastive_activations_and_plot_pca(cfg,
                                                                           model_base,
                                                                           statements_test,
                                                                           activations_honest,
                                                                           activations_lying,
+                                                                          mean_diff=mean_diff[source_layer],
                                                                           labels=labels_test)
 
 

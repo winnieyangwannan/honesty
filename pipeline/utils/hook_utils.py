@@ -47,6 +47,15 @@ def get_activations_pre_hook(layer, cache: Float[Tensor, "batch layer d_model"],
         cache[batch_id:batch_id+batch_size, layer] = torch.squeeze(activation[:, positions, :],1)
     return hook_fn
 
+def get_activations_hook(layer, cache: Float[Tensor, "batch layer d_model"], positions: List[int],batch_id,batch_size):
+    def hook_fn(module, input, output):
+        if isinstance(output, tuple):
+            activation: Float[Tensor, "batch_size seq_len d_model"] = output[0].clone().to(cache)
+        else:
+            activation: Float[Tensor, "batch_size seq_len d_model"] = output.clone().to(cache)
+
+        cache[batch_id:batch_id+batch_size, layer] = torch.squeeze(activation[:, positions, :],1)
+    return hook_fn
 
 def get_direction_ablation_input_pre_hook(direction: Tensor):
     def hook_fn(module, input):
@@ -125,7 +134,8 @@ def get_generation_cache_activation_input_pre_hook(cache,
     return hook_fn
 
 
-def get_and_cache_direction_ablation_input_pre_hook(mean_diff: Tensor, cache: Float[Tensor, "batch layer d_model"],
+def get_and_cache_direction_ablation_input_pre_hook(mean_diff: Tensor,
+                                                    cache: Float[Tensor, "batch layer d_model"],
                                                     layer:int,
                                                     positions: List[int],
                                                     batch_id:int,
@@ -192,6 +202,41 @@ def get_and_cache_diff_addition_input_pre_hook(mean_diff: Tensor, cache: Float[T
 
         if isinstance(input, tuple):
             return (activation, *input[1:])
+        else:
+            return activation
+    return hook_fn
+
+
+def get_and_cache_diff_addition_output_hook(mean_diff: Tensor, cache: Float[Tensor, "batch layer d_model"],
+                                                    layer:int,positions: List[int],batch_id:int,batch_size:int,
+                                                    target_layer,
+                                                    len_prompt=1,coeff=1):
+    def hook_fn(module, input, output):
+        nonlocal mean_diff, cache, layer, positions, batch_id, batch_size, target_layer, len_prompt
+
+        if isinstance(output, tuple):
+            activation: Float[Tensor, "batch_size seq_len d_model"] = output[0]
+        else:
+            activation: Float[Tensor, "batch_size seq_len d_model"] = output
+
+        # only apply the ablation to the target layers
+        if layer in target_layer:
+            # direction = direction / (direction.norm(dim=-1, keepdim=True) + 1e-8)
+            direction = mean_diff.to(activation)
+            activation += direction*coeff
+
+            # only cache the last token of the prompt not the generated answer
+            if activation.shape[1] == len_prompt:
+                 cache[batch_id:batch_id+batch_size, layer, :] = torch.squeeze(activation[:, positions, :],1)
+
+        # if not target layer, cache the original activation value
+        else:
+            # only cache the last token of the prompt not the generated answer
+            if activation.shape[1] == len_prompt:
+                 cache[batch_id:batch_id + batch_size, layer, :] = torch.squeeze(activation[:, positions, :],1)
+
+        if isinstance(output, tuple):
+            return (activation, *output[1:])
         else:
             return activation
     return hook_fn
@@ -384,14 +429,14 @@ def get_generation_decode_pre_hook(cache_probs, cache_tokens, cache_token_IDs,
 
 
 ######################################################
-def get_and_cache_skip_connection_input_pre_hook(cache: Float[Tensor, "batch layer d_model"],
+def get_and_cache_skip_connection_input_pre_hook(mean_diff, cache: Float[Tensor, "batch layer d_model"],
                                                  layer:int, positions: List[int],
                                                  batch_id:int, batch_size:int,
                                                  target_layer,
                                                  len_prompt=1, coeff=1):
 
     def hook_fn(module, input):
-        nonlocal cache, layer, positions, batch_id, batch_size, target_layer, len_prompt
+        nonlocal mean_diff, cache, layer, positions, batch_id, batch_size, target_layer, len_prompt
 
         if isinstance(input, tuple):
             activation: Float[Tensor, "batch_size seq_len d_model"] = input[0]
@@ -400,8 +445,13 @@ def get_and_cache_skip_connection_input_pre_hook(cache: Float[Tensor, "batch lay
 
         # only apply the ablation to the target layers
         if layer in target_layer:
-            activation = 0.00001+activation*0
-
+            batch_size = activation.shape[0]
+            seq_len = activation.shape[1]
+            d_model = activation.shape[2]
+            # mean_diff_new = mean_diff.repeat(batch_size, seq_len, 1).type(torch.cuda.HalfTensor)
+            # activation = mean_diff_new
+            vector = mean_diff.to(activation)
+            activation += coeff * vector
             # only cache the last token of the prompt not the generated answer
             if activation.shape[1] == len_prompt:
                  cache[batch_id:batch_id+batch_size, layer, :] = torch.squeeze(activation[:, positions, :], 1)
@@ -419,14 +469,14 @@ def get_and_cache_skip_connection_input_pre_hook(cache: Float[Tensor, "batch lay
     return hook_fn
 
 
-def get_and_cache_skip_connection_hook(cache: Float[Tensor, "batch layer d_model"],
+def get_and_cache_skip_connection_hook(mean_diff, cache: Float[Tensor, "batch layer d_model"],
                                        layer:int, positions: List[int],
                                        batch_id:int, batch_size:int,
                                        target_layer,
                                        len_prompt=1, coeff=1):
 
     def hook_fn(module, input, output):
-        nonlocal cache, layer, positions, batch_id, batch_size, target_layer, len_prompt
+        nonlocal mean_diff, cache, layer, positions, batch_id, batch_size, target_layer, len_prompt
 
         if isinstance(output, tuple):
             activation: Float[Tensor, "batch_size seq_len d_model"] = output[0]
@@ -435,8 +485,13 @@ def get_and_cache_skip_connection_hook(cache: Float[Tensor, "batch layer d_model
 
         # only apply the ablation to the target layers
         if layer in target_layer:
-            activation = 0.00001+activation*0
-
+            batch_size = activation.shape[0]
+            seq_len = activation.shape[1]
+            d_model = activation.shape[2]
+            # activation = mean_diff.repeat(batch_size,seq_len,1)
+            # activation = activation + mean_diff
+            vector = mean_diff.to(activation)
+            activation += coeff * vector
             # only cache the last token of the prompt not the generated answer
             if activation.shape[1] == len_prompt:
                  cache[batch_id:batch_id+batch_size, layer, :] = torch.squeeze(activation[:, positions, :], 1)

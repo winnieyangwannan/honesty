@@ -20,6 +20,7 @@ def parse_arguments():
     parser.add_argument('--model_path', type=str, required=True, help='Path to the model')
     parser.add_argument('--batch_size', type=int, required=False, default=16)
     parser.add_argument('--save_path', type=str, required=False, default=" ")
+    parser.add_argument('--intervention', type=str, required=False, default="honest_addition")
     parser.add_argument('--source_layer', type=int, required=False, default=16)
     parser.add_argument('--target_layer', type=int, required=False, default=16)
 
@@ -140,12 +141,12 @@ def generate_with_intervention_cache_contrastive_activations_and_plot_pca(cfg,
                                                       target_layer=target_layer,
                                                       labels=labels)
     # 2. save completions
-    if not os.path.exists(os.path.join(cfg.artifact_path(), 'honest_addition')):
-        os.makedirs(os.path.join(cfg.artifact_path(), 'honest_addition'))
+    if not os.path.exists(os.path.join(cfg.artifact_path(), intervention)):
+        os.makedirs(os.path.join(cfg.artifact_path(), intervention))
 
-    with open(artifact_dir+os.sep+'honest_addition'+os.sep+f'{data_category}_{intervention}_completions_honest_layer_{target_layer}_{source_layer}.json', "w") as f:
+    with open(artifact_dir+os.sep+intervention+os.sep+f'{data_category}_{intervention}_completions_honest_layer_{target_layer}_{source_layer}.json', "w") as f:
         json.dump(intervention_completions_honest, f, indent=4)
-    with open(artifact_dir+os.sep+'honest_addition'+os.sep+f'{data_category}_{intervention}_completions_lying_layer_{target_layer}_{source_layer}.json', "w") as f:
+    with open(artifact_dir+os.sep+intervention+os.sep+f'{data_category}_{intervention}_completions_lying_layer_{target_layer}_{source_layer}.json', "w") as f:
         json.dump(intervention_completions_lying, f, indent=4)
 
     # 3. pca with and without intervention, plot and save pca
@@ -157,7 +158,7 @@ def generate_with_intervention_cache_contrastive_activations_and_plot_pca(cfg,
                                                        n_layers,
                                                        contrastive_label,
                                                        labels)
-    fig.write_html(artifact_dir + os.sep + "honest_addition" + os.sep + model_name + '_' + 'refusal_generation_activation_'+intervention +
+    fig.write_html(artifact_dir + os.sep + intervention + os.sep + data_category + '_' +intervention +
                    '_pca_layer_'+str(source_layer)+'_' + str(target_layer)+'.html')
 
     # 4. get accuracy
@@ -187,10 +188,9 @@ def generate_with_intervention_cache_contrastive_activations_and_plot_pca(cfg,
         "unexpected_honest_rate": unexpected_honest_rate
     }
 
-    with open(artifact_dir + os.sep + 'honest_addition' + os.sep + model_name + '_' + 'model_performance.csv', 'w') as f:
+    with open(artifact_dir + os.sep + intervention + os.sep + f'{data_category}_{intervention}_' + 'model_performance_layer_' +str(source_layer)+'_' + str(target_layer)+ '.csv', 'w') as f:
         w = csv.writer(f)
         w.writerows(model_performance.items())
-
 
 def contrastive_extraction_generation_honest_addition_and_plot_pca(cfg, model_base, dataset_train, dataset_test):
     statements_train = [row['claim'] for row in dataset_train]
@@ -206,9 +206,13 @@ def contrastive_extraction_generation_honest_addition_and_plot_pca(cfg, model_ba
     print("done extraction")
 
     # 2. get steering vector = get mean difference of the source layer
+    intervention = cfg.intervention
     mean_activation_honest = activations_honest.mean(dim=0)
     mean_activation_lying = activations_lying.mean(dim=0)
-    mean_diff = mean_activation_honest-mean_activation_lying
+    if "honest_addition" in intervention or "honest_ablation" in intervention:
+        mean_diff = mean_activation_honest-mean_activation_lying
+    elif "lying_addition" in intervention or "lying_ablation" in intervention:
+        mean_diff = mean_activation_lying-mean_activation_honest
 
     # 3. generate with adding steering vector
     source_layer = cfg.source_layer
@@ -221,12 +225,13 @@ def contrastive_extraction_generation_honest_addition_and_plot_pca(cfg, model_ba
                                                                           labels=labels_test)
 
 
-def run_pipeline(model_path, save_path, source_layer, target_layer):
+def run_pipeline(model_path, save_path, intervention, source_layer, target_layer):
     """Run the full pipeline."""
 
     # 1. Load model
     model_alias = os.path.basename(model_path)
     cfg = Config(model_alias=model_alias, model_path=model_path, save_path=save_path,
+                 intervention=intervention,
                  source_layer=source_layer, target_layer=target_layer)
     print(cfg)
     model_base = construct_model_base(cfg.model_path)
@@ -241,5 +246,6 @@ def run_pipeline(model_path, save_path, source_layer, target_layer):
 if __name__ == "__main__":
     args = parse_arguments()
     run_pipeline(model_path=args.model_path, save_path=args.save_path,
+                 intervention=args.intervention,
                  source_layer=args.source_layer, target_layer=args.target_layer)
     # run_pipeline(model_path="Qwen/Qwen-1_8B-Chat")

@@ -18,7 +18,8 @@ from pipeline.utils.hook_utils import get_and_cache_direction_ablation_input_pre
 from pipeline.utils.hook_utils import get_and_cache_diff_addition_input_pre_hook
 from pipeline.utils.hook_utils import get_and_cache_direction_ablation_output_hook
 from pipeline.utils.hook_utils import get_generation_cache_activation_trajectory_input_pre_hook
-from pipeline.utils.hook_utils import get_activations_pre_hook, get_generation_cache_activation_input_pre_hook
+from pipeline.utils.hook_utils import get_activations_pre_hook, get_activations_hook
+from pipeline.utils.hook_utils import get_generation_cache_activation_input_pre_hook
 
 
 
@@ -348,6 +349,7 @@ def get_activations(cfg, model_base, dataset,
     torch.cuda.empty_cache()
     model_name = cfg.model_alias
     batch_size = cfg.batch_size
+    intervention = cfg.intervention
     model = model_base.model
     block_modules = model_base.model_block_modules
 
@@ -356,18 +358,35 @@ def get_activations(cfg, model_base, dataset,
     d_model = model.config.hidden_size
 
     # we store the mean activations in high-precision to avoid numerical issues
+    # activations = torch.zeros((n_samples, n_layers, d_model), dtype=torch.float64, device=model.device)
     activations = torch.zeros((n_samples, n_layers, d_model), dtype=torch.float64, device=model.device)
 
     for i in tqdm(range(0, len(dataset), batch_size)):
         inputs = tokenize_fn(prompts=dataset[i:i+batch_size], system_type=system_type)
-        fwd_pre_hooks = [(block_modules[layer],
-                          get_activations_pre_hook(layer=layer,
+        # fwd_pre_hooks = [(block_modules[layer].mlp.c_proj,
+        #                   get_activations_pre_hook(layer=layer,
+        #                                            cache=activations,
+        #                                            positions=positions,
+        #                                            batch_id=i,
+        #                                            batch_size=batch_size)) for layer in range(n_layers)]
+        fwd_pre_hooks = []
+        if "mlp" in intervention:
+            fwd_hooks = [(block_modules[layer].mlp,
+                              get_activations_hook(layer=layer,
+                                                   cache=activations,
+                                                   positions=positions,
+                                                   batch_id=i,
+                                                   batch_size=batch_size)) for layer in range(n_layers)]
+        else:
+            fwd_hooks = [(block_modules[layer],
+                              get_activations_hook(layer=layer,
                                                    cache=activations,
                                                    positions=positions,
                                                    batch_id=i,
                                                    batch_size=batch_size)) for layer in range(n_layers)]
 
-        with add_hooks(module_forward_pre_hooks=fwd_pre_hooks, module_forward_hooks=[]):
+        # fwd_hooks = []
+        with add_hooks(module_forward_pre_hooks=fwd_pre_hooks, module_forward_hooks=fwd_hooks):
             model(
                 input_ids=inputs.input_ids.to(model.device),
                 attention_mask=inputs.attention_mask.to(model.device),
@@ -418,9 +437,9 @@ def plot_contrastive_activation_pca_with_trajectory(activations_honest, activati
     for ii in range(n_contrastive_data):
         label_text = np.append(label_text, f'{contrastive_label[1]}_{labels_tf[ii]}_{ii}')
     for ii in range(n_trajectory_honest):
-        label_text = np.append(label_text, f'{contrastive_label[2]}_{str_honest[ii]}_{ii}')
+        label_text = np.append(label_text, f'{contrastive_label[2]}_{labels_tf[ii]}_{ii}')
     for ii in range(n_trajectory_lie):
-        label_text = np.append(label_text, f'{contrastive_label[3]}_{str_lie[ii]}_{ii}')
+        label_text = np.append(label_text, f'{contrastive_label[3]}_{labels_tf[ii]}_{ii}')
     cols = 4
     rows = math.ceil(n_layers/cols)
     fig = make_subplots(rows=rows, cols=cols,
@@ -607,20 +626,21 @@ def plot_contrastive_activation_pca(activations_honest, activations_lie, n_layer
 
     if labels is not None:
         labels_all = labels + labels
-        labels_hl = []
+        # true or false label
+        labels_tf = []
         for ll in labels:
             if ll == 0:
-                labels_hl.append(contrastive_label[0])
+                labels_tf.append('false')
             elif ll == 1:
-                labels_hl.append(contrastive_label[1])
+                labels_tf.append('true')
     else:
         labels_all = np.zeros((n_contrastive_data*2), 1)
 
     label_text = []
     for ii in range(n_contrastive_data):
-        label_text = np.append(label_text, f'{contrastive_label[0]}_{labels_hl[ii]}_{ii}')
+        label_text = np.append(label_text, f'{contrastive_label[0]}_{labels_tf[ii]}_{ii}')
     for ii in range(n_contrastive_data):
-        label_text = np.append(label_text, f'{contrastive_label[1]}_{labels_hl[ii]}_{ii}')
+        label_text = np.append(label_text, f'{contrastive_label[1]}_{labels_tf[ii]}_{ii}')
 
     cols = 4
     rows = math.ceil(n_layers/cols)
