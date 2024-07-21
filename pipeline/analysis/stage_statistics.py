@@ -185,11 +185,18 @@ def get_centroid_dist(arr, labels):
 # Measurement:
 def get_cos_sim_honest_lying_vector(activations_all, activations_pca, labels, n_layers, save_path):
     n_samples = int(activations_all.shape[0] / 2)
-
+    n_components = activations_pca.shape[-1]
     angle_honest_lying = np.zeros((n_layers))
     angle_honest_lying_pca = np.zeros((n_layers))
     activations_honest = activations_all[:n_samples, :, :]
     activations_lying = activations_all[n_samples:, :, :]
+    centroid_lying_true_pca_all = np.zeros((n_layers, n_components))
+    centroid_lying_false_pca_all = np.zeros((n_layers, n_components))
+    centroid_lying_vector_pca_all = np.zeros((n_layers, n_components))
+    centroid_honest_true_pca_all = np.zeros((n_layers, n_components))
+    centroid_honest_false_pca_all = np.zeros((n_layers, n_components))
+    centroid_honest_vector_pca_all = np.zeros((n_layers, n_components))
+
     for layer in range(n_layers):
         activations_pca_honest = activations_pca[:n_samples, layer, :]
         activations_pca_lying = activations_pca[n_samples:, layer, :]
@@ -205,7 +212,12 @@ def get_cos_sim_honest_lying_vector(activations_all, activations_pca, labels, n_
         centroid_dir_honest = unit_vector(centroid_vector_honest)
         centroid_dir_lying = unit_vector(centroid_vector_lying)
         angle_honest_lying_pca[layer] = cosine_similarity(centroid_dir_honest, centroid_dir_lying)
-
+        centroid_honest_true_pca_all[layer, :] = centroid_honest_true
+        centroid_honest_false_pca_all[layer, :] = centroid_honest_false
+        centroid_honest_vector_pca_all[layer, :] = centroid_vector_honest
+        centroid_lying_true_pca_all[layer, :] = centroid_lying_true
+        centroid_lying_false_pca_all[layer, :] = centroid_lying_false
+        centroid_lying_vector_pca_all[layer, :] = centroid_vector_lying
     # # plot
     fig = make_subplots(rows=1, cols=2,
                         subplot_titles=('Residual Stream Original', ' Residual Stream PCA'))
@@ -233,8 +245,8 @@ def get_cos_sim_honest_lying_vector(activations_all, activations_pca, labels, n_
     # fig.write_html(save_path + os.sep + 'cos_sim_honest_lying.html')
     pio.write_image(fig, save_path + os.sep + 'cos_sim_honest_lying.png',
                     scale=6)
-    return centroid_honest_true, centroid_honest_false, centroid_vector_honest, centroid_lying_true,\
-           centroid_lying_false, centroid_vector_lying
+    return centroid_honest_true_pca_all, centroid_honest_false_pca_all, centroid_honest_vector_pca_all, \
+           centroid_lying_true_pca_all, centroid_lying_false_pca_all, centroid_lying_vector_pca_all
 
 
 def get_centroid_vector(arr, labels):
@@ -291,12 +303,11 @@ def get_state_quantification(cfg, activations_honest, activations_lying, labels)
 
     # 2. Stage 2:  Separation between True and False
     # Measurement: the distance between centroid between centroids of true and false
-    centroid_honest_true, centroid_honest_false, centroid_vector_honest, centroid_lying_true, centroid_lying_false, centroid_vector_lying = get_dist_centroid_true_false(activations_all,
-                                                                               activations_pca, labels, n_layers, save_path)
+    get_dist_centroid_true_false(activations_all, activations_pca, labels, n_layers, save_path)
 
     # 3. Stage 3: cosine similarity between the honest vector and lying vector
     # Measurement: cosine similarity between honest vector and lying vector 
     # honest vector is the centroid between honest true and honest false
-    get_cos_sim_honest_lying_vector(activations_all, activations_pca, labels, n_layers, save_path)
+    centroid_honest_true, centroid_honest_false, centroid_vector_honest, centroid_lying_true, centroid_lying_false, centroid_vector_lying = get_cos_sim_honest_lying_vector(activations_all, activations_pca, labels, n_layers, save_path)
 
-    return centroid_honest_true, centroid_honest_false, centroid_vector_honest, centroid_lying_true, centroid_lying_false, centroid_vector_lying
+    return activations_pca, centroid_honest_true, centroid_honest_false, centroid_vector_honest, centroid_lying_true, centroid_lying_false, centroid_vector_lying

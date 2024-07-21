@@ -103,16 +103,16 @@ def plot_one_layer_3d(activations_honest, activations_lying,
     return fig
 
 
-def plot_one_layer_with_centeroid_and_vector(activations_honest, activations_lying,
-                                             centeroid_honest_true, centeroid_honest_false,
-                                             centeroid_lying_true, centeroid_lying_false,
-                                             centeroid_vector_honest, centeroid_vector_lying,
-                                             labels,
-                                             save_path,
-                                             prompt_label=["honest", "lying"],
-                                             layer=16):
+def plot_one_layer_with_centroid_and_vector(activations_pca_all,
+                                            centroid_honest_true, centroid_honest_false,
+                                            centroid_lying_true, centroid_lying_false,
+                                            centroid_vector_honest, centroid_vector_lying,
+                                            labels,
+                                            save_path,
+                                            prompt_label=["honest", "lying"],
+                                            layer=16):
 
-    n_samples = activations_honest.shape[0]
+    n_samples = len(labels)
     if labels is not None:
         labels_all = labels + labels
         # true or false label
@@ -129,44 +129,37 @@ def plot_one_layer_with_centeroid_and_vector(activations_honest, activations_lyi
     for ii in range(n_samples):
         label_text = np.append(label_text, f'{prompt_label[1]}_{labels_tf[ii]}_{ii}')
 
-    activations_all: Float[Tensor, "n_samples n_layers d_model"] = torch.cat((activations_honest,
-                                                                              activations_lying), dim=0)
-
-    pca = PCA(n_components=3)
-    activations_pca_all = pca.fit_transform(activations_all[:, layer, :].cpu())
-
     df = {}
     df['label'] = labels_all
-    df['pca0'] = activations_pca_all[:, 0]
-    df['pca1'] = activations_pca_all[:, 1]
-    df['pca2'] = activations_pca_all[:, 1]
+    df['pca0'] = activations_pca_all[:, layer, 0]
+    df['pca1'] = activations_pca_all[:, layer, 1]
+    df['pca2'] = activations_pca_all[:, layer, 2]
     df['label_text'] = label_text
 
     # plot the centeroid vector
     # x, y = np.meshgrid(np.arange(-10, 10, .2),
     #                    np.arange(-10, 10, .2))
     # x y of quiver is the origin of the vector, u v is the end point of the vector
-    fig = ff.create_quiver(x=[centeroid_honest_false[0], centeroid_lying_false[0]],
-                           y=[centeroid_honest_false[1], centeroid_lying_false[1]],
-                           u=[centeroid_vector_honest[0], centeroid_vector_lying[0]],
-                           v=[centeroid_vector_honest[1], centeroid_vector_lying[1]],
+    fig = ff.create_quiver(x=[centroid_honest_false[layer, 0], centroid_lying_false[layer, 0]],
+                           y=[centroid_honest_false[layer, 1], centroid_lying_false[layer, 1]],
+                           u=[centroid_vector_honest[layer, 0], centroid_vector_lying[layer, 0]],
+                           v=[centroid_vector_honest[layer, 1], centroid_vector_lying[layer, 1]],
                            line=dict(width=3, color='black'),
                            scale=1)
-
     fig.add_trace(
         go.Scatter(x=df['pca0'][:n_samples],
                    y=df['pca1'][:n_samples],
                    mode="markers",
                    showlegend=False,
                    marker=dict(
-                         symbol="cross",
+                         symbol="star",
                          size=8,
                          line=dict(width=1, color="DarkSlateGrey"),
-                         color=df['label'][:n_samples]
+                         color=df['label'][:n_samples],
+                         opacity=0.5,
                    ),
                    text=df['label_text'][:n_samples]),
     )
-
     fig.add_trace(
         go.Scatter(x=df['pca0'][n_samples:n_samples * 2],
                    y=df['pca1'][n_samples:n_samples * 2],
@@ -177,26 +170,28 @@ def plot_one_layer_with_centeroid_and_vector(activations_honest, activations_lyi
                          size=5,
                          line=dict(width=1, color="DarkSlateGrey"),
                          color=df['label'][n_samples:n_samples * 2],
+                         opacity=0.5,
                    ),
                    text=df['label_text'][n_samples:n_samples * 2]),
     )
     # plot centroid: centroid honest, true
     fig.add_trace(go.Scatter(
-        x=[centeroid_honest_true[0]],
-        y=[centeroid_honest_true[1]],
+        x=[centroid_honest_true[layer, 0]],
+        y=[centroid_honest_true[layer, 1]],
         marker=dict(
-            symbol='cross',
+            symbol='star',
             size=10,
             color='orange'
         ),
         name='hoenst_true_centeroid'
     ))
+
     # plot centroid: centroid honest, false
     fig.add_trace(go.Scatter(
-        x=[centeroid_honest_false[0]],
-        y=[centeroid_honest_false[1]],
+        x=[centroid_honest_false[layer, 0]],
+        y=[centroid_honest_false[layer, 1]],
         marker=dict(
-            symbol='cross',
+            symbol='star',
             size=10,
             color='blue'
         ),
@@ -204,8 +199,8 @@ def plot_one_layer_with_centeroid_and_vector(activations_honest, activations_lyi
     ))
     # plot centroid: centroid lying, true
     fig.add_trace(go.Scatter(
-        x=[centeroid_lying_true[0]],
-        y=[centeroid_lying_true[1]],
+        x=[centroid_lying_true[layer, 0]],
+        y=[centroid_lying_true[layer, 1]],
         marker=dict(
             symbol='circle',
             size=10,
@@ -215,8 +210,8 @@ def plot_one_layer_with_centeroid_and_vector(activations_honest, activations_lyi
     ))
     # plot centroid: centroid lying, false
     fig.add_trace(go.Scatter(
-        x=[centeroid_lying_false[0]],
-        y=[centeroid_lying_false[1]],
+        x=[centroid_lying_false[layer, 0]],
+        y=[centroid_lying_false[layer, 1]],
         marker=dict(
             symbol='circle',
             size=10,
@@ -224,9 +219,13 @@ def plot_one_layer_with_centeroid_and_vector(activations_honest, activations_lyi
         ),
         name='lying_false_centeroid',
     ))
-    fig.update_layout(height=800, width=800)
-    fig.write_html(save_path + os.sep + 'pca_layer.html')
-    pio.write_image(save_path + os.sep + 'pca_layer.png')
-    pio.write_image(save_path + os.sep + 'pca_layer.pdf')
+    fig.update_layout(height=800, width=800,
+                      title=dict(text=f"Layer {layer}", font=dict(size=30), automargin=True, yref='paper')
+                      )
+    fig.write_html(save_path + os.sep + f'pca_centroid_layer_{layer}.html')
+    pio.write_image(fig, save_path + os.sep + f'pca_centroid_layer_{layer}.png',
+                    scale=6)
+    pio.write_image(fig, save_path + os.sep + f'pca_centroid_layer_{layer}.pdf',
+                    scale=6)
 
     return fig

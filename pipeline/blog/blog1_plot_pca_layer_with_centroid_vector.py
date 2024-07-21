@@ -20,7 +20,7 @@ from pipeline.analysis.stage_statistics import get_state_quantification
 from pipeline.honesty_config_performance import Config
 from pipeline.run_pipeline_honesty_performance import load_and_sample_datasets
 from pipeline.run_pipeline_honesty_performance import get_lying_honest_accuracy_and_plot
-from pipeline.analysis.checkout_one_layer import plot_one_layer_with_centeroid_and_vector
+from pipeline.analysis.checkout_one_layer import plot_one_layer_with_centroid_and_vector
 
 
 def parse_arguments():
@@ -51,21 +51,22 @@ def run_pipeline(model_path, save_path, layer_plot=16):
     activations_honest, activations_lying, labels = get_lying_honest_accuracy_and_plot(cfg, model_base, dataset)
 
     # 4. Get centroid
-    centroid_honest_true, centroid_honest_false, centroid_honest_false, centroid_lying_true, centroid_lying_false, centroid_vector_lying = get_state_quantification(cfg, activations_honest, activations_lying, labels)
+    activations_pca, centroid_honest_true, centroid_honest_false, centroid_vector_honest, centroid_lying_true, centroid_lying_false, centroid_vector_lying = get_state_quantification(cfg, activations_honest, activations_lying, labels)
 
     # 5. plot
     intervention = cfg.intervention
     save_dir = os.path.join(cfg.artifact_path(), intervention)
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
-    plot_one_layer_with_centeroid_and_vector(activations_honest, activations_lying,
-                                             centroid_honest_true, centroid_honest_false,
-                                             centroid_lying_true, centroid_lying_false,
-                                             centroid_honest_false, centroid_vector_lying,
-                                             labels,
-                                             save_dir,
-                                             prompt_label=["honest", "lying"],
-                                             layer=layer_plot)
+
+    plot_one_layer_with_centroid_and_vector(activations_pca,
+                                            centroid_honest_true, centroid_honest_false,
+                                            centroid_lying_true, centroid_lying_false,
+                                            centroid_vector_honest, centroid_vector_lying,
+                                            labels,
+                                            save_dir,
+                                            prompt_label=["honest", "lying"],
+                                            layer=layer_plot)
 
 
 if __name__ == "__main__":
