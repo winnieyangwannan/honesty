@@ -14,6 +14,7 @@ from plotly.subplots import make_subplots
 from sklearn.metrics.pairwise import cosine_similarity
 from plotly.figure_factory import create_quiver
 import plotly.figure_factory as ff
+import plotly.io as pio
 
 
 from sklearn.decomposition import PCA
@@ -31,7 +32,8 @@ from scipy import stats
 
 def plot_one_layer_3d(activations_honest, activations_lying,
                       labels,
-                      prompt_label=["honest", "lying"], layer=16):
+                      prompt_label=["honest", "lying"],
+                      layer=16):
 
     n_samples = activations_honest.shape[0]
     if labels is not None:
@@ -106,7 +108,9 @@ def plot_one_layer_with_centeroid_and_vector(activations_honest, activations_lyi
                                              centeroid_lying_true, centeroid_lying_false,
                                              centeroid_vector_honest, centeroid_vector_lying,
                                              labels,
-                                             prompt_label=["honest", "lying"], layer=16):
+                                             save_path,
+                                             prompt_label=["honest", "lying"],
+                                             layer=16):
 
     n_samples = activations_honest.shape[0]
     if labels is not None:
@@ -221,5 +225,8 @@ def plot_one_layer_with_centeroid_and_vector(activations_honest, activations_lyi
         name='lying_false_centeroid',
     ))
     fig.update_layout(height=800, width=800)
-    fig.write_html('pca_layer.html')
+    fig.write_html(save_path + os.sep + 'pca_layer.html')
+    pio.write_image(save_path + os.sep + 'pca_layer.png')
+    pio.write_image(save_path + os.sep + 'pca_layer.pdf')
+
     return fig

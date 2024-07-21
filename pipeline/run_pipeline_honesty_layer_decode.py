@@ -125,6 +125,7 @@ def generate_and_get_layer_decode(cfg, model_base, dataset):
     with open(artifact_dir+os.sep+'layer_decode'+os.sep+f'{data_category}_completions_lying_layer_'+str(cut_layer) + '.json', "w") as f:
         json.dump(completions_lying, f, indent=4)
 
+
 def run_pipeline(model_path, save_path, cut_layer=16):
     """Run the full pipeline."""
 

@@ -25,11 +25,12 @@ class Config:
     data_category: str = "facts"
     batch_size: int = 16
     source_layer: int = 10
-    intervention: str = "diff addition"
+    intervention: str = "no_intervention"
     target_layer: int = 10
     max_new_tokens: int = 100
     # for generation_trajectory
-    dataset_id = [3,4]
+    dataset_id = [3, 4]
+    layer_plot: int = 16
 
 
     def artifact_path(self) -> str:

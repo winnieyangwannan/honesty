@@ -14,6 +14,7 @@ from plotly.subplots import make_subplots
 from sklearn.metrics.pairwise import cosine_similarity
 from plotly.figure_factory import create_quiver
 import plotly.figure_factory as ff
+import plotly.io as pio
 
 
 from sklearn.decomposition import PCA
@@ -73,7 +74,7 @@ def get_distance_pair_honest_lying(activations_all, activations_pca, n_layers, s
 
     # # plot
     fig = make_subplots(rows=2, cols=2,
-                        subplot_titles=('Original', 'PCA',
+                        subplot_titles=('Residual Stream Original', ' Residual Stream PCA',
                                         '', '')
                         )
     fig.add_trace(go.Scatter(
@@ -96,7 +97,7 @@ def get_distance_pair_honest_lying(activations_all, activations_pca, n_layers, s
                              mode='lines+markers',
                              showlegend=False,
                              ), row=2, col=2)
-    fig.update_layout(height=600, width=1200)
+    fig.update_layout(height=1000, width=1200)
     fig['layout']['xaxis']['title'] = 'Layer'
     fig['layout']['xaxis2']['title'] = 'Layer'
     fig['layout']['xaxis3']['title'] = 'Layer'
@@ -108,7 +109,9 @@ def get_distance_pair_honest_lying(activations_all, activations_pca, n_layers, s
     fig['layout']['yaxis4']['title'] = ''
 
     fig.show()
-    fig.write_html(save_path + os.sep + 'distance_pair.html')
+    # fig.write_html(save_path + os.sep + 'distance_pair.html')
+    pio.write_image(fig, save_path + os.sep + 'distance_pair.png',
+                    scale=6)
 
 
 # 2. Stage 2:  Separation between True and False
@@ -133,7 +136,7 @@ def get_dist_centroid_true_false(activations_all, activations_pca, labels, n_lay
 
     # # plot
     fig = make_subplots(rows=1, cols=2,
-                        subplot_titles=('Original', 'PCA'))
+                        subplot_titles=('Residual Stream Original', ' Residual Stream PCA'))
     fig.add_trace(go.Scatter(
                              x=np.arange(n_layers), y=centroid_dist_honest,
                              name="honest",
@@ -161,7 +164,10 @@ def get_dist_centroid_true_false(activations_all, activations_pca, labels, n_lay
     fig['layout']['yaxis2']['title'] = ''
     fig.update_layout(height=400, width=800)
     fig.show()
-    fig.write_html(save_path + os.sep + 'centroid_distance_true_false.html')
+    # fig.write_html(save_path + os.sep + 'centroid_distance_true_false.html')
+    pio.write_image(fig, save_path
+                    + os.sep + 'centroid_distance_true_false.png',
+                    scale=6)
 
 
 def get_centroid_dist(arr, labels):
@@ -202,7 +208,7 @@ def get_cos_sim_honest_lying_vector(activations_all, activations_pca, labels, n_
 
     # # plot
     fig = make_subplots(rows=1, cols=2,
-                        subplot_titles=('Original', 'PCA'))
+                        subplot_titles=('Residual Stream Original', ' Residual Stream PCA'))
     fig.add_trace(go.Scatter(
                              x=np.arange(n_layers), y=angle_honest_lying,
                              mode='lines+markers',
@@ -224,7 +230,11 @@ def get_cos_sim_honest_lying_vector(activations_all, activations_pca, labels, n_
     fig['layout']['xaxis2']['tickvals'] = np.arange(0, n_layers, 5)
 
     fig.show()
-    fig.write_html(save_path + os.sep + 'cos_sim_honest_lying.html')
+    # fig.write_html(save_path + os.sep + 'cos_sim_honest_lying.html')
+    pio.write_image(fig, save_path + os.sep + 'cos_sim_honest_lying.png',
+                    scale=6)
+    return centroid_honest_true, centroid_honest_false, centroid_vector_honest, centroid_lying_true,\
+           centroid_lying_false, centroid_vector_lying
 
 
 def get_centroid_vector(arr, labels):
@@ -281,9 +291,12 @@ def get_state_quantification(cfg, activations_honest, activations_lying, labels)
 
     # 2. Stage 2:  Separation between True and False
     # Measurement: the distance between centroid between centroids of true and false
-    get_dist_centroid_true_false(activations_all, activations_pca, labels, n_layers, save_path)
+    centroid_honest_true, centroid_honest_false, centroid_vector_honest, centroid_lying_true, centroid_lying_false, centroid_vector_lying = get_dist_centroid_true_false(activations_all,
+                                                                               activations_pca, labels, n_layers, save_path)
 
     # 3. Stage 3: cosine similarity between the honest vector and lying vector
     # Measurement: cosine similarity between honest vector and lying vector 
     # honest vector is the centroid between honest true and honest false
     get_cos_sim_honest_lying_vector(activations_all, activations_pca, labels, n_layers, save_path)
+
+    return centroid_honest_true, centroid_honest_false, centroid_vector_honest, centroid_lying_true, centroid_lying_false, centroid_vector_lying

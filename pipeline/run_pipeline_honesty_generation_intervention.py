@@ -180,8 +180,9 @@ def generate_with_intervention_cache_contrastive_activations_and_plot_pca(cfg,
         "activations_honest": intervention_activations_honest,
         "activations_lying": intervention_activations_lying,
     }
-    with open(artifact_dir + os.sep + intervention + os.sep + model_name + '_' + f'{data_category}'
-                   + '_activation_pca_' + intervention + '.pkl', "wb") as f:
+    with open(artifact_dir + os.sep + intervention + os.sep + model_name + '_' + f'{data_category}' +
+                    '_activation_pca_' + intervention + str(source_layer) + '_' + str(target_layer_s) +
+                    '_' + str(target_layer_e) + '.pkl', "wb") as f:
         pickle.dump(activations, f)
 
     # 3. pca with and without intervention, plot and save pca plots
@@ -200,6 +201,7 @@ def generate_with_intervention_cache_contrastive_activations_and_plot_pca(cfg,
                    '_pca_layer_' + str(source_layer) + '_' + str(target_layer_s) + '_' + str(target_layer_e) + '.html')
     fig.write_image(artifact_dir + os.sep + intervention + os.sep + data_category + '_' + intervention +
                    '_pca_layer_' + str(source_layer) + '_' + str(target_layer_s) + '_' + str(target_layer_e) + '.svg')
+
     # 4. get accuracy
     correct_honest, unexpected_honest = get_accuracy_and_unexpected(first_gen_toks_honest, first_gen_str_honest,
                                                                     labels,
