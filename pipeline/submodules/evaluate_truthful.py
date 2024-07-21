@@ -3,6 +3,9 @@ from torch.nn.functional import softmax
 from pipeline.utils.hook_utils import add_hooks
 from pipeline.utils.hook_utils import get_activations_pre_hook
 from tqdm import tqdm
+import os
+import pandas as pd
+import plotly.express as px
 
 from pipeline.model_utils.model_base import ModelBase
 from plotly.subplots import make_subplots
@@ -15,6 +18,22 @@ from pipeline.utils.hook_utils import get_and_cache_direction_ablation_input_pre
 from pipeline.utils.hook_utils import get_and_cache_diff_addition_input_pre_hook
 from pipeline.utils.hook_utils import get_and_cache_direction_ablation_output_hook
 from pipeline.utils.hook_utils import get_and_cache_activation_addition_output_hook
+
+
+def plot_lying_honest_accuracy(cfg, accuracy_honest, accuracy_lying):
+    model_name = cfg.model_alias
+
+    # data frame
+    d = {'Accuracy': [accuracy_honest, accuracy_lying],
+         'Role': ["honest", "lying"]}
+    df = pd.DataFrame(data=d)
+
+    # plot
+    fig = px.bar(df, x="Role", y="Accuracy", title=f"{model_name}",
+                 width=400, height=400)
+    fig.show()
+
+    return fig
 
 
 def get_accuracy_and_unexpected(top_token_id, top_token_str, labels, true_token_id, false_token_id):
@@ -144,7 +163,6 @@ def get_statement_accuracy_cache_activation(model_base, dataset, cfg, system_typ
 
     return accuracy_all, probability_all, unexpected_all, activations
 
-def plot_lying_honest_accuracy():
-    pass
+
 
 

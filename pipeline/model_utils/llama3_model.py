@@ -246,3 +246,9 @@ class Llama3Model(ModelBase):
     
     def _get_act_add_mod_fn(self, direction: Float[Tensor, "d_model"], coeff, layer):
         return functools.partial(act_add_llama3_weights, direction=direction, coeff=coeff, layer=layer)
+
+    def _get_layer_norm(self):
+        return self.model.model.norm
+
+    def _get_lm_head(self):
+        return self.model.lm_head

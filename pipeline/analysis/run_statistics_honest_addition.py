@@ -21,6 +21,7 @@ import plotly.express as px
 
 def parse_arguments():
     """Parse model path argument from command line."""
+
     parser = argparse.ArgumentParser(description="Parse model path argument.")
     parser.add_argument('--model_path', type=str, required=True, help='Path to the model')
     parser.add_argument('--batch_size', type=int, required=False, default=16)
@@ -32,15 +33,17 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def get_accuracy_statistics(cfg,model_base):
+def get_accuracy_statistics(cfg, model_base):
     artifact_path = cfg.artifact_path()
     intervention = cfg.intervention
     data_category = cfg.data_category
     n_layers = model_base.model.config.num_hidden_layers
     source_layers = np.arange(0, n_layers)
+    # source_layers = np.arange(0, 64)
 
     # load data
     accuracy_lying = []
+    accuracy_honest = []
     for layer in source_layers:
         filename = artifact_path + os.sep + intervention + os.sep + f'{data_category}_{intervention}_' + 'model_performance_layer_' + str(
                             layer) + '_' + str(layer) + '.csv'
@@ -48,21 +51,24 @@ def get_accuracy_statistics(cfg,model_base):
            reader = csv.reader(file)
            data_list = list(reader)
         accuracy_lying.append(data_list[2][-1])
+        accuracy_honest.append(data_list[3][-1])
+
     accuracy_lying = [float(accuracy_lying[ii]) for ii in range(len(accuracy_lying))]
+    accuracy_honest = [float(accuracy_honest[ii]) for ii in range(len(accuracy_honest))]
 
     # plot
     fig = px.line(x=source_layers, y=accuracy_lying,
                   labels=dict(x="Layer", y="Accuracy"),
                   width=800, height=400)
+    fig.add_scatter(x=source_layers, y=accuracy_honest)
+
     fig.show()
-    fig.write_html(artifact_path + os.sep + intervention + os.sep + data_category + '_' +intervention +
+    fig.write_html(artifact_path + os.sep + intervention + os.sep + data_category + '_' + intervention +
                    '_statistics_accuracy'+'.html')
 
 
 def run_pipeline(model_path, save_path, intervention, source_layer, target_layer):
     """Run the full pipeline."""
-
-
     model_alias = os.path.basename(model_path)
     cfg = Config(model_alias=model_alias, model_path=model_path, save_path=save_path,
                  intervention=intervention,

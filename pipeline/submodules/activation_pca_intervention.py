@@ -21,9 +21,6 @@ from pipeline.utils.hook_utils import get_and_cache_direction_ablation_output_ho
 from pipeline.utils.hook_utils import get_and_cache_skip_connection_input_pre_hook, get_and_cache_skip_connection_hook
 
 
-
-
-
 def plot_contrastive_activation_intervention_pca(activations_honest,
                                                  activations_lie,
                                                  intervention_activations_honest,
@@ -31,6 +28,8 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
                                                  n_layers,
                                                  contrastive_label,
                                                  labels=None,
+                                                 plot_original=False,
+                                                 plot_intervention=True,
                                                  ):
     activations_all: Float[Tensor, "n_samples n_layers d_model"] = torch.cat((activations_honest,
                                                                               activations_lie),
@@ -90,182 +89,180 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
                 df['pca1'] = activation_pca_all[:, 1]
                 df['label_text'] = label_text
 
-                fig.add_trace(
-                    go.Scatter(x=df['pca0'][:n_data],
-                               y=df['pca1'][:n_data],
-                               mode='markers',
-                               showlegend=False,
-                               marker=dict(
-                                   symbol="star",
-                                   size=8,
-                                   line=dict(width=1, color="DarkSlateGrey"),
-                                   color=df['label'][:n_data],
-                                   colorscale='PiYG'
-                               ),
-                               text=df['label_text'][:n_data]),
-                    row=row + 1, col=ll + 1,
-                )
+                if plot_original:
+                    fig.add_trace(
+                        go.Scatter(x=df['pca0'][:n_data],
+                                   y=df['pca1'][:n_data],
+                                   mode='markers',
+                                   showlegend=False,
+                                   marker=dict(
+                                       symbol="star",
+                                       size=8,
+                                       line=dict(width=1, color="DarkSlateGrey"),
+                                       color=df['label'][:n_data],
+                                       colorscale='PiYG'
+                                   ),
+                                   text=df['label_text'][:n_data]),
+                        row=row + 1, col=ll + 1,
+                    )
 
-                fig.add_trace(
-                    go.Scatter(x=df['pca0'][n_data:n_data*2],
-                               y=df['pca1'][n_data:n_data*2],
-                               mode='markers',
-                               showlegend=False,
-                               marker=dict(
-                                   symbol="circle",
-                                   size=8,
-                                   line=dict(width=1, color="DarkSlateGrey"),
-                                   color=df['label'][n_data:n_data*2],
-                                   colorscale='PiYG'
-                               ),
-                               text=df['label_text'][n_data:n_data*2]),
-                    row=row + 1, col=ll + 1,
-                )
-                fig.add_trace(
-                    go.Scatter(x=df['pca0'][n_data*2:n_data*3],
-                               y=df['pca1'][n_data*2:n_data*3],
-                               mode='markers',
-                               showlegend=False,
-                               marker=dict(
-                                   symbol="triangle-up",
-                                   size=8,
-                                   line=dict(width=1, color="DarkSlateGrey"),
-                                   color=df['label'][n_data*2:n_data*3],
-                                   colorscale='RdBu'
-                               ),
-                               text=df['label_text'][n_data*2:n_data*3]),
-                    row=row + 1, col=ll + 1,
-                )
-                fig.add_trace(
-                    go.Scatter(x=df['pca0'][-n_data:],
-                               y=df['pca1'][-n_data:],
-                               mode='markers',
-                               showlegend=False,
-                               marker=dict(
-                                   symbol="square",
-                                   size=8,
-                                   line=dict(width=1, color="DarkSlateGrey"),
-                                   color=df['label'][-n_data:],
-                                   colorscale='RdBu'
-                               ),
-                               text=df['label_text'][-n_data:]),
-                    row=row + 1, col=ll + 1,
-                )
+                    fig.add_trace(
+                        go.Scatter(x=df['pca0'][n_data:n_data*2],
+                                   y=df['pca1'][n_data:n_data*2],
+                                   mode='markers',
+                                   showlegend=False,
+                                   marker=dict(
+                                       symbol="circle",
+                                       size=8,
+                                       line=dict(width=1, color="DarkSlateGrey"),
+                                       color=df['label'][n_data:n_data*2],
+                                       colorscale='PiYG'
+                                   ),
+                                   text=df['label_text'][n_data:n_data*2]),
+                        row=row + 1, col=ll + 1,
+                    )
+                if plot_intervention:
+                    fig.add_trace(
+                        go.Scatter(x=df['pca0'][n_data*2:n_data*3],
+                                   y=df['pca1'][n_data*2:n_data*3],
+                                   mode='markers',
+                                   showlegend=False,
+                                   marker=dict(
+                                       symbol="triangle-up",
+                                       size=8,
+                                       line=dict(width=1, color="DarkSlateGrey"),
+                                       color=df['label'][n_data*2:n_data*3],
+                                   ),
+                                   text=df['label_text'][n_data*2:n_data*3]),
+                        row=row + 1, col=ll + 1,
+                    )
+                    fig.add_trace(
+                        go.Scatter(x=df['pca0'][-n_data:],
+                                   y=df['pca1'][-n_data:],
+                                   mode='markers',
+                                   showlegend=False,
+                                   marker=dict(
+                                       symbol="square",
+                                       size=8,
+                                       line=dict(width=1, color="DarkSlateGrey"),
+                                       color=df['label'][-n_data:],
+                                   ),
+                                   text=df['label_text'][-n_data:]),
+                        row=row + 1, col=ll + 1,
+                    )
     # legend
-    fig.add_trace(
-        go.Scatter(x=[None],
-                   y=[None],
-                   mode='markers',
-                   marker=dict(
-                       symbol="star",
-                       size=5,
-                       line=dict(width=1, color="DarkSlateGrey"),
-                       colorscale='PiYG',
-                       color=1
-                   ),
-                   name=f'honest_true',
-                   ),
-    )
+    if plot_original:
+        fig.add_trace(
+            go.Scatter(x=[None],
+                       y=[None],
+                       mode='markers',
+                       marker=dict(
+                           symbol="star",
+                           size=5,
+                           line=dict(width=1, color="DarkSlateGrey"),
+                           colorscale='PiYG',
+                           color=1
+                       ),
+                       name=f'honest_true',
+                       ),
+        )
 
-    fig.add_trace(
-        go.Scatter(x=[None],
-                   y=[None],
-                   mode='markers',
-                   marker=dict(
-                       symbol="star",
-                       size=5,
-                       line=dict(width=1, color="DarkSlateGrey"),
-                       color=1,
-                       colorscale='PiYG',
-                   ),
-                   name=f'honest_false',
-                   ),
-    )
-    fig.add_trace(
-        go.Scatter(x=[None],
-                   y=[None],
-                   mode='markers',
-                   marker=dict(
-                       symbol="circle",
-                       size=5,
-                       line=dict(width=1, color="DarkSlateGrey"),
-                       colorscale='PiYG',
-                       color=1
-                   ),
-                   name=f'lying_true',
-                   ),
-    )
-    fig.add_trace(
-        go.Scatter(x=[None],
-                   y=[None],
-                   mode='markers',
-                   marker=dict(
-                       symbol="circle",
-                       size=5,
-                       line=dict(width=1, color="DarkSlateGrey"),
-                       colorscale='PiYG',
-                       color=0
-                   ),
-                   name=f'lying_false',
-                   ),
-    )
-    fig.add_trace(
-        go.Scatter(x=[None],
-                   y=[None],
-                   mode='markers',
-                   marker=dict(
-                       symbol="triangle-up",
-                       size=5,
-                       line=dict(width=1, color="DarkSlateGrey"),
-                       colorscale='PiYG',
-                       color=1
-                   ),
-                   name=f'honest_intervention_true',
-                   ),
-    )
-    fig.add_trace(
-        go.Scatter(x=[None],
-                   y=[None],
-                   mode='markers',
-                   marker=dict(
-                       symbol="triangle-up",
-                       size=5,
-                       line=dict(width=1, color="DarkSlateGrey"),
-                       colorscale='RdBu',
-                       color=0
-                   ),
-                   name=f'honest_intervention_false',
-                   ),
-    )
-    fig.add_trace(
-        go.Scatter(x=[None],
-                   y=[None],
-                   mode='markers',
-                   marker=dict(
-                       symbol="square",
-                       size=5,
-                       line=dict(width=1, color="DarkSlateGrey"),
-                       colorscale='RdBu',
-                       color=1
-                   ),
-                   name=f'lying_intervention_true',
-                   ),
-    )
-    fig.add_trace(
-        go.Scatter(x=[None],
-                   y=[None],
-                   mode='markers',
-                   marker=dict(
-                       symbol="square",
-                       size=5,
-                       line=dict(width=1, color="DarkSlateGrey"),
-                       colorscale='RdBu',
-                       color=0
+        fig.add_trace(
+            go.Scatter(x=[None],
+                       y=[None],
+                       mode='markers',
+                       marker=dict(
+                           symbol="star",
+                           size=5,
+                           line=dict(width=1, color="DarkSlateGrey"),
+                           color=1,
+                           colorscale='PiYG',
+                       ),
+                       name=f'honest_false',
+                       ),
+        )
+        fig.add_trace(
+            go.Scatter(x=[None],
+                       y=[None],
+                       mode='markers',
+                       marker=dict(
+                           symbol="circle",
+                           size=5,
+                           line=dict(width=1, color="DarkSlateGrey"),
+                           colorscale='PiYG',
+                           color=1
+                       ),
+                       name=f'lying_true',
+                       ),
+        )
+        fig.add_trace(
+            go.Scatter(x=[None],
+                       y=[None],
+                       mode='markers',
+                       marker=dict(
+                           symbol="circle",
+                           size=5,
+                           line=dict(width=1, color="DarkSlateGrey"),
+                           colorscale='PiYG',
+                           color=0
+                       ),
+                       name=f'lying_false',
+                       ),
+        )
+    if plot_intervention:
+        fig.add_trace(
+            go.Scatter(x=[None],
+                       y=[None],
+                       mode='markers',
+                       marker=dict(
+                           symbol="triangle-up",
+                           size=5,
+                           line=dict(width=1, color="DarkSlateGrey"),
+                           color='yellow'
+                       ),
+                       name=f'honest_intervention_true',
+                       ),
+        )
+        fig.add_trace(
+            go.Scatter(x=[None],
+                       y=[None],
+                       mode='markers',
+                       marker=dict(
+                           symbol="triangle-up",
+                           size=5,
+                           line=dict(width=1, color="DarkSlateGrey"),
+                           color='blue'
+                       ),
+                       name=f'honest_intervention_false',
+                       ),
+        )
+        fig.add_trace(
+            go.Scatter(x=[None],
+                       y=[None],
+                       mode='markers',
+                       marker=dict(
+                           symbol="square",
+                           size=5,
+                           line=dict(width=1, color="DarkSlateGrey"),
+                           color='yellow'
+                       ),
+                       name=f'lying_intervention_true',
+                       ),
+        )
+        fig.add_trace(
+            go.Scatter(x=[None],
+                       y=[None],
+                       mode='markers',
+                       marker=dict(
+                           symbol="square",
+                           size=5,
+                           line=dict(width=1, color="DarkSlateGrey"),
+                           color='blue'
 
-                   ),
-                   name=f'lying_intervention_false',
-                   ),
-    )
+                       ),
+                       name=f'lying_intervention_false',
+                       ),
+        )
 
     fig.update_layout(height=1600, width=1000)
     fig.show()
@@ -276,7 +273,8 @@ def get_intervention_activations_and_generation(cfg, model_base, dataset,
                                                 tokenize_fn,
                                                 positions=[-1],
                                                 mean_diff=None,
-                                                target_layer=None,
+                                                target_layer_s=None,
+                                                target_layer_e=None,
                                                 max_new_tokens=64,
                                                 system_type=None,
                                                 labels=None):
@@ -295,6 +293,7 @@ def get_intervention_activations_and_generation(cfg, model_base, dataset,
     batch_size = cfg.batch_size
     intervention = cfg.intervention
     model = model_base.model
+    model_name = cfg.model_alias
     block_modules = model_base.model_block_modules
     tokenizer = model_base.tokenizer
     n_layers = model.config.num_hidden_layers
@@ -302,12 +301,12 @@ def get_intervention_activations_and_generation(cfg, model_base, dataset,
     n_samples = len(dataset)
 
     # if not specified, ablate all layers by default
-    if target_layer == None:
+    if target_layer_s is None:
         target_layer = np.arange(n_layers)
-    elif type(target_layer) == list:
-        target_layer = target_layer
-    elif type(target_layer) == int:
-        target_layer = [np.arange(n_layers)[target_layer]]
+    elif type(target_layer_s) == int and target_layer_e is None:
+        target_layer = [np.arange(n_layers)[target_layer_s]]
+    elif type(target_layer_s) == int and type(target_layer_e) == int:
+        target_layer = np.arange(target_layer_s, target_layer_e)
 
     generation_config = GenerationConfig(max_new_tokens=max_new_tokens, do_sample=False)
     generation_config.pad_token_id = tokenizer.pad_token_id
@@ -322,39 +321,52 @@ def get_intervention_activations_and_generation(cfg, model_base, dataset,
         len_inputs = inputs.input_ids.shape[1]
 
         if 'direction ablation' in intervention:
-            fwd_pre_hooks = [(block_modules[layer],
-                              get_and_cache_direction_ablation_input_pre_hook(
+            if "mlp" in intervention:
+                fwd_pre_hooks = [(block_modules[layer].mlp,
+                                  get_and_cache_direction_ablation_input_pre_hook(
+                                      mean_diff=mean_diff,
+                                      cache=activations,
+                                      layer=layer,
+                                      positions=positions,
+                                      batch_id=i,
+                                      batch_size=batch_size,
+                                      target_layer=target_layer,
+                                      len_prompt=len_inputs),
+                                  ) for layer in range(n_layers)]
+                fwd_hooks = [(block_modules[layer].mlp,
+                              get_and_cache_direction_ablation_output_hook(
+                                  mean_diff=mean_diff,
+                                  layer=layer,
+                                  positions=positions,
+                                  batch_id=i,
+                                  batch_size=batch_size,
+                                  target_layer=target_layer,
+                              ),
+                              ) for layer in range(n_layers)]
+            else:
+                fwd_pre_hooks = [(block_modules[layer],
+                                  get_and_cache_direction_ablation_input_pre_hook(
+                                                           mean_diff=mean_diff,
+                                                           cache=activations,
+                                                           layer=layer,
+                                                           positions=positions,
+                                                           batch_id=i,
+                                                           batch_size=batch_size,
+                                                           target_layer=target_layer,
+                                                           len_prompt=len_inputs),
+                                                        ) for layer in range(n_layers)]
+                fwd_hooks = [(block_modules[layer],
+                              get_and_cache_direction_ablation_output_hook(
                                                        mean_diff=mean_diff,
-                                                       cache=activations,
                                                        layer=layer,
                                                        positions=positions,
                                                        batch_id=i,
                                                        batch_size=batch_size,
                                                        target_layer=target_layer,
-                                                       len_prompt=len_inputs),
+                                                       ),
                                                     ) for layer in range(n_layers)]
-            fwd_hooks = [(block_modules[layer],
-                          get_and_cache_direction_ablation_output_hook(
-                                                   mean_diff=mean_diff,
-                                                   layer=layer,
-                                                   positions=positions,
-                                                   batch_id=i,
-                                                   batch_size=batch_size,
-                                                   target_layer=target_layer,
-                                                   ),
-                                                ) for layer in range(n_layers)]
+
         elif "addition" in intervention:
-            # fwd_pre_hooks = [(block_modules[layer],
-            #                   get_and_cache_diff_addition_input_pre_hook(
-            #                                            mean_diff=mean_diff,
-            #                                            cache=activations,
-            #                                            layer=layer,
-            #                                            positions=positions,
-            #                                            batch_id=i,
-            #                                            batch_size=batch_size,
-            #                                            target_layer=target_layer,
-            #                                            len_prompt=len_inputs),
-            #                                         ) for layer in range(n_layers)]
             fwd_pre_hooks = []
             if "mlp" in intervention:
                 fwd_hooks = [(block_modules[layer].mlp,
@@ -368,6 +380,32 @@ def get_intervention_activations_and_generation(cfg, model_base, dataset,
                                                        target_layer=target_layer,
                                                        len_prompt=len_inputs),
                                                     ) for layer in range(n_layers)]
+            elif "attn" in intervention:
+                if "Llama" in model_name or "gemma" in model_name or "Yi" in model_name:
+                    fwd_hooks = [(block_modules[layer].self_attn,
+                                  get_and_cache_diff_addition_output_hook(
+                                                           mean_diff=mean_diff,
+                                                           cache=activations,
+                                                           layer=layer,
+                                                           positions=positions,
+                                                           batch_id=i,
+                                                           batch_size=batch_size,
+                                                           target_layer=target_layer,
+                                                           len_prompt=len_inputs),
+                                                        ) for layer in range(n_layers)]
+                elif "Qwen" in model_name:
+
+                    fwd_hooks = [(block_modules[layer].attn,
+                                  get_and_cache_diff_addition_output_hook(
+                                                           mean_diff=mean_diff,
+                                                           cache=activations,
+                                                           layer=layer,
+                                                           positions=positions,
+                                                           batch_id=i,
+                                                           batch_size=batch_size,
+                                                           target_layer=target_layer,
+                                                           len_prompt=len_inputs),
+                                                        ) for layer in range(n_layers)]
             else:
                 fwd_hooks = [(block_modules[layer],
                               get_and_cache_diff_addition_output_hook(
@@ -382,18 +420,7 @@ def get_intervention_activations_and_generation(cfg, model_base, dataset,
                                                     ) for layer in range(n_layers)]
 
             # fwd_hooks = []
-        elif "skip connection" in intervention:
-            # fwd_pre_hooks = [(block_modules[layer].mlp.c_proj,
-            #                   get_and_cache_skip_connection_input_pre_hook(
-            #                       mean_diff=mean_diff,
-            #                       cache=activations,
-            #                       layer=layer,
-            #                       positions=positions,
-            #                       batch_id=i,
-            #                       batch_size=batch_size,
-            #                       target_layer=target_layer,
-            #                       len_prompt=len_inputs),
-            #                   ) for layer in range(n_layers)]
+        elif "skip_connection" in intervention:
             fwd_pre_hooks = []
             if "mlp" in intervention:
                 fwd_hooks = [(block_modules[layer].mlp,
@@ -407,19 +434,45 @@ def get_intervention_activations_and_generation(cfg, model_base, dataset,
                                                                  target_layer=target_layer,
                                                                  len_prompt=len_inputs),
                                                               ) for layer in range(n_layers)]
+            elif "attn" in intervention:
+                if "Llama" in model_name or "gemma" in model_name or "Yi" in model_name:
+                    fwd_hooks = [(block_modules[layer].self_attn,
+                                  get_and_cache_skip_connection_hook(
+                                                                      mean_diff=mean_diff,
+                                                                      cache=activations,
+                                                                      layer=layer,
+                                                                      positions=positions,
+                                                                      batch_id=i,
+                                                                      batch_size=batch_size,
+                                                                      target_layer=target_layer,
+                                                                      len_prompt=len_inputs),
+                                                                    ) for layer in range(n_layers)]
+
+                elif "Qwen" in model_name:
+                    fwd_hooks = [(block_modules[layer].attn,
+                                  get_and_cache_skip_connection_hook(
+                                                                      mean_diff=mean_diff,
+                                                                      cache=activations,
+                                                                      layer=layer,
+                                                                      positions=positions,
+                                                                      batch_id=i,
+                                                                      batch_size=batch_size,
+                                                                      target_layer=target_layer,
+                                                                      len_prompt=len_inputs),
+                                                                    ) for layer in range(n_layers)]
             else:
                 fwd_hooks = [(block_modules[layer],
                               get_and_cache_skip_connection_hook(
-                                  mean_diff=mean_diff,
-                                  cache=activations,
-                                  layer=layer,
-                                  positions=positions,
-                                  batch_id=i,
-                                  batch_size=batch_size,
-                                  target_layer=target_layer,
-                                  len_prompt=len_inputs),
-                              ) for layer in range(n_layers)]
-            # fwd_hooks = []
+                                                                  mean_diff=mean_diff,
+                                                                  cache=activations,
+                                                                  layer=layer,
+                                                                  positions=positions,
+                                                                  batch_id=i,
+                                                                  batch_size=batch_size,
+                                                                  target_layer=target_layer,
+                                                                  len_prompt=len_inputs),
+                                                              ) for layer in range(n_layers)]
+
         with add_hooks(module_forward_pre_hooks=fwd_pre_hooks, module_forward_hooks=fwd_hooks):
             generation_toks = model.generate(
                 input_ids=inputs.input_ids.to(model.device),

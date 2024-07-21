@@ -491,7 +491,7 @@ def get_and_cache_skip_connection_hook(mean_diff, cache: Float[Tensor, "batch la
             # activation = mean_diff.repeat(batch_size,seq_len,1)
             # activation = activation + mean_diff
             vector = mean_diff.to(activation)
-            activation += coeff * vector
+            activation = vector.repeat(batch_size, seq_len, 1)
             # only cache the last token of the prompt not the generated answer
             if activation.shape[1] == len_prompt:
                  cache[batch_id:batch_id+batch_size, layer, :] = torch.squeeze(activation[:, positions, :], 1)
@@ -505,4 +505,5 @@ def get_and_cache_skip_connection_hook(mean_diff, cache: Float[Tensor, "batch la
             return (activation, *output[1:])
         else:
             return activation
+
     return hook_fn

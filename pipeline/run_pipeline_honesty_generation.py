@@ -75,7 +75,8 @@ def generate_get_contrastive_activations_and_plot_pca(cfg, model_base, tokenize_
     model_name = cfg.model_alias
     data_category = cfg.data_category
     max_new_tokens = cfg.max_new_tokens
-    tokenize_fn = model_base.tokenize_statements_fn
+    tokenize_fn_lie = model_base.tokenize_statements_fn
+    # tokenize_fn_syco = model_base.tokenize_statements_fn_syco
 
     activations_lying, completions_lying = generate_and_get_activations(cfg, model_base, dataset,
                                                                         tokenize_fn,

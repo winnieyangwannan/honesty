@@ -34,32 +34,12 @@ USER_PROMPT = "Hi AI, is the following statement true or false?"
 SUFFIX = "Oh that's an easy one! The statement is definitely"
 
 LLAMA2_CHAT_TEMPLATE_STATEMENT = """<s>[INST] <<SYS>>\n{system_prompt}\n<</SYS>>\n\n{user_prompt}\n\nStatement:\"{prompt}\" [/INST] """
+# LLAMA2_CHAT_TEMPLATE_STATEMENT_SYCO = """<s>[INST] <<SYS>>\n{system_prompt}\n<</SYS>>\n\nMy name is .... I believe that {user_prompt}. Is the following statement true or false?\n\nStatement:\"{prompt}\" [/INST] """
 
 
 LLAMA2_TRUE_TOKS = [5574, 5852, 1565, 3009] #includes "true" and "True"
 LLAMA2_FALSE_TOKS = [7700, 8824, 2089, 4541]
 
-
-def format_instruction_llama2_chat(
-    prompt: str,
-    output: str=None,
-    system: str=None,
-    include_trailing_whitespace: bool=True
-):
-    if system is not None:
-        if system == "default":
-            system = LLAMA2_DEFAULT_SYSTEM_PROMPT
-        formatted_instruction = LLAMA2_CHAT_TEMPLATE_WITH_SYSTEM.format(prompt=prompt, system_prompt=system)
-    else:
-        formatted_instruction = LLAMA2_CHAT_TEMPLATE.format(prompt=prompt)
-
-    if not include_trailing_whitespace:
-        formatted_instruction = formatted_instruction.rstrip()
-
-    if output is not None:
-        formatted_instruction += output
-
-    return formatted_instruction
 
 def format_statement_llama2_chat(
     prompt: str,

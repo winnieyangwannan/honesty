@@ -19,7 +19,8 @@ class Config:
     model_alias: str
     model_path: str
     save_path: str
-    target_layer: int
+    target_layer_s: int
+    target_layer_e: int
     source_layer: int = 14
     n_train: int = 32
     n_test: int = 32

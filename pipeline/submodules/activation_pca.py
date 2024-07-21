@@ -372,20 +372,34 @@ def get_activations(cfg, model_base, dataset,
         fwd_pre_hooks = []
         if "mlp" in intervention:
             fwd_hooks = [(block_modules[layer].mlp,
-                              get_activations_hook(layer=layer,
-                                                   cache=activations,
-                                                   positions=positions,
-                                                   batch_id=i,
-                                                   batch_size=batch_size)) for layer in range(n_layers)]
+                                  get_activations_hook(layer=layer,
+                                                       cache=activations,
+                                                       positions=positions,
+                                                       batch_id=i,
+                                                       batch_size=batch_size)) for layer in range(n_layers)]
+        elif "attn" in intervention:
+            if "Qwen" in model_name:
+                fwd_hooks = [(block_modules[layer].attn,
+                                  get_activations_hook(layer=layer,
+                                                       cache=activations,
+                                                       positions=positions,
+                                                       batch_id=i,
+                                                       batch_size=batch_size)) for layer in range(n_layers)]
+            else:
+                fwd_hooks = [(block_modules[layer].self_attn,
+                                  get_activations_hook(layer=layer,
+                                                       cache=activations,
+                                                       positions=positions,
+                                                       batch_id=i,
+                                                       batch_size=batch_size)) for layer in range(n_layers)]
         else:
             fwd_hooks = [(block_modules[layer],
-                              get_activations_hook(layer=layer,
-                                                   cache=activations,
-                                                   positions=positions,
-                                                   batch_id=i,
-                                                   batch_size=batch_size)) for layer in range(n_layers)]
+                                  get_activations_hook(layer=layer,
+                                                       cache=activations,
+                                                       positions=positions,
+                                                       batch_id=i,
+                                                       batch_size=batch_size)) for layer in range(n_layers)]
 
-        # fwd_hooks = []
         with add_hooks(module_forward_pre_hooks=fwd_pre_hooks, module_forward_hooks=fwd_hooks):
             model(
                 input_ids=inputs.input_ids.to(model.device),
@@ -657,102 +671,112 @@ def plot_contrastive_activation_pca(activations_honest, activations_lie, n_layer
                 df['label'] = labels_all
                 df['pca0'] = activations_pca[:, 0]
                 df['pca1'] = activations_pca[:, 1]
+                df['pca2'] = activations_pca[:, 2]
+
                 df['label_text'] = label_text
 
                 fig.add_trace(
                     go.Scatter(x=df['pca0'][:n_contrastive_data],
-                               y=df['pca1'][:n_contrastive_data],
-                               mode="markers",
-                               name="honest",
-                               showlegend=False,
-                               marker=dict(
+                                 y=df['pca1'][:n_contrastive_data],
+                                 # z=df['pca2'][:n_contrastive_data],
+                                 mode="markers",
+                                 name="honest",
+                                 showlegend=False,
+                                 marker=dict(
                                    symbol="star",
                                    size=8,
                                    line=dict(width=1, color="DarkSlateGrey"),
                                    color=df['label'][:n_contrastive_data]
                                ),
-                           text=df['label_text'][:n_contrastive_data]),
-                           row=row+1, col=ll+1,
-                            )
+                             text=df['label_text'][:n_contrastive_data]),
+                             row=row+1, col=ll+1,
+                             )
                 fig.add_trace(
                     go.Scatter(x=df['pca0'][n_contrastive_data:],
-                               y=df['pca1'][n_contrastive_data:],
-                               mode="markers",
-                               name="lying",
-                               showlegend=False,
-                               marker=dict(
+                                 y=df['pca1'][n_contrastive_data:],
+                                 # z=df['pca2'][n_contrastive_data:],
+                                 mode="markers",
+                                 name="lying",
+                                 showlegend=False,
+                                 marker=dict(
                                    symbol="circle",
                                    size=5,
                                    line=dict(width=1, color="DarkSlateGrey"),
                                    color=df['label'][n_contrastive_data:],
-                               ),
-                           text=df['label_text'][n_contrastive_data:]),
-                           row=row+1, col=ll+1,
-                           )
+                                 ),
+                                 text=df['label_text'][n_contrastive_data:]),
+                    row=row+1, col=ll+1,
+                                 )
     # legend
     fig.add_trace(
         go.Scatter(x=[None],
-                   y=[None],
-                   mode='markers',
-                   marker=dict(
+                     y=[None],
+                     # z=[None],
+                     mode='markers',
+                     marker=dict(
                        symbol="star",
                        size=5,
                        line=dict(width=1, color="DarkSlateGrey"),
                        color=df['label'][n_contrastive_data:],
-                   ),
-                   name=f'honest_false',
-                   marker_color='blue',
-                 ),
+                     ),
+                     name=f'honest_false',
+                     marker_color='blue',
+                     ),
         row=row + 1, col=ll + 1,
     )
+
     fig.add_trace(
         go.Scatter(x=[None],
-                   y=[None],
-                   mode='markers',
-                   marker=dict(
+                     y=[None],
+                     # z=[None],
+                     mode='markers',
+                     marker=dict(
                        symbol="star",
                        size=5,
                        line=dict(width=1, color="DarkSlateGrey"),
                        color=df['label'][n_contrastive_data:],
-                   ),
-                   name=f'honest_true',
-                   marker_color='yellow',
-                 ),
+                     ),
+                     name=f'honest_true',
+                     marker_color='yellow',
+                     ),
         row=row + 1, col=ll + 1,
     )
+
     fig.add_trace(
         go.Scatter(x=[None],
-                   y=[None],
-                   mode='markers',
-                   marker=dict(
+                     y=[None],
+                     # z=[None],
+                     mode='markers',
+                     marker=dict(
                        symbol="circle",
                        size=5,
                        line=dict(width=1, color="DarkSlateGrey"),
                        color=df['label'][n_contrastive_data:],
-                   ),
-                   name=f'lying_false',
-                   marker_color='blue',
-                 ),
+                     ),
+                     name=f'lying_false',
+                     marker_color='blue',
+                     ),
         row=row + 1, col=ll + 1,
     )
     fig.add_trace(
         go.Scatter(x=[None],
-                   y=[None],
-                   mode='markers',
-                   marker=dict(
+                     y=[None],
+                     # z=[None],
+                     mode='markers',
+                     marker=dict(
                        symbol="circle",
                        size=5,
                        line=dict(width=1, color="DarkSlateGrey"),
                        color=df['label'][n_contrastive_data:],
-                   ),
-                   name=f'lying_true',
-                   marker_color='yellow',
-                 ),
+                     ),
+                     name=f'lying_true',
+                     marker_color='yellow',
+                     ),
         row=row + 1, col=ll + 1,
     )
     fig.update_layout(height=1600, width=1000)
     fig.show()
-    fig.write_html('honest_lying_pca.html')
+    # fig.write_html('honest_lying_pca.html')
 
     return fig
 

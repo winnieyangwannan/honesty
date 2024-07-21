@@ -4,6 +4,8 @@ import json
 import os
 import argparse
 import pickle
+import pandas as pd
+import plotly.express as px
 
 from datasets import load_dataset
 from torch.utils.data import DataLoader
@@ -15,6 +17,7 @@ from pipeline.submodules.select_direction import select_direction, get_refusal_s
 # from pipeline.submodules.evaluate_jailbreak import evaluate_jailbreak
 from pipeline.submodules.evaluate_loss import evaluate_loss
 
+
 def parse_arguments():
     """Parse model path argument from command line."""
     parser = argparse.ArgumentParser(description="Parse model path argument.")
@@ -23,6 +26,7 @@ def parse_arguments():
     parser.add_argument('--batch_size', type=int, required=False, default=16)
 
     return parser.parse_args()
+
 
 def load_and_sample_datasets(cfg):
     """
@@ -39,6 +43,7 @@ def load_and_sample_datasets(cfg):
     data = random.sample(dataset, cfg.n_train)
 
     return data
+
 
 def filter_data(cfg, model_base, harmful_train, harmless_train, harmful_val, harmless_val):
     """
@@ -71,6 +76,7 @@ def get_lying_honest_accuracy_and_plot(cfg, model_base, dataset):
     if not os.path.exists(artifact_dir):
         os.makedirs(artifact_dir)
     model_name = cfg.model_alias
+    data_category = cfg.data_category
 
     # lying prompt template
     performance_lying, probability_lying, unexpected_lying, activations_lying = get_statement_accuracy_cache_activation(
@@ -106,8 +112,9 @@ def get_lying_honest_accuracy_and_plot(cfg, model_base, dataset):
 
     if not os.path.exists(os.path.join(cfg.artifact_path(), 'performance')):
         os.makedirs(os.path.join(cfg.artifact_path(), 'performance'))
-    with open(artifact_dir + os.sep + 'performance' + os.sep + model_name + '_' + 'model_performance.pkl','wb') as f:
+    with open(artifact_dir + os.sep + 'performance' + os.sep + model_name + '_' + 'model_performance.pkl', 'wb') as f:
         pickle.dump(model_performance, f)
+    print("saving done!")
 
     # plot activation pca
     contrastive_label = ["honest", "lying"]
@@ -119,8 +126,12 @@ def get_lying_honest_accuracy_and_plot(cfg, model_base, dataset):
     fig.write_html(artifact_dir + os.sep + model_name + '_' + 'honest_lying_pca.html')
 
     # plot
-    plot_lying_honest_accuracy()
-
+    fig = plot_lying_honest_accuracy(cfg, accuracy_honest, accuracy_lying)
+    # save
+    # fig.write_html(artifact_dir + os.sep + 'performance' + os.sep + model_name + '_' + data_category + '_' +
+    #                'accuracy'+'.html')
+    fig.write_image(artifact_dir + os.sep + 'performance' + os.sep + model_name + '_' + data_category + '_' +
+                   'accuracy'+'.svg')
 
 def run_pipeline(model_path, save_path, batch_size=16):
     """Run the full pipeline."""
