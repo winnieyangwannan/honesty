@@ -133,6 +133,7 @@ def get_lying_honest_accuracy_and_plot(cfg, model_base, dataset):
     fig.write_image(artifact_dir + os.sep + 'performance' + os.sep + model_name + '_' + data_category + '_' +
                    'accuracy'+'.svg')
 
+
 def run_pipeline(model_path, save_path, batch_size=16):
     """Run the full pipeline."""
 

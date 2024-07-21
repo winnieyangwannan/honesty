@@ -99,14 +99,24 @@ def get_contrastive_activations_and_plot_pca(cfg,
                                          positions=[-1],
                                          system_type="honest")
 
-    # plot pca
+    # save activations
+    activations = {
+        "activations_honest": activations_lying,
+        "activations_lying": activations_lying,
+    }
+    with open(artifact_dir + os.sep + intervention + os.sep + model_name + '_' + f'{data_category}'
+                   + '_activation_pca.pkl', "wb") as f:
+        pickle.dump(activations, f)
+
+    # plot and save pca plots
     n_layers = model_base.model.config.num_hidden_layers
     fig = plot_contrastive_activation_pca(activations_honest, activations_lying,
                                           n_layers, contrastive_label=["honest", "lying"],
                                           labels=labels)
     fig.write_html(artifact_dir + os.sep + intervention + os.sep + model_name + '_' + f'{data_category}'
                    + '_activation_pca.html')
-
+    fig.write_image(artifact_dir + os.sep + intervention + os.sep + model_name + '_' + f'{data_category}'
+                   + '_activation_pca.svg')
     return activations_honest, activations_lying
 
 
@@ -152,7 +162,7 @@ def generate_with_intervention_cache_contrastive_activations_and_plot_pca(cfg,
         target_layer_e=target_layer_e,
         labels=labels)
 
-    # 2. save completions
+    # 2. save completions and activations
     if not os.path.exists(os.path.join(cfg.artifact_path(), intervention)):
         os.makedirs(os.path.join(cfg.artifact_path(), intervention))
 
@@ -165,7 +175,16 @@ def generate_with_intervention_cache_contrastive_activations_and_plot_pca(cfg,
             "w") as f:
         json.dump(intervention_completions_lying, f, indent=4)
 
-    # 3. pca with and without intervention, plot and save pca
+    # save activations
+    activations = {
+        "activations_honest": intervention_activations_honest,
+        "activations_lying": intervention_activations_lying,
+    }
+    with open(artifact_dir + os.sep + intervention + os.sep + model_name + '_' + f'{data_category}'
+                   + '_activation_pca_' + intervention + '.pkl', "wb") as f:
+        pickle.dump(activations, f)
+
+    # 3. pca with and without intervention, plot and save pca plots
     contrastive_label = ["honest", "lying", "honest_addition", "lying_addition"]
     fig = plot_contrastive_activation_intervention_pca(activations_honest,
                                                        activations_lying,

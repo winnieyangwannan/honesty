@@ -2,28 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="53de5df3-4a9d-4612-9ea8-208ac77ab608" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/pipeline/analysis/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pipeline/analysis/checkout_one_layer.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pipeline/analysis/run_statistics_accuracy_change.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pipeline/analysis/run_statistics_skip_connection.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pipeline/analysis/stage_statistics.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/honest_lying_pca.html" beforeDir="false" afterPath="$PROJECT_DIR$/honest_lying_pca.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/honesty_config_generation_skip_connection.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/honesty_config_generation_skip_connection.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/model_utils/gemma_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/model_utils/gemma_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/model_utils/llama2_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/model_utils/llama2_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/model_utils/llama3_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/model_utils/llama3_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/model_utils/yi_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/model_utils/yi_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation_honest_addition.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation_skip_connection.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation_intervention.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation_intervention.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation_intervention.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_performance.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_performance.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_steering.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/run_statistics_honest_addition.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/analysis/run_statistics_honest_addition.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/submodules/activation_pca.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/submodules/activation_pca.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/submodules/activation_pca_intervention.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/submodules/activation_pca_intervention.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/submodules/evaluate_truthful.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/submodules/evaluate_truthful.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/utils/hook_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/utils/hook_utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -85,7 +66,7 @@
       <recent name="D:\Code\honesty\pipeline\analysis" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.run_pipeline_honesty_generation_intervention">
+  <component name="RunManager" selected="Python.run_pipeline_honesty_performance">
     <configuration name="run_pipeline_honesty_generation_intervention" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="honesty" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -237,7 +218,7 @@
       <updated>1720826730298</updated>
       <workItem from="1720826731627" duration="1115000" />
       <workItem from="1721008705897" duration="194000" />
-      <workItem from="1721008962201" duration="162391000" />
+      <workItem from="1721008962201" duration="163892000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit, copy from model_steering">
       <created>1720826847520</created>
@@ -260,7 +241,14 @@
       <option name="project" value="LOCAL" />
       <updated>1721124533373</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="add lying stage quantification">
+      <created>1721528401244</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1721528401244</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -273,7 +261,8 @@
     <MESSAGE value="initial commit, copy from model_steering" />
     <MESSAGE value="addition and skip connection" />
     <MESSAGE value="honest addition" />
-    <option name="LAST_COMMIT_MESSAGE" value="honest addition" />
+    <MESSAGE value="add lying stage quantification" />
+    <option name="LAST_COMMIT_MESSAGE" value="add lying stage quantification" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -310,7 +299,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation_intervention.py</url>
-          <line>240</line>
+          <line>259</line>
           <option name="timeStamp" value="171" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -325,7 +314,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation_intervention.py</url>
-          <line>237</line>
+          <line>256</line>
           <option name="timeStamp" value="176" />
         </line-breakpoint>
       </breakpoints>
@@ -346,7 +335,7 @@
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/honesty$run_statistics_honest_addition.coverage" NAME="run_statistics_honest_addition Coverage Results" MODIFIED="1721188379213" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_statistics_skip_coonection.coverage" NAME="run_statistics_skip_connection Coverage Results" MODIFIED="1721340488085" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_performance.coverage" NAME="run_pipeline_honesty_performance Coverage Results" MODIFIED="1721211273426" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_performance.coverage" NAME="run_pipeline_honesty_performance Coverage Results" MODIFIED="1721528545823" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_generation_honest_addition.coverage" NAME="run_pipeline_honesty_generation_honest_addition Coverage Results" MODIFIED="1721119117821" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_generation_skip_connection.coverage" NAME="run_pipeline_honesty_generation_intervention Coverage Results" MODIFIED="1721519504985" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_statistics_honest.coverage" NAME="run_statistics_accuracy_change Coverage Results" MODIFIED="1721371080514" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
