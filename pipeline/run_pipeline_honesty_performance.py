@@ -159,10 +159,10 @@ def run_pipeline(model_path, save_path, batch_size=16):
     dataset = load_and_sample_datasets(cfg)
 
     # 3. Get Accuracy
-    activations_honest, activations_lying, labels = get_lying_honest_accuracy_and_plot(cfg, model_base, dataset)
+    get_lying_honest_accuracy_and_plot(cfg, model_base, dataset)
     
-    # 4. Quantify different lying stages
-    get_state_quantification(cfg, activations_honest, activations_lying, labels)
+    # # 4. Quantify different lying stages
+    # get_state_quantification(cfg, activations_honest, activations_lying, labels)
 
 
 if __name__ == "__main__":

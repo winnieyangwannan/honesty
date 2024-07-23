@@ -14,7 +14,7 @@ from typing import List, Tuple, Callable
 from jaxtyping import Float
 from torch import Tensor
 import plotly.express as px
-
+import plotly.io as pio
 from pipeline.utils.hook_utils import get_and_cache_direction_ablation_input_pre_hook
 from pipeline.utils.hook_utils import get_and_cache_diff_addition_input_pre_hook, get_and_cache_diff_addition_output_hook
 from pipeline.utils.hook_utils import get_and_cache_direction_ablation_output_hook
@@ -28,7 +28,7 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
                                                  n_layers,
                                                  contrastive_label,
                                                  labels=None,
-                                                 plot_original=False,
+                                                 plot_original=True,
                                                  plot_intervention=True,
                                                  ):
     activations_all: Float[Tensor, "n_samples n_layers d_model"] = torch.cat((activations_honest,
@@ -96,7 +96,7 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
                                    mode='markers',
                                    showlegend=False,
                                    marker=dict(
-                                       symbol="star",
+                                       symbol="star-open",
                                        size=8,
                                        line=dict(width=1, color="DarkSlateGrey"),
                                        color=df['label'][:n_data],
@@ -112,7 +112,7 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
                                    mode='markers',
                                    showlegend=False,
                                    marker=dict(
-                                       symbol="circle",
+                                       symbol="circle-open",
                                        size=8,
                                        line=dict(width=1, color="DarkSlateGrey"),
                                        color=df['label'][n_data:n_data*2],
@@ -128,7 +128,7 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
                                    mode='markers',
                                    showlegend=False,
                                    marker=dict(
-                                       symbol="triangle-up",
+                                       symbol="star",
                                        size=8,
                                        line=dict(width=1, color="DarkSlateGrey"),
                                        color=df['label'][n_data*2:n_data*3],
@@ -142,7 +142,7 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
                                    mode='markers',
                                    showlegend=False,
                                    marker=dict(
-                                       symbol="square",
+                                       symbol="circle",
                                        size=8,
                                        line=dict(width=1, color="DarkSlateGrey"),
                                        color=df['label'][-n_data:],
@@ -215,7 +215,7 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
                        y=[None],
                        mode='markers',
                        marker=dict(
-                           symbol="triangle-up",
+                           symbol="star",
                            size=5,
                            line=dict(width=1, color="DarkSlateGrey"),
                            color='yellow'
@@ -228,7 +228,7 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
                        y=[None],
                        mode='markers',
                        marker=dict(
-                           symbol="triangle-up",
+                           symbol="star",
                            size=5,
                            line=dict(width=1, color="DarkSlateGrey"),
                            color='blue'
@@ -241,7 +241,7 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
                        y=[None],
                        mode='markers',
                        marker=dict(
-                           symbol="square",
+                           symbol="circle",
                            size=5,
                            line=dict(width=1, color="DarkSlateGrey"),
                            color='yellow'
@@ -254,7 +254,7 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
                        y=[None],
                        mode='markers',
                        marker=dict(
-                           symbol="square",
+                           symbol="circle",
                            size=5,
                            line=dict(width=1, color="DarkSlateGrey"),
                            color='blue'

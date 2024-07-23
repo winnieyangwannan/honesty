@@ -137,8 +137,6 @@ def plot_one_layer_with_centroid_and_vector(activations_pca_all,
     df['label_text'] = label_text
 
     # plot the centeroid vector
-    # x, y = np.meshgrid(np.arange(-10, 10, .2),
-    #                    np.arange(-10, 10, .2))
     # x y of quiver is the origin of the vector, u v is the end point of the vector
     fig = ff.create_quiver(x=[centroid_honest_false[layer, 0], centroid_lying_false[layer, 0]],
                            y=[centroid_honest_false[layer, 1], centroid_lying_false[layer, 1]],
@@ -219,7 +217,7 @@ def plot_one_layer_with_centroid_and_vector(activations_pca_all,
         ),
         name='lying_false_centeroid',
     ))
-    fig.update_layout(height=800, width=800,
+    fig.update_layout(height=600, width=600,
                       title=dict(text=f"Layer {layer}", font=dict(size=30), automargin=True, yref='paper')
                       )
     fig.write_html(save_path + os.sep + f'pca_centroid_layer_{layer}.html')

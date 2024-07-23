@@ -3,7 +3,6 @@ import os
 
 from dataclasses import dataclass
 from typing import Tuple
-from typing import List
 
 @dataclass
 class Config:
@@ -20,18 +19,20 @@ class Config:
     model_alias: str
     model_path: str
     save_path: str
-    n_train: int = 100
+    target_layer_s: int
+    target_layer_e: int
+    source_layer: int = 14
+    n_train: int = 32
     n_test: int = 32
     data_category: str = "facts"
     batch_size: int = 16
-    source_layer: int = 10
-    intervention: str = "no_intervention"
-    target_layer: int = 10
     max_new_tokens: int = 100
     # for generation_trajectory
-    dataset_id = [3, 4]
-    layer_plot: int = 16
-    sub_modules: str = "residual"
+    dataset_id: list[int] = 3
+    intervention: str = "skip_connection"
+
+
+
 
     def artifact_path(self) -> str:
         save_path = self.save_path

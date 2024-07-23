@@ -1,7 +1,7 @@
 import torch
 from torch.nn.functional import softmax
 from pipeline.utils.hook_utils import add_hooks
-from pipeline.utils.hook_utils import get_activations_pre_hook
+from pipeline.utils.hook_utils import get_activations_hook
 from tqdm import tqdm
 import os
 import pandas as pd
@@ -114,7 +114,8 @@ def get_statement_accuracy(model_base, dataset, batch_size, system_type="honest"
 def get_statement_accuracy_cache_activation(model_base, dataset, cfg, system_type="honest"):
     batch_size = cfg.batch_size
     n_samples = cfg.n_train
-
+    sub_modules = cfg.sub_modules
+    model_name = cfg.model_alias
     model = model_base.model
     block_modules = model_base.model_block_modules
     tokenizer = model_base.tokenizer
@@ -138,13 +139,38 @@ def get_statement_accuracy_cache_activation(model_base, dataset, cfg, system_typ
         tokenized_prompt = tokenize_statements_fn(prompts=statements[i:i+batch_size], system_type=system_type)
         print("full prompt")
         print(tokenizer.decode(tokenized_prompt.input_ids[0]))
-        fwd_pre_hooks = [(block_modules[layer],
-                          get_activations_pre_hook(layer=layer,
+        fwd_pre_hooks = []
+        if "mlp" in sub_modules:
+            fwd_hooks = [(block_modules[layer].mlp,
+                          get_activations_hook(layer=layer,
+                                               cache=activations,
+                                               positions=-1,
+                                               batch_id=i,
+                                               batch_size=batch_size)) for layer in range(n_layers)]
+        elif "attn" in sub_modules:
+            if "Qwen" in model_name:
+                fwd_hooks = [(block_modules[layer].attn,
+                              get_activations_hook(layer=layer,
                                                    cache=activations,
                                                    positions=-1,
                                                    batch_id=i,
                                                    batch_size=batch_size)) for layer in range(n_layers)]
-        with add_hooks(module_forward_pre_hooks=fwd_pre_hooks, module_forward_hooks=[]):
+            else:
+
+                fwd_hooks = [(block_modules[layer].self_attn,
+                              get_activations_hook(layer=layer,
+                                                   cache=activations,
+                                                   positions=-1,
+                                                   batch_id=i,
+                                                   batch_size=batch_size)) for layer in range(n_layers)]
+        else:
+            fwd_hooks = [(block_modules[layer],
+                          get_activations_hook(layer=layer,
+                                               cache=activations,
+                                               positions=-1,
+                                               batch_id=i,
+                                               batch_size=batch_size)) for layer in range(n_layers)]
+        with add_hooks(module_forward_pre_hooks=fwd_pre_hooks, module_forward_hooks=fwd_hooks):
             outputs = model(
                 input_ids=tokenized_prompt.input_ids.to(model.device),
                 attention_mask=tokenized_prompt.attention_mask.to(model.device),

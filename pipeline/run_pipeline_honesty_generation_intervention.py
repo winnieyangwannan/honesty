@@ -10,11 +10,11 @@ from pipeline.analysis.stage_statistics import get_state_quantification
 from pipeline.honesty_config_generation_skip_connection import Config
 from pipeline.model_utils.model_factory import construct_model_base
 from pipeline.submodules.select_direction import get_refusal_scores
-from pipeline.submodules.activation_pca import get_activations, plot_contrastive_activation_pca
+from pipeline.submodules.activation_pca import get_contrastive_activations_and_plot_pca
 from pipeline.submodules.activation_pca_intervention import plot_contrastive_activation_intervention_pca, \
     get_intervention_activations_and_generation
 from pipeline.submodules.evaluate_truthful import get_accuracy_and_unexpected, plot_lying_honest_accuracy
-
+import plotly.io as pio
 
 def parse_arguments():
     """Parse model path argument from command line."""
@@ -76,48 +76,6 @@ def filter_data(cfg, model_base, harmful_train, harmless_train, harmful_val, har
         harmless_val = filter_examples(harmless_val, harmless_val_scores, 0, lambda x, y: x < y)
 
     return harmful_train, harmless_train, harmful_val, harmless_val
-
-
-def get_contrastive_activations_and_plot_pca(cfg,
-                                             model_base,
-                                             dataset,
-                                             labels=None):
-    intervention = cfg.intervention
-    artifact_dir = cfg.artifact_path()
-    if not os.path.exists(os.path.join(artifact_dir, intervention)):
-        os.makedirs(os.path.join(artifact_dir, intervention))
-    model_name = cfg.model_alias
-    data_category = cfg.data_category
-    tokenize_fn = model_base.tokenize_statements_fn
-    activations_lying = get_activations(cfg, model_base, dataset,
-                                        tokenize_fn,
-                                        positions=[-1],
-                                        system_type="lying")
-
-    activations_honest = get_activations(cfg, model_base, dataset,
-                                         tokenize_fn,
-                                         positions=[-1],
-                                         system_type="honest")
-
-    # save activations
-    activations = {
-        "activations_honest": activations_lying,
-        "activations_lying": activations_lying,
-    }
-    with open(artifact_dir + os.sep + intervention + os.sep + model_name + '_' + f'{data_category}'
-                   + '_activation_pca.pkl', "wb") as f:
-        pickle.dump(activations, f)
-
-    # plot and save pca plots
-    n_layers = model_base.model.config.num_hidden_layers
-    fig = plot_contrastive_activation_pca(activations_honest, activations_lying,
-                                          n_layers, contrastive_label=["honest", "lying"],
-                                          labels=labels)
-    fig.write_html(artifact_dir + os.sep + intervention + os.sep + model_name + '_' + f'{data_category}'
-                   + '_activation_pca.html')
-    fig.write_image(artifact_dir + os.sep + intervention + os.sep + model_name + '_' + f'{data_category}'
-                   + '_activation_pca.svg')
-    return activations_honest, activations_lying
 
 
 def generate_with_intervention_cache_contrastive_activations_and_plot_pca(cfg,
@@ -199,8 +157,9 @@ def generate_with_intervention_cache_contrastive_activations_and_plot_pca(cfg,
                                                        )
     fig.write_html(artifact_dir + os.sep + intervention + os.sep + data_category + '_' + intervention +
                    '_pca_layer_' + str(source_layer) + '_' + str(target_layer_s) + '_' + str(target_layer_e) + '.html')
-    fig.write_image(artifact_dir + os.sep + intervention + os.sep + data_category + '_' + intervention +
-                   '_pca_layer_' + str(source_layer) + '_' + str(target_layer_s) + '_' + str(target_layer_e) + '.svg')
+    pio.write_image(fig, artifact_dir + os.sep + intervention + os.sep + data_category + '_' + intervention +
+                   '_pca_layer_' + str(source_layer) + '_' + str(target_layer_s) + '_' + str(target_layer_e) + '.png',
+                    scale=6)
 
     # 4. get accuracy
     correct_honest, unexpected_honest = get_accuracy_and_unexpected(first_gen_toks_honest, first_gen_str_honest,
@@ -240,7 +199,7 @@ def generate_with_intervention_cache_contrastive_activations_and_plot_pca(cfg,
                    '_accuracy' + '.html')
 
 
-def contrastive_extraction_generation_honest_addition_and_plot_pca(cfg, model_base, dataset_train, dataset_test):
+def contrastive_extraction_generation_intervention_and_plot_pca(cfg, model_base, dataset_train, dataset_test):
 
     statements_train = [row['claim'] for row in dataset_train]
     statements_test = [row['claim'] for row in dataset_test]
@@ -296,7 +255,7 @@ def run_pipeline(model_path, save_path, intervention, source_layer, target_layer
     dataset_train, dataset_test = load_and_sample_datasets(cfg)
 
     # 3. Generate candidate refusal directions
-    contrastive_extraction_generation_honest_addition_and_plot_pca(cfg, model_base, dataset_train, dataset_test)
+    contrastive_extraction_generation_intervention_and_plot_pca(cfg, model_base, dataset_train, dataset_test)
 
 
 if __name__ == "__main__":

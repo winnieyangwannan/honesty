@@ -18,8 +18,8 @@ import plotly.figure_factory as ff
 import plotly.io as pio
 from pipeline.analysis.stage_statistics import get_state_quantification
 from pipeline.honesty_config_performance import Config
-from pipeline.run_pipeline_honesty_performance import load_and_sample_datasets
-from pipeline.run_pipeline_honesty_performance import get_lying_honest_accuracy_and_plot
+from pipeline.run_pipeline_honesty_stage import load_and_sample_datasets
+from pipeline.run_pipeline_honesty_stage import get_lying_honest_accuracy_and_plot
 from pipeline.analysis.checkout_one_layer import plot_one_layer_with_centroid_and_vector
 
 

@@ -13,14 +13,14 @@ import einops
 from typing import List, Tuple, Callable
 from jaxtyping import Float
 from torch import Tensor
-
+import pickle
 from pipeline.utils.hook_utils import get_and_cache_direction_ablation_input_pre_hook
 from pipeline.utils.hook_utils import get_and_cache_diff_addition_input_pre_hook
 from pipeline.utils.hook_utils import get_and_cache_direction_ablation_output_hook
 from pipeline.utils.hook_utils import get_generation_cache_activation_trajectory_input_pre_hook
 from pipeline.utils.hook_utils import get_activations_pre_hook, get_activations_hook
 from pipeline.utils.hook_utils import get_generation_cache_activation_input_pre_hook
-
+import plotly.io as pio
 
 
 def get_ablation_activations_pre_hook(layer, cache: Float[Tensor, "batch layer d_model"], n_samples, positions: List[int],batch_id,batch_size):
@@ -28,6 +28,7 @@ def get_ablation_activations_pre_hook(layer, cache: Float[Tensor, "batch layer d
         activation: Float[Tensor, "batch_size seq_len d_model"] = input[0].clone().to(cache)
         cache[batch_id:batch_id+batch_size, layer] =  torch.squeeze(activation[:, positions, :],1)
     return hook_fn
+
 
 def get_addition_activations(model, tokenizer, instructions, tokenize_instructions_fn, block_modules: List[torch.nn.Module],
                              direction,
@@ -44,7 +45,7 @@ def get_addition_activations(model, tokenizer, instructions, tokenize_instructio
 
     # if not specified, ablate all layers by default
     if target_layer==None:
-        target_layer=np.arange(n_layers)
+        target_layer = np.arange(n_layers)
 
     for i in tqdm(range(0, len(instructions), batch_size)):
         inputs = tokenize_instructions_fn(instructions=instructions[i:i+batch_size])
@@ -66,6 +67,7 @@ def get_addition_activations(model, tokenizer, instructions, tokenize_instructio
             )
 
     return activations
+
 
 def get_ablation_activations(model, tokenizer, instructions, tokenize_instructions_fn, block_modules: List[torch.nn.Module],
                              direction,
@@ -344,12 +346,14 @@ def generate_and_get_activations(cfg, model_base, dataset,
 def get_activations(cfg, model_base, dataset,
                     tokenize_fn,
                     positions=[-1],
-                    system_type=None):
+                    system_type=None,
+                    intervention=None):
 
     torch.cuda.empty_cache()
+    if intervention is None:
+        intervention = cfg.intervention
     model_name = cfg.model_alias
     batch_size = cfg.batch_size
-    intervention = cfg.intervention
     model = model_base.model
     block_modules = model_base.model_block_modules
 
@@ -363,12 +367,7 @@ def get_activations(cfg, model_base, dataset,
 
     for i in tqdm(range(0, len(dataset), batch_size)):
         inputs = tokenize_fn(prompts=dataset[i:i+batch_size], system_type=system_type)
-        # fwd_pre_hooks = [(block_modules[layer].mlp.c_proj,
-        #                   get_activations_pre_hook(layer=layer,
-        #                                            cache=activations,
-        #                                            positions=positions,
-        #                                            batch_id=i,
-        #                                            batch_size=batch_size)) for layer in range(n_layers)]
+
         fwd_pre_hooks = []
         if "mlp" in intervention:
             fwd_hooks = [(block_modules[layer].mlp,
@@ -407,6 +406,60 @@ def get_activations(cfg, model_base, dataset,
             )
 
     return activations
+
+
+def get_contrastive_activations_and_plot_pca(cfg,
+                                             model_base,
+                                             dataset,
+                                             labels=None,
+                                             intervention=None,
+                                             save_activations=False,
+                                             ):
+    if intervention is None:
+        intervention = cfg.intervention
+
+    artifact_dir = cfg.artifact_path()
+    if not os.path.exists(os.path.join(artifact_dir, intervention)):
+        os.makedirs(os.path.join(artifact_dir, intervention))
+    model_name = cfg.model_alias
+    data_category = cfg.data_category
+    tokenize_fn = model_base.tokenize_statements_fn
+    activations_lying = get_activations(cfg, model_base, dataset,
+                                        tokenize_fn,
+                                        positions=[-1],
+                                        system_type="lying",
+                                        intervention=intervention)
+
+    activations_honest = get_activations(cfg, model_base, dataset,
+                                         tokenize_fn,
+                                         positions=[-1],
+                                         system_type="honest",
+                                         intervention=intervention)
+
+    # save activations
+    if save_activations:
+        activations = {
+            "activations_honest": activations_lying,
+            "activations_lying": activations_lying,
+        }
+        with open(artifact_dir + os.sep + intervention + os.sep + model_name + '_' + f'{data_category}'
+                       + '_activation_pca.pkl', "wb") as f:
+            pickle.dump(activations, f)
+
+    # plot and save pca plots
+    n_layers = model_base.model.config.num_hidden_layers
+    fig = plot_contrastive_activation_pca(activations_honest, activations_lying,
+                                          n_layers, contrastive_label=["honest", "lying"],
+                                          labels=labels)
+    fig.write_html(artifact_dir + os.sep + intervention + os.sep + f'{data_category}'
+                    + '_activation_pca.html')
+    pio.write_image(fig, artifact_dir + os.sep + intervention + os.sep + f'{data_category}'
+                    + '_activation_pca.pdf')
+    pio.write_image(fig, artifact_dir + os.sep + intervention + os.sep + f'{data_category}'
+                    + '_activation_pca.png',
+                    scale=6)
+
+    return activations_honest, activations_lying
 
 
 def plot_contrastive_activation_pca_with_trajectory(activations_honest, activations_lie,

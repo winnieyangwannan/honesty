@@ -31,8 +31,6 @@ class Config:
     dataset_id: list[int] = 3
 
 
-
-
     def artifact_path(self) -> str:
         save_path = self.save_path
         # return os.path.join(os.path.dirname(os.path.realpath(__file__)), "runs", "activation_pca", self.model_alias)

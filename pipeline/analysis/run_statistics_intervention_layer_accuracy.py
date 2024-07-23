@@ -3,6 +3,7 @@ import argparse
 from pipeline.honesty_config_generation_skip_connection import Config
 from pipeline.model_utils.model_factory import construct_model_base
 import pickle
+import plotly.io as pio
 import csv
 import math
 from tqdm import tqdm
@@ -48,8 +49,12 @@ def get_accuracy_statistics(cfg, model_base):
     accuracy_lying = []
     accuracy_honest = []
     for layer in source_layers:
-        filename = artifact_path + os.sep + intervention + os.sep + f'{data_category}_{intervention}_' +\
-                   'model_performance_layer_0_' + str(layer) + '_' + str(layer+1) + '.pkl'
+        if "skip_connection" in intervention:
+            filename = artifact_path + os.sep + intervention + os.sep + f'{data_category}_{intervention}_' +\
+                       'model_performance_layer_0_' + str(layer) + '_' + str(layer+1) + '.pkl'
+        elif "addition" in intervention:
+            filename = artifact_path + os.sep + intervention + os.sep + f'{data_category}_{intervention}_' + \
+                       'model_performance_layer_' + str(layer) + '_' + str(layer) + '_None' + '.pkl'
         with open(filename, 'rb') as file:
             data = pickle.load(file)
         accuracy_honest.append(data["accuracy_honest"])
@@ -62,11 +67,13 @@ def get_accuracy_statistics(cfg, model_base):
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=source_layers, y=accuracy_lying,
                              name="Lying",
+                             mode='lines+markers',
                              marker=dict(
                                 color='dodgerblue')
                              ))
     fig.add_trace(go.Scatter(x=source_layers, y=accuracy_honest,
                              name="Honest",
+                             mode='lines+markers',
                              marker=dict(
                                  color='gold')
                              ))
@@ -76,11 +83,13 @@ def get_accuracy_statistics(cfg, model_base):
         width=600,
         height=300
     )
+    fig.update_xaxes(tickvals=np.arange(0, n_layers, 5))
     fig.show()
     fig.write_html(artifact_path + os.sep + intervention + os.sep + data_category + '_' + intervention +
                    '_statistics_accuracy'+'.html')
-    fig.write_image(artifact_path + os.sep + intervention + os.sep + data_category + '_' + intervention +
-                   '_statistics_accuracy'+'.svg')
+    pio.write_image(fig, artifact_path + os.sep + intervention + os.sep + data_category + '_' + intervention +
+                   '_statistics_accuracy'+'.png',
+                    scale=6)
 
 
 def run_pipeline(model_path, save_path, intervention, source_layer, target_layer_s, target_layer_e):
