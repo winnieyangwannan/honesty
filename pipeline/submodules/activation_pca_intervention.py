@@ -19,6 +19,7 @@ from pipeline.utils.hook_utils import get_and_cache_direction_ablation_input_pre
 from pipeline.utils.hook_utils import get_and_cache_diff_addition_input_pre_hook, get_and_cache_diff_addition_output_hook
 from pipeline.utils.hook_utils import get_and_cache_direction_ablation_output_hook
 from pipeline.utils.hook_utils import get_and_cache_skip_connection_input_pre_hook, get_and_cache_skip_connection_hook
+from pipeline.utils.hook_utils import get_and_cache_direction_addition_output_hook, get_and_cache_direction_addition_input_hook
 
 
 def plot_contrastive_activation_intervention_pca(activations_honest,
@@ -98,9 +99,8 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
                                    marker=dict(
                                        symbol="star-open",
                                        size=8,
-                                       line=dict(width=1, color="DarkSlateGrey"),
+                                       line=dict(width=2, color="DarkSlateGrey"),
                                        color=df['label'][:n_data],
-                                       colorscale='PiYG'
                                    ),
                                    text=df['label_text'][:n_data]),
                         row=row + 1, col=ll + 1,
@@ -114,9 +114,8 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
                                    marker=dict(
                                        symbol="circle-open",
                                        size=8,
-                                       line=dict(width=1, color="DarkSlateGrey"),
+                                       line=dict(width=2, color="DarkSlateGrey"),
                                        color=df['label'][n_data:n_data*2],
-                                       colorscale='PiYG'
                                    ),
                                    text=df['label_text'][n_data:n_data*2]),
                         row=row + 1, col=ll + 1,
@@ -365,6 +364,97 @@ def get_intervention_activations_and_generation(cfg, model_base, dataset,
                                                        target_layer=target_layer,
                                                        ),
                                                     ) for layer in range(n_layers)]
+
+        if 'direction addition' in intervention:
+            if "mlp" in intervention:
+                fwd_pre_hooks = [(block_modules[layer].mlp,
+                                  get_and_cache_direction_addition_input_hook(
+                                      mean_diff=mean_diff,
+                                      cache=activations,
+                                      layer=layer,
+                                      positions=positions,
+                                      batch_id=i,
+                                      batch_size=batch_size,
+                                      target_layer=target_layer,
+                                      len_prompt=len_inputs),
+                                  ) for layer in range(n_layers)]
+                fwd_hooks = [(block_modules[layer].mlp,
+                              get_and_cache_direction_addition_output_hook(
+                                  mean_diff=mean_diff,
+                                  layer=layer,
+                                  positions=positions,
+                                  batch_id=i,
+                                  batch_size=batch_size,
+                                  target_layer=target_layer,
+                              ),
+                              ) for layer in range(n_layers)]
+            elif "attn" in intervention:
+                if "QWEN" in model_name:
+                    fwd_pre_hooks = [(block_modules[layer].attn,
+                                      get_and_cache_direction_ablation_input_pre_hook(
+                                          mean_diff=mean_diff,
+                                          cache=activations,
+                                          layer=layer,
+                                          positions=positions,
+                                          batch_id=i,
+                                          batch_size=batch_size,
+                                          target_layer=target_layer,
+                                          len_prompt=len_inputs),
+                                      ) for layer in range(n_layers)]
+                    fwd_hooks = [(block_modules[layer].attn,
+                                  get_and_cache_direction_ablation_output_hook(
+                                      mean_diff=mean_diff,
+                                      layer=layer,
+                                      positions=positions,
+                                      batch_id=i,
+                                      batch_size=batch_size,
+                                      target_layer=target_layer,
+                                  ),
+                                  ) for layer in range(n_layers)]
+                else:
+                    fwd_pre_hooks = [(block_modules[layer].self_attn,
+                                      get_and_cache_direction_ablation_input_pre_hook(
+                                          mean_diff=mean_diff,
+                                          cache=activations,
+                                          layer=layer,
+                                          positions=positions,
+                                          batch_id=i,
+                                          batch_size=batch_size,
+                                          target_layer=target_layer,
+                                          len_prompt=len_inputs),
+                                      ) for layer in range(n_layers)]
+                    fwd_hooks = [(block_modules[layer].self_attn,
+                                  get_and_cache_direction_ablation_output_hook(
+                                      mean_diff=mean_diff,
+                                      layer=layer,
+                                      positions=positions,
+                                      batch_id=i,
+                                      batch_size=batch_size,
+                                      target_layer=target_layer,
+                                  ),
+                                  ) for layer in range(n_layers)]
+            else:
+                fwd_pre_hooks = [(block_modules[layer],
+                                  get_and_cache_direction_ablation_input_pre_hook(
+                                      mean_diff=mean_diff,
+                                      cache=activations,
+                                      layer=layer,
+                                      positions=positions,
+                                      batch_id=i,
+                                      batch_size=batch_size,
+                                      target_layer=target_layer,
+                                      len_prompt=len_inputs),
+                                  ) for layer in range(n_layers)]
+                fwd_hooks = [(block_modules[layer],
+                              get_and_cache_direction_ablation_output_hook(
+                                  mean_diff=mean_diff,
+                                  layer=layer,
+                                  positions=positions,
+                                  batch_id=i,
+                                  batch_size=batch_size,
+                                  target_layer=target_layer,
+                              ),
+                              ) for layer in range(n_layers)]
 
         elif "addition" in intervention:
             fwd_pre_hooks = []

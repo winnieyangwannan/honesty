@@ -293,6 +293,66 @@ def get_and_cache_direction_ablation_output_hook(mean_diff: Tensor,
     return hook_fn
 
 
+def get_and_cache_direction_addition_input_hook(mean_diff: Tensor,
+                                                 layer: int, positions: List[int],
+                                                 batch_id: int, batch_size: int,
+                                                 target_layer,
+                                                 ):
+    def hook_fn(module, input):
+        nonlocal mean_diff, layer, positions, batch_id, batch_size, target_layer
+
+        if isinstance(input, tuple):
+            activation: Float[Tensor, "batch_size seq_len d_model"] = input[0]
+        else:
+            activation: Float[Tensor, "batch_size seq_len d_model"] = input
+
+        # only apply the ablation to the target layers
+        if layer in target_layer:
+                direction = mean_diff / (mean_diff.norm(dim=-1, keepdim=True) + 1e-8)
+                direction = direction.to(activation)
+                activation += (activation @ direction).unsqueeze(-1) * direction
+                # cache[batch_id:batch_id+batch_size,layer,:]= torch.squeeze(activation[:, positions, :],1)
+        # if not target layer, cache the original activation value
+        # else:
+            # cache[batch_id:batch_id + batch_size, layer, :] = torch.squeeze(activation[:, positions, :],1)
+
+        if isinstance(input, tuple):
+            return (activation, *input[1:])
+        else:
+            return activation
+    return hook_fn
+
+
+def get_and_cache_direction_addition_output_hook(mean_diff: Tensor,
+                                                 layer: int, positions: List[int],
+                                                 batch_id: int, batch_size: int,
+                                                 target_layer,
+                                                 ):
+    def hook_fn(module, input, output):
+        nonlocal mean_diff, layer, positions, batch_id, batch_size, target_layer
+
+        if isinstance(output, tuple):
+            activation: Float[Tensor, "batch_size seq_len d_model"] = output[0]
+        else:
+            activation: Float[Tensor, "batch_size seq_len d_model"] = output
+
+        # only apply the ablation to the target layers
+        if layer in target_layer:
+                direction = mean_diff / (mean_diff.norm(dim=-1, keepdim=True) + 1e-8)
+                direction = direction.to(activation)
+                activation += (activation @ direction).unsqueeze(-1) * direction
+                # cache[batch_id:batch_id+batch_size,layer,:]= torch.squeeze(activation[:, positions, :],1)
+        # if not target layer, cache the original activation value
+        # else:
+            # cache[batch_id:batch_id + batch_size, layer, :] = torch.squeeze(activation[:, positions, :],1)
+
+        if isinstance(output, tuple):
+            return (activation, *output[1:])
+        else:
+            return activation
+    return hook_fn
+
+
 def get_and_cache_activation_addition_output_hook(direction: Tensor,
                                                     layer:int,positions: List[int],batch_id:int,batch_size:int,
                                                     target_layer,coeff=1):

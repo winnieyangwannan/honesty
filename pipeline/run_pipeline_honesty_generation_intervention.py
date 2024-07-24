@@ -16,6 +16,7 @@ from pipeline.submodules.activation_pca_intervention import plot_contrastive_act
 from pipeline.submodules.evaluate_truthful import get_accuracy_and_unexpected, plot_lying_honest_accuracy
 import plotly.io as pio
 
+
 def parse_arguments():
     """Parse model path argument from command line."""
     parser = argparse.ArgumentParser(description="Parse model path argument.")
@@ -152,7 +153,7 @@ def generate_with_intervention_cache_contrastive_activations_and_plot_pca(cfg,
                                                        n_layers,
                                                        contrastive_label,
                                                        labels,
-                                                       plot_original=False,
+                                                       plot_original=True,
                                                        plot_intervention=True,
                                                        )
     fig.write_html(artifact_dir + os.sep + intervention + os.sep + data_category + '_' + intervention +
