@@ -11,10 +11,8 @@ from pipeline.honesty_config_generation_skip_connection import Config
 from pipeline.model_utils.model_factory import construct_model_base
 from pipeline.submodules.select_direction import get_refusal_scores
 from pipeline.submodules.activation_pca import get_contrastive_activations_and_plot_pca
-from pipeline.submodules.activation_pca_intervention import plot_contrastive_activation_intervention_pca, \
-    get_intervention_activations_and_generation
-from pipeline.submodules.evaluate_truthful import get_accuracy_and_unexpected, plot_lying_honest_accuracy
-import plotly.io as pio
+from pipeline.analysis.stage_statistics import plot_stage_quantification_original_intervention
+from pipeline.submodules.activation_pca_intervention import generate_with_intervention_cache_contrastive_activations_and_plot_pca
 
 
 def parse_arguments():
@@ -79,129 +77,16 @@ def filter_data(cfg, model_base, harmful_train, harmless_train, harmful_val, har
     return harmful_train, harmless_train, harmful_val, harmless_val
 
 
-def generate_with_intervention_cache_contrastive_activations_and_plot_pca(cfg,
-                                                                          model_base,
-                                                                          dataset,
-                                                                          activations_honest,
-                                                                          activations_lying,
-                                                                          mean_diff=None,
-                                                                          labels=None):
+def contrastive_extraction_generation_intervention_and_plot_pca(cfg, model_base, dataset_train, dataset_test):
 
-    intervention = cfg.intervention
+    model_name = cfg.model_alias
+    data_category = cfg.data_category
     source_layer = cfg.source_layer
     target_layer_s = cfg.target_layer_s
     target_layer_e = cfg.target_layer_e
     artifact_dir = cfg.artifact_path()
-    model_name = cfg.model_alias
-    data_category = cfg.data_category
-    n_layers = model_base.model.config.num_hidden_layers
-    tokenize_fn = model_base.tokenize_statements_fn
-    true_token_id = model_base.true_token_id
-    false_token_id = model_base.false_token_id
-
-    # 1. Generation with Intervention
-    intervention_activations_honest, intervention_completions_honest, first_gen_toks_honest, first_gen_str_honest = get_intervention_activations_and_generation(
-        cfg, model_base, dataset,
-        tokenize_fn,
-        mean_diff=mean_diff,
-        positions=[-1],
-        max_new_tokens=64,
-        system_type="honest",
-        target_layer_s=target_layer_s,
-        target_layer_e=target_layer_e,
-        labels=labels)
-    intervention_activations_lying, intervention_completions_lying, first_gen_toks_lying, first_gen_str_lying = get_intervention_activations_and_generation(
-        cfg, model_base, dataset,
-        tokenize_fn,
-        mean_diff=mean_diff,
-        positions=[-1],
-        max_new_tokens=64,
-        system_type="lying",
-        target_layer_s=target_layer_s,
-        target_layer_e=target_layer_e,
-        labels=labels)
-
-    # 2. save completions and activations
-    if not os.path.exists(os.path.join(cfg.artifact_path(), intervention)):
-        os.makedirs(os.path.join(cfg.artifact_path(), intervention))
-
-    with open(
-            artifact_dir + os.sep + intervention + os.sep + f'{data_category}_{intervention}_completions_honest_layer_{source_layer}_{target_layer_s}_{target_layer_e}.json',
-            "w") as f:
-        json.dump(intervention_completions_honest, f, indent=4)
-    with open(
-            artifact_dir + os.sep + intervention + os.sep + f'{data_category}_{intervention}_completions_lying_layer_{source_layer}_{target_layer_s}_{target_layer_e}.json',
-            "w") as f:
-        json.dump(intervention_completions_lying, f, indent=4)
-
-    # save activations
-    activations = {
-        "activations_honest": intervention_activations_honest,
-        "activations_lying": intervention_activations_lying,
-    }
-    with open(artifact_dir + os.sep + intervention + os.sep + model_name + '_' + f'{data_category}' +
-                    '_activation_pca_' + intervention + str(source_layer) + '_' + str(target_layer_s) +
-                    '_' + str(target_layer_e) + '.pkl', "wb") as f:
-        pickle.dump(activations, f)
-
-    # 3. pca with and without intervention, plot and save pca plots
-    contrastive_label = ["honest", "lying", "honest_addition", "lying_addition"]
-    fig = plot_contrastive_activation_intervention_pca(activations_honest,
-                                                       activations_lying,
-                                                       intervention_activations_honest,
-                                                       intervention_activations_lying,
-                                                       n_layers,
-                                                       contrastive_label,
-                                                       labels,
-                                                       plot_original=True,
-                                                       plot_intervention=True,
-                                                       )
-    fig.write_html(artifact_dir + os.sep + intervention + os.sep + data_category + '_' + intervention +
-                   '_pca_layer_' + str(source_layer) + '_' + str(target_layer_s) + '_' + str(target_layer_e) + '.html')
-    pio.write_image(fig, artifact_dir + os.sep + intervention + os.sep + data_category + '_' + intervention +
-                   '_pca_layer_' + str(source_layer) + '_' + str(target_layer_s) + '_' + str(target_layer_e) + '.png',
-                    scale=6)
-
-    # 4. get accuracy
-    correct_honest, unexpected_honest = get_accuracy_and_unexpected(first_gen_toks_honest, first_gen_str_honest,
-                                                                    labels,
-                                                                    true_token_id, false_token_id)
-    correct_lying, unexpected_lying = get_accuracy_and_unexpected(first_gen_toks_lying, first_gen_str_lying,
-                                                                  labels,
-                                                                  true_token_id, false_token_id)
-    accuracy_lying = sum(correct_lying) / len(correct_lying)
-    accuracy_honest = sum(correct_honest) / len(correct_honest)
-    unexpected_lying_rate = sum(unexpected_lying) / len(unexpected_lying)
-    unexpected_honest_rate = sum(unexpected_honest) / len(unexpected_honest)
-    print(f"accuracy_lying: {accuracy_lying}")
-    print(f"accuracy_honest: {accuracy_honest}")
-    print(f"unexpected_lying: {unexpected_lying_rate}")
-    print(f"unexpected_honest: {unexpected_honest_rate}")
-    model_performance = {
-        "performance_lying": correct_lying,
-        "performance_honest": correct_honest,
-        "accuracy_lying": accuracy_lying,
-        "accuracy_honest": accuracy_honest,
-        "unexpected_lying": unexpected_lying,
-        "unexpected_honest": unexpected_honest,
-        "unexpected_lying_rate": unexpected_lying_rate,
-        "unexpected_honest_rate": unexpected_honest_rate
-    }
-
-    with open(artifact_dir + os.sep + intervention + os.sep + f'{data_category}_{intervention}_' + 'model_performance_layer_'
-              + str(source_layer)+'_' + str(target_layer_s) + '_' + str(target_layer_e) + '.pkl', 'wb') as f:
-        pickle.dump(model_performance, f)
-
-    # 5. Plot accuracy
-    fig = plot_lying_honest_accuracy(cfg, accuracy_honest, accuracy_lying)
-    # save
-    fig.write_html(artifact_dir + os.sep + intervention + os.sep + f'{data_category}_{intervention}_'
-                   + 'model_performance_layer_' + str(source_layer) + '_' + str(target_layer_s) + '_' + str(target_layer_e) +
-                   '_accuracy' + '.html')
-
-
-def contrastive_extraction_generation_intervention_and_plot_pca(cfg, model_base, dataset_train, dataset_test):
-
+    intervention = cfg.intervention
+    save_path = os.path.join(artifact_dir, intervention, "stage_stats")
     statements_train = [row['claim'] for row in dataset_train]
     statements_test = [row['claim'] for row in dataset_test]
     labels_train = [row['label'] for row in dataset_train]
@@ -209,35 +94,52 @@ def contrastive_extraction_generation_intervention_and_plot_pca(cfg, model_base,
 
     # 1.1 extract activations
     print("start extraction")
-    activations_honest, activations_lying = get_contrastive_activations_and_plot_pca(cfg=cfg,
-                                                                                     model_base=model_base,
-                                                                                     dataset=statements_train,
-                                                                                     labels=labels_train)
+    activations_honest, activations_lying, model_performance_original, stage_stats_original = get_contrastive_activations_and_plot_pca(cfg=cfg,
+                                                                                                                     model_base=model_base,
+                                                                                                                     dataset=statements_train,
+                                                                                                                     labels=labels_train,
+                                                                                                                     save_activations=False,
+                                                                                                                     save_plot=False)
 
     print("done extraction")
-    # 1.2 quantify different lying stages
-    get_state_quantification(cfg, activations_honest, activations_lying, labels_train)
 
-    # 2. get steering vector = get mean difference of the source layer
-    intervention = cfg.intervention
-    mean_activation_honest = activations_honest.mean(dim=0)
-    mean_activation_lying = activations_lying.mean(dim=0)
-    if "honest_addition" in intervention or "lying_ablation" in intervention:
-        mean_diff = mean_activation_honest - mean_activation_lying
-    elif "lying_addition" in intervention or "honest_ablation" in intervention:
-        mean_diff = mean_activation_lying - mean_activation_honest
-    elif "skip_connection_mlp" or "skip_connection_attn" in intervention:
-        mean_diff = 0.000001*torch.ones_like(mean_activation_honest)
+    if intervention != "no_intervention":
+        # 2. get steering vector = get mean difference of the source layer
+        mean_activation_honest = activations_honest.mean(dim=0)
+        mean_activation_lying = activations_lying.mean(dim=0)
 
-    # 3. generate with adding steering vector
-    source_layer = cfg.source_layer
-    generate_with_intervention_cache_contrastive_activations_and_plot_pca(cfg,
-                                                                          model_base,
-                                                                          statements_test,
-                                                                          activations_honest,
-                                                                          activations_lying,
-                                                                          mean_diff=mean_diff[source_layer, :],
-                                                                          labels=labels_test)
+        if "honest_addition" in intervention or "lying_ablation" in intervention or "honest_direction_addition" in intervention:
+            mean_diff = mean_activation_honest - mean_activation_lying
+        elif "lying_addition" in intervention or "honest_ablation" in intervention or "lying_direction_addition" in intervention:
+            mean_diff = mean_activation_lying - mean_activation_honest
+        elif "skip_connection_mlp" or "skip_connection_attn" in intervention:
+            mean_diff = 0.000001*torch.ones_like(mean_activation_honest) # 0 ablation
+
+        # 3.1  generate with adding steering vector and get activations
+        intervention_activations_honest, intervention_activations_lying, model_performance_intervention, stage_stats_intervention = generate_with_intervention_cache_contrastive_activations_and_plot_pca(cfg,
+                                                                              model_base,
+                                                                              statements_test,
+                                                                              activations_honest,
+                                                                              activations_lying,
+                                                                              mean_diff=mean_diff[source_layer, :],
+                                                                              labels=labels_test,
+                                                                              save_activations=False)
+        # 4.1 Compare and plot stage statistics with and without intervention
+        n_layers = activations_lying.shape[1]
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+        plot_stage_quantification_original_intervention(cfg, stage_stats_original, stage_stats_intervention,
+                                                        n_layers, save_path)
+
+        # 4.2 save stage statistics with and without intervention
+        stage_stats = {
+            "stage_stats_original": stage_stats_original,
+            "stage_stats_intervention": stage_stats_intervention,
+        }
+        with open(save_path + os.sep + model_name + '_' + f'{data_category}' +
+                  '_stage_stats_' + intervention + '_' + str(source_layer) + '_' + str(target_layer_s) +
+                  '_' + str(target_layer_e) + '.pkl', "wb") as f:
+            pickle.dump(stage_stats, f)
 
 
 def run_pipeline(model_path, save_path, intervention, source_layer, target_layer_s, target_layer_e):

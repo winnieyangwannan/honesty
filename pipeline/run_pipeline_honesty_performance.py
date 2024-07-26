@@ -10,7 +10,7 @@ import plotly.io as pio
 
 from datasets import load_dataset
 from torch.utils.data import DataLoader
-from pipeline.submodules.evaluate_truthful import plot_lying_honest_accuracy, get_statement_accuracy_cache_activation
+from pipeline.submodules.evaluate_truthful import plot_lying_honest_performance, get_statement_accuracy_cache_activation
 from pipeline.honesty_config_performance import Config
 from pipeline.model_utils.model_factory import construct_model_base
 from pipeline.submodules.activation_pca import plot_contrastive_activation_pca

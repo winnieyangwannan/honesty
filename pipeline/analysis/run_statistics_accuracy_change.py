@@ -35,7 +35,7 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def get_accuracy_statistics(cfg, model_base):
+def get_accuracy_statistics_intervention_change(cfg, model_base):
     artifact_path = cfg.artifact_path()
     intervention = cfg.intervention
     data_category = cfg.data_category
@@ -95,7 +95,7 @@ def run_pipeline(model_path, save_path, intervention, source_layer, target_layer
     model_base = construct_model_base(cfg.model_path)
 
     # 1. Accuracy Statistics
-    get_accuracy_statistics(cfg, model_base)
+    get_accuracy_statistics_intervention_change(cfg, model_base)
 
 
 if __name__ == "__main__":

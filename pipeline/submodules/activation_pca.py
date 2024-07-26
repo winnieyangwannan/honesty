@@ -21,6 +21,13 @@ from pipeline.utils.hook_utils import get_generation_cache_activation_trajectory
 from pipeline.utils.hook_utils import get_activations_pre_hook, get_activations_hook
 from pipeline.utils.hook_utils import get_generation_cache_activation_input_pre_hook
 import plotly.io as pio
+from pipeline.submodules.evaluate_truthful import get_performance_stats
+from pipeline.analysis.stage_statistics import get_state_quantification
+from torch.nn.functional import softmax
+from pipeline.submodules.evaluate_truthful import get_performance_stats
+import pickle
+import json
+from pipeline.analysis.stage_statistics import get_state_quantification
 
 
 def get_ablation_activations_pre_hook(layer, cache: Float[Tensor, "batch layer d_model"], n_samples, positions: List[int],batch_id,batch_size):
@@ -69,53 +76,145 @@ def get_addition_activations(model, tokenizer, instructions, tokenize_instructio
     return activations
 
 
-def get_ablation_activations(model, tokenizer, instructions, tokenize_instructions_fn, block_modules: List[torch.nn.Module],
-                             direction,
-                             batch_size=32, positions=[-1],target_layer=None):
-    torch.cuda.empty_cache()
+def generate_get_contrastive_activations_and_plot_pca(cfg, model_base, tokenize_fn, dataset, labels=None,
+                                                      save_activations=False, save_plot=False):
+    artifact_dir = cfg.artifact_path()
+    if not os.path.exists(artifact_dir):
+        os.makedirs(artifact_dir)
 
-    n_positions = len(positions)
-    n_layers = model.config.num_hidden_layers
-    n_samples = len(instructions)
-    d_model = model.config.hidden_size
+    model_name = cfg.model_alias
+    data_category = cfg.data_category
+    max_new_tokens = cfg.max_new_tokens
+    tokenize_fn_lie = model_base.tokenize_statements_fn
+    true_token_id = model_base.true_token_id
+    false_token_id = model_base.false_token_id
+    # tokenize_fn_syco = model_base.tokenize_statements_fn_syco
 
-    # we store the mean activations in high-precision to avoid numerical issues
-    activation_pre = torch.zeros((n_samples, n_layers, d_model), dtype=torch.float64, device=model.device)
+    # 1. activation extraction with generation
+    activations_lying, completions_lying, first_gen_toks_lying, first_gen_str_lying = generate_and_get_activations(cfg,
+                                                                                                                   model_base,
+                                                                                                                   dataset,
+                                                                                                                   tokenize_fn,
+                                                                                                                   positions=[
+                                                                                                                       -1],
+                                                                                                                   max_new_tokens=max_new_tokens,
+                                                                                                                   system_type="lying",
+                                                                                                                   labels=labels)
 
-    # if not specified, ablate all layers by default
-    if target_layer==None:
-        target_layer = np.arange(n_layers)
+    activations_honest, completions_honest, first_gen_toks_honest, first_gen_str_honest = generate_and_get_activations(
+        cfg, model_base, dataset,
+        tokenize_fn,
+        positions=[-1],
+        max_new_tokens=max_new_tokens,
+        system_type="honest",
+        labels=labels)
 
-    for i in tqdm(range(0, len(instructions), batch_size)):
-        inputs = tokenize_instructions_fn(instructions=instructions[i:i+batch_size])
-        fwd_pre_hooks = [(block_modules[layer],
-                          get_and_cache_direction_ablation_input_pre_hook(
-                                                   direction=direction,
-                                                   cache=activation_pre,
-                                                   layer=layer,
-                                                   positions=positions,
-                                                   batch_id=i,
-                                                   batch_size=batch_size,
-                                                   target_layer=target_layer),
-                                                ) for layer in range(n_layers)]
-        fwd_hooks = [(block_modules[layer],
-                          get_and_cache_direction_ablation_output_hook(
-                                                   direction=direction,
-                                                   layer=layer,
-                                                   positions=positions,
-                                                   batch_id=i,
-                                                   batch_size=batch_size,
-                                                   target_layer=target_layer),
-                                                ) for layer in range(n_layers)]
-        with add_hooks(module_forward_pre_hooks=fwd_pre_hooks, module_forward_hooks=fwd_hooks):
-            model(
-                input_ids=inputs.input_ids.to(model.device),
-                attention_mask=inputs.attention_mask.to(model.device),
-            )
+    # 2.1 save activations
+    if save_activations:
+        activations = {
+            "activations_honest": activations_honest,
+            "activations_lying": activations_lying,
+        }
+        with open(artifact_dir + os.sep + model_name + '_' + f'{data_category}'
+                  + '_activation_pca.pkl', "wb") as f:
+            pickle.dump(activations, f)
 
-    return activation_pre
+    # 2.2 save completions
+    if not os.path.exists(os.path.join(cfg.artifact_path(), 'completions')):
+        os.makedirs(os.path.join(cfg.artifact_path(), 'completions'))
 
+    with open(f'{cfg.artifact_path()}' + os.sep + 'completions' + os.sep + f'{data_category}_completions_honest.json',
+              "w") as f:
+        json.dump(completions_honest, f, indent=4)
+    with open(f'{cfg.artifact_path()}' + os.sep + 'completions' + os.sep + f'{data_category}_completions_lying.json',
+              "w") as f:
+        json.dump(completions_lying, f, indent=4)
 
+    # 3. plot pca
+    n_layers = model_base.model.config.num_hidden_layers
+    fig = plot_contrastive_activation_pca(activations_honest, activations_lying,
+                                          n_layers, contrastive_label=["honest", "lying"],
+                                          labels=labels)
+    if save_plot:
+          fig.write_html(artifact_dir + os.sep + model_name + '_' + 'activation_pca.html')
+          pio.write_image(fig, artifact_dir + os.sep + model_name + '_' + 'activation_pca.png',
+                          scale=6)
+
+    # 4. get performance
+    save_path = artifact_dir + os.sep + "performance"
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+
+    model_performance, fig = get_performance_stats(cfg, first_gen_toks_honest, first_gen_str_honest,
+                                                   first_gen_toks_lying, first_gen_str_lying,
+                                                   labels,
+                                                   true_token_id, false_token_id
+                                                   )
+    fig.write_html(save_path + os.sep + f'{data_category}_performance_'
+                   + 'model_performance.html')
+    pio.write_image(fig, save_path + os.sep + f'{data_category}_performance_'
+                    + 'model_performance.png',
+                    scale=6)
+
+    # 5. Get stage statistics with intervention
+    save_path = artifact_dir + os.sep + "stage_stats"
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+    stage_stats = get_state_quantification(cfg, activations_honest, activations_lying,
+                                           labels,
+                                           save_plot=True)
+    with open(save_path + os.sep + model_name + '_' + f'{data_category}' +
+              '_stage_stats.pkl', "wb") as f:
+        pickle.dump(stage_stats, f)
+    return activations_honest, activations_lying
+#
+#
+# def get_ablation_activations(model, tokenizer, instructions, tokenize_instructions_fn, block_modules: List[torch.nn.Module],
+#                              direction,
+#                              batch_size=32, positions=[-1],target_layer=None):
+#     torch.cuda.empty_cache()
+#
+#     n_positions = len(positions)
+#     n_layers = model.config.num_hidden_layers
+#     n_samples = len(instructions)
+#     d_model = model.config.hidden_size
+#
+#     # we store the mean activations in high-precision to avoid numerical issues
+#     activation_pre = torch.zeros((n_samples, n_layers, d_model), dtype=torch.float64, device=model.device)
+#
+#     # if not specified, ablate all layers by default
+#     if target_layer==None:
+#         target_layer = np.arange(n_layers)
+#
+#     for i in tqdm(range(0, len(instructions), batch_size)):
+#         inputs = tokenize_instructions_fn(instructions=instructions[i:i+batch_size])
+#         fwd_pre_hooks = [(block_modules[layer],
+#                           get_and_cache_direction_ablation_input_pre_hook(
+#                                                    direction=direction,
+#                                                    cache=activation_pre,
+#                                                    layer=layer,
+#                                                    positions=positions,
+#                                                    batch_id=i,
+#                                                    batch_size=batch_size,
+#                                                    target_layer=target_layer),
+#                                                 ) for layer in range(n_layers)]
+#         fwd_hooks = [(block_modules[layer],
+#                           get_and_cache_direction_ablation_output_hook(
+#                                                    direction=direction,
+#                                                    layer=layer,
+#                                                    positions=positions,
+#                                                    batch_id=i,
+#                                                    batch_size=batch_size,
+#                                                    target_layer=target_layer),
+#                                                 ) for layer in range(n_layers)]
+#         with add_hooks(module_forward_pre_hooks=fwd_pre_hooks, module_forward_hooks=fwd_hooks):
+#             model(
+#                 input_ids=inputs.input_ids.to(model.device),
+#                 attention_mask=inputs.attention_mask.to(model.device),
+#             )
+#
+#     return activation_pre
+#
 
 
 def get_addition_activations_generation(model, tokenizer, instructions, tokenize_instructions_fn, block_modules: List[torch.nn.Module],
@@ -296,7 +395,8 @@ def generate_and_get_activations(cfg, model_base, dataset,
     completions = []
     # we store the mean activations in high-precision to avoid numerical issues
     activations = torch.zeros((n_samples, n_layers, d_model), dtype=torch.float64, device=model.device)
-
+    first_gen_toks_all = torch.zeros((n_samples), dtype=torch.long)
+    first_gen_str_all = []
     for i in tqdm(range(0, len(dataset), batch_size)):
         inputs = tokenize_fn(prompts=dataset[i:i+batch_size], system_type=system_type)
         len_prompt = inputs.input_ids.shape[1]
@@ -308,7 +408,6 @@ def generate_and_get_activations(cfg, model_base, dataset,
                                                                          batch_size=batch_size,
                                                                          len_prompt=len_prompt)
                           ) for layer in range(n_layers)]
-
         #fwd_hook = [module,hook_function]
         with add_hooks(module_forward_pre_hooks=fwd_pre_hooks, module_forward_hooks=[]):
             generation_toks = model.generate(
@@ -316,15 +415,11 @@ def generate_and_get_activations(cfg, model_base, dataset,
                 attention_mask=inputs.attention_mask.to(model.device),
                 generation_config=generation_config,
             )
+            first_gen_tok = generation_toks[:, inputs.input_ids.shape[-1]]
+            top_token_str = tokenizer.batch_decode(first_gen_tok)
+            first_gen_toks_all[i:i + batch_size] = first_gen_tok
+            first_gen_str_all.append(top_token_str)
             generation_toks = generation_toks[:, inputs.input_ids.shape[-1]:]
-
-        # generation_toks = generate_with_cache(inputs, model, block_modules,
-        #                                       activations,
-        #                                       i,
-        #                                       batch_size,
-        #                                       cache_type=cache_type,
-        #                                       positions=-1,
-        #                                       max_new_tokens=max_new_tokens)
 
             for generation_idx, generation in enumerate(generation_toks):
                 if labels is not None:
@@ -340,7 +435,9 @@ def generate_and_get_activations(cfg, model_base, dataset,
                         'response': tokenizer.decode(generation, skip_special_tokens=True).strip(),
                         'ID': i + generation_idx
                     })
-    return activations, completions
+    first_gen_str_all = [x for xs in first_gen_str_all for x in xs]
+
+    return activations, completions, first_gen_toks_all, first_gen_str_all
 
 
 def get_activations(cfg, model_base, dataset,
@@ -356,6 +453,7 @@ def get_activations(cfg, model_base, dataset,
     batch_size = cfg.batch_size
     model = model_base.model
     block_modules = model_base.model_block_modules
+    tokenizer = model_base.tokenizer
 
     n_layers = model.config.num_hidden_layers
     n_samples = len(dataset)
@@ -364,7 +462,8 @@ def get_activations(cfg, model_base, dataset,
     # we store the mean activations in high-precision to avoid numerical issues
     # activations = torch.zeros((n_samples, n_layers, d_model), dtype=torch.float64, device=model.device)
     activations = torch.zeros((n_samples, n_layers, d_model), dtype=torch.float64, device=model.device)
-
+    first_gen_toks_all = torch.zeros((n_samples), dtype=torch.long)
+    first_gen_str_all = []
     for i in tqdm(range(0, len(dataset), batch_size)):
         inputs = tokenize_fn(prompts=dataset[i:i+batch_size], system_type=system_type)
 
@@ -400,12 +499,23 @@ def get_activations(cfg, model_base, dataset,
                                                        batch_size=batch_size)) for layer in range(n_layers)]
 
         with add_hooks(module_forward_pre_hooks=fwd_pre_hooks, module_forward_hooks=fwd_hooks):
-            model(
+            outputs =  model(
                 input_ids=inputs.input_ids.to(model.device),
                 attention_mask=inputs.attention_mask.to(model.device),
-            )
+            ).logits[:, -1, :]
+            probs = softmax(outputs, dim=-1)
 
-    return activations
+            # Sort the probabilities in descending order and get the top tokens
+            top_probs, top_indices = torch.topk(probs, k=5)  # Get top 5 for demonstration
+
+            # Get the top token and its probability
+            top_token_id = top_indices[:, 0]
+            top_token_str = tokenizer.batch_decode(top_token_id)
+
+            first_gen_toks_all[i:i+batch_size] = top_token_id
+            first_gen_str_all.append(top_token_str)
+    first_gen_str_all = [x for xs in first_gen_str_all for x in xs]
+    return activations, first_gen_toks_all, first_gen_str_all
 
 
 def get_contrastive_activations_and_plot_pca(cfg,
@@ -414,23 +524,28 @@ def get_contrastive_activations_and_plot_pca(cfg,
                                              labels=None,
                                              intervention=None,
                                              save_activations=False,
+                                             save_plot=True
                                              ):
+
     if intervention is None:
         intervention = cfg.intervention
-
-    artifact_dir = cfg.artifact_path()
-    if not os.path.exists(os.path.join(artifact_dir, intervention)):
-        os.makedirs(os.path.join(artifact_dir, intervention))
     model_name = cfg.model_alias
     data_category = cfg.data_category
+    artifact_dir = cfg.artifact_path()
+    true_token_id = model_base.true_token_id
+    false_token_id = model_base.false_token_id
+
+    if not os.path.exists(os.path.join(artifact_dir, intervention)):
+        os.makedirs(os.path.join(artifact_dir, intervention))
+
     tokenize_fn = model_base.tokenize_statements_fn
-    activations_lying = get_activations(cfg, model_base, dataset,
+    activations_lying, first_gen_toks_lying, first_gen_str_lying = get_activations(cfg, model_base, dataset,
                                         tokenize_fn,
                                         positions=[-1],
                                         system_type="lying",
                                         intervention=intervention)
 
-    activations_honest = get_activations(cfg, model_base, dataset,
+    activations_honest, first_gen_toks_honest, first_gen_str_honest = get_activations(cfg, model_base, dataset,
                                          tokenize_fn,
                                          positions=[-1],
                                          system_type="honest",
@@ -439,27 +554,46 @@ def get_contrastive_activations_and_plot_pca(cfg,
     # save activations
     if save_activations:
         activations = {
-            "activations_honest": activations_lying,
+            "activations_honest": activations_honest,
             "activations_lying": activations_lying,
         }
         with open(artifact_dir + os.sep + intervention + os.sep + model_name + '_' + f'{data_category}'
                        + '_activation_pca.pkl', "wb") as f:
             pickle.dump(activations, f)
 
-    # plot and save pca plots
-    n_layers = model_base.model.config.num_hidden_layers
-    fig = plot_contrastive_activation_pca(activations_honest, activations_lying,
-                                          n_layers, contrastive_label=["honest", "lying"],
-                                          labels=labels)
-    fig.write_html(artifact_dir + os.sep + intervention + os.sep + f'{data_category}'
-                    + '_activation_pca.html')
-    pio.write_image(fig, artifact_dir + os.sep + intervention + os.sep + f'{data_category}'
-                    + '_activation_pca.pdf')
-    pio.write_image(fig, artifact_dir + os.sep + intervention + os.sep + f'{data_category}'
-                    + '_activation_pca.png',
-                    scale=6)
+    # 2. plot and save pca plots
+    if save_plot:
+        n_layers = model_base.model.config.num_hidden_layers
+        fig = plot_contrastive_activation_pca(activations_honest, activations_lying,
+                                              n_layers, contrastive_label=["honest", "lying"],
+                                              labels=labels)
+        fig.write_html(artifact_dir + os.sep + intervention + os.sep + f'{data_category}'
+                        + '_activation_pca.html')
+        pio.write_image(fig, artifact_dir + os.sep + intervention + os.sep + f'{data_category}'
+                        + '_activation_pca.pdf')
+        pio.write_image(fig, artifact_dir + os.sep + intervention + os.sep + f'{data_category}'
+                        + '_activation_pca.png',
+                        scale=6)
 
-    return activations_honest, activations_lying
+    # 3. get performance
+    save_path = artifact_dir + os.sep + "performance"
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+
+    model_performance, fig = get_performance_stats(cfg, first_gen_toks_honest, first_gen_str_honest, first_gen_toks_lying, first_gen_str_lying,
+                                                   labels,
+                                                   true_token_id, false_token_id
+                                                   )
+    fig.write_html(save_path + os.sep + f'{data_category}_{intervention}_'
+                   + 'model_performance.html')
+    pio.write_image(fig, save_path + os.sep + f'{data_category}_{intervention}_'
+                   + 'model_performance.png',
+                    scale=6)
+    # 4. quantify different lying stages
+    stage_stats = get_state_quantification(cfg, activations_honest, activations_lying, labels,
+                                           save_plot=False)
+
+    return activations_honest, activations_lying, model_performance, stage_stats
 
 
 def plot_contrastive_activation_pca_with_trajectory(activations_honest, activations_lie,
@@ -935,36 +1069,36 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
     fig.show()
     return fig
 
-
-def extraction_intervention_and_plot_pca(cfg,model_base: ModelBase, harmful_instructions, harmless_instructions):
-    artifact_dir = cfg.artifact_path()
-    if not os.path.exists(artifact_dir):
-        os.makedirs(artifact_dir)
-
-    # 1. extract activations
-    activations_honest,activations_lie = generate_activations_and_plot_pca(cfg,model_base, harmful_instructions, harmless_instructions)
-
-    # 2. get steering vector = get mean difference of the source layer
-    mean_activation_harmful = activations_honest.mean(dim=0)
-    mean_activation_harmless = activations_lie.mean(dim=0)
-    mean_diff = mean_activation_harmful-mean_activation_harmless
-
-
-    # 3. refusal_intervention_and_plot_pca
-    ablation_activations_honest,ablation_activations_lie = refusal_intervention_and_plot_pca(cfg, model_base,
-                                                                                                   harmful_instructions,
-                                                                                                   harmless_instructions,
-                                                                                                   mean_diff)
-
-    # 4. pca with and without intervention, plot and save pca
-    intervention = cfg.intervention
-    source_layer = cfg.source_layer
-    target_layer = cfg.target_layer
-    model_name =cfg.model_alias
-    n_layers = model_base.model.config.num_hidden_layers
-    fig = plot_contrastive_activation_intervention_pca(activations_honest, activations_lie,
-                                                       ablation_activations_honest, ablation_activations_lie,
-                                                       n_layers)
-    fig.write_html(artifact_dir + os.sep + model_name + '_' + 'refusal_generation_activation_'
-                   +intervention+'_pca_layer_'
-                   +str(source_layer)+'_'+ str(target_layer)+'.html')
+#
+# def extraction_intervention_and_plot_pca(cfg,model_base: ModelBase, harmful_instructions, harmless_instructions):
+#     artifact_dir = cfg.artifact_path()
+#     if not os.path.exists(artifact_dir):
+#         os.makedirs(artifact_dir)
+#
+#     # 1. extract activations
+#     activations_honest,activations_lie = generate_activations_and_plot_pca(cfg,model_base, harmful_instructions, harmless_instructions)
+#
+#     # 2. get steering vector = get mean difference of the source layer
+#     mean_activation_harmful = activations_honest.mean(dim=0)
+#     mean_activation_harmless = activations_lie.mean(dim=0)
+#     mean_diff = mean_activation_harmful-mean_activation_harmless
+#
+#
+#     # 3. refusal_intervention_and_plot_pca
+#     ablation_activations_honest,ablation_activations_lie = refusal_intervention_and_plot_pca(cfg, model_base,
+#                                                                                              harmful_instructions,
+#                                                                                              harmless_instructions,
+#                                                                                              mean_diff)
+#
+#     # 4. pca with and without intervention, plot and save pca
+#     intervention = cfg.intervention
+#     source_layer = cfg.source_layer
+#     target_layer = cfg.target_layer
+#     model_name = cfg.model_alias
+#     n_layers = model_base.model.config.num_hidden_layers
+#     fig = plot_contrastive_activation_intervention_pca(activations_honest, activations_lie,
+#                                                        ablation_activations_honest, ablation_activations_lie,
+#                                                        n_layers)
+#     fig.write_html(artifact_dir + os.sep + model_name + '_' + 'refusal_generation_activation_'
+#                    +intervention+'_pca_layer_'
+#                    +str(source_layer)+'_'+ str(target_layer)+'.html')

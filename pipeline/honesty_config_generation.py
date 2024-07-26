@@ -24,6 +24,7 @@ class Config:
     data_category: str = "facts"
     batch_size: int = 16
     max_new_tokens: int = 100
+    intervention: str = "no_intervention"
     # for generation_trajectory
     dataset_id: list[int] = 3
 

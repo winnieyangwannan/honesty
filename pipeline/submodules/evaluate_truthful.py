@@ -20,17 +20,37 @@ from pipeline.utils.hook_utils import get_and_cache_direction_ablation_output_ho
 from pipeline.utils.hook_utils import get_and_cache_activation_addition_output_hook
 
 
-def plot_lying_honest_accuracy(cfg, accuracy_honest, accuracy_lying):
+def plot_lying_honest_performance(cfg, model_performance):
     model_name = cfg.model_alias
+    accuracy_honest = model_performance['accuracy_honest']
+    accuracy_lying = model_performance['accuracy_lying']
+    wrong_rate_lying = model_performance['wrong_rate_lying']
+    wrong_rate_honest = model_performance['wrong_rate_honest']
+    unexpected_lying_rate = model_performance['unexpected_lying_rate']
+    unexpected_honest_rate = model_performance['unexpected_honest_rate']
 
     # data frame
-    d = {'Accuracy': [accuracy_honest, accuracy_lying],
-         'Role': ["honest", "lying"]}
-    df = pd.DataFrame(data=d)
+    Correct = [accuracy_honest, accuracy_lying]
+    Wrong = [wrong_rate_honest, wrong_rate_lying]
+    Unexpected = [unexpected_honest_rate, unexpected_lying_rate]
+    Role = ["Honest", "Lying"]
 
     # plot
-    fig = px.bar(df, x="Role", y="Accuracy", title=f"{model_name}",
-                 width=400, height=400)
+    fig = make_subplots(rows=1, cols=3,
+                        subplot_titles=["Correct", "Wrong", "Unexpected"])
+    fig.add_trace(go.Bar(x=Role, y=Correct, showlegend=False,
+    ), row=1, col=1)
+    fig.add_trace(go.Bar(x=Role, y=Wrong, showlegend=False,
+    ), row=1, col=2)
+    fig.add_trace(go.Bar(x=Role, y=Unexpected, showlegend=False,
+    ), row=1, col=3)
+
+    fig['layout']['yaxis']['title'] = 'Frequency'
+
+    fig.update_layout(yaxis1=dict(range=[0, 1]))
+    fig.update_layout(yaxis2=dict(range=[0, 1]))
+    fig.update_layout(yaxis3=dict(range=[0, 1]))
+
     fig.show()
 
     return fig
@@ -41,19 +61,27 @@ def get_accuracy_and_unexpected(top_token_id, top_token_str, labels, true_token_
 
     unexpected = []  # neither true nor false
     correct = []
+    wrong = []
     for ii, label_str in enumerate(label_strs):
-        if label_str == top_token_str[ii].lower().strip():
+        if top_token_str[ii] in label_strs[ii]:
             correct.append(1)
-        else:
-            correct.append(0)
-
-        if top_token_id[ii] not in true_token_id and top_token_id[ii] not in false_token_id:
-            unexpected.append(1)
-            print("unexpected: ")
-            print(top_token_str[ii])
-        else:
+            wrong.append(0)
             unexpected.append(0)
-    return correct, unexpected
+
+        elif top_token_str[ii] not in label_strs[ii]:
+
+            if top_token_id[ii] in false_token_id or top_token_id[ii] in false_token_id:
+                correct.append(0)
+                wrong.append(1)
+                unexpected.append(0)
+            elif top_token_id[ii] not in true_token_id and top_token_id[ii] not in false_token_id:
+                unexpected.append(1)
+                correct.append(0)
+                wrong.append(0)
+                print("unexpected: ")
+                print(top_token_str[ii])
+
+    return correct, wrong, unexpected
 
 
 def get_accuracy_and_probability(outputs, labels, tokenizer, true_token_id, false_token_id):
@@ -68,7 +96,7 @@ def get_accuracy_and_probability(outputs, labels, tokenizer, true_token_id, fals
     top_token_prob = top_probs[:, 0]
 
 
-    correct, unexpected = get_accuracy_and_unexpected(top_token_id, top_token_str,
+    correct, wrong, unexpected = get_accuracy_and_unexpected(top_token_id, top_token_str,
                                                       labels,
                                                       true_token_id, false_token_id)
     return correct, top_token_prob, unexpected
@@ -190,5 +218,40 @@ def get_statement_accuracy_cache_activation(model_base, dataset, cfg, system_typ
     return accuracy_all, probability_all, unexpected_all, activations
 
 
+def get_performance_stats(cfg, first_gen_toks_honest, first_gen_str_honest, first_gen_toks_lying, first_gen_str_lying,
+                          labels,
+                          true_token_id, false_token_id
+                          ):
+    correct_honest, wrong_honest, unexpected_honest = get_accuracy_and_unexpected(first_gen_toks_honest, first_gen_str_honest,
+                                                                    labels,
+                                                                    true_token_id, false_token_id)
+    correct_lying, wrong_lying, unexpected_lying = get_accuracy_and_unexpected(first_gen_toks_lying, first_gen_str_lying,
+                                                                  labels,
+                                                                  true_token_id, false_token_id)
+    accuracy_lying = sum(correct_lying) / len(correct_lying)
+    accuracy_honest = sum(correct_honest) / len(correct_honest)
+    wrong_rate_lying = sum(wrong_lying) / len(wrong_lying)
+    wrong_rate_honest = sum(wrong_honest) / len(wrong_honest)
+    unexpected_lying_rate = sum(unexpected_lying) / len(unexpected_lying)
+    unexpected_honest_rate = sum(unexpected_honest) / len(unexpected_honest)
+    print(f"accuracy_lying: {accuracy_lying}")
+    print(f"accuracy_honest: {accuracy_honest}")
+    print(f"unexpected_lying: {unexpected_lying_rate}")
+    print(f"unexpected_honest: {unexpected_honest_rate}")
+    model_performance = {
+        "performance_lying": correct_lying,
+        "performance_honest": correct_honest,
+        "accuracy_lying": accuracy_lying,
+        "accuracy_honest": accuracy_honest,
+        "wrong_rate_lying": wrong_rate_lying,
+        "wrong_rate_honest": wrong_rate_honest,
+        "unexpected_lying": unexpected_lying,
+        "unexpected_honest": unexpected_honest,
+        "unexpected_lying_rate": unexpected_lying_rate,
+        "unexpected_honest_rate": unexpected_honest_rate
+    }
 
-
+    # Plot accuracy
+    fig = plot_lying_honest_performance(cfg, model_performance)
+    # save
+    return model_performance, fig

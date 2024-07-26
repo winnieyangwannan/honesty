@@ -20,7 +20,10 @@ from pipeline.utils.hook_utils import get_and_cache_diff_addition_input_pre_hook
 from pipeline.utils.hook_utils import get_and_cache_direction_ablation_output_hook
 from pipeline.utils.hook_utils import get_and_cache_skip_connection_input_pre_hook, get_and_cache_skip_connection_hook
 from pipeline.utils.hook_utils import get_and_cache_direction_addition_output_hook, get_and_cache_direction_addition_input_hook
-
+from pipeline.submodules.evaluate_truthful import get_performance_stats
+import pickle
+import json
+from pipeline.analysis.stage_statistics import get_state_quantification
 
 def plot_contrastive_activation_intervention_pca(activations_honest,
                                                  activations_lie,
@@ -319,19 +322,9 @@ def get_intervention_activations_and_generation(cfg, model_base, dataset,
         inputs = tokenize_fn(prompts=dataset[i:i+batch_size], system_type=system_type)
         len_inputs = inputs.input_ids.shape[1]
 
-        if 'direction ablation' in intervention:
+        if 'direction_ablation' in intervention:
             if "mlp" in intervention:
-                fwd_pre_hooks = [(block_modules[layer].mlp,
-                                  get_and_cache_direction_ablation_input_pre_hook(
-                                      mean_diff=mean_diff,
-                                      cache=activations,
-                                      layer=layer,
-                                      positions=positions,
-                                      batch_id=i,
-                                      batch_size=batch_size,
-                                      target_layer=target_layer,
-                                      len_prompt=len_inputs),
-                                  ) for layer in range(n_layers)]
+                fwd_pre_hooks = []
                 fwd_hooks = [(block_modules[layer].mlp,
                               get_and_cache_direction_ablation_output_hook(
                                   mean_diff=mean_diff,
@@ -342,18 +335,21 @@ def get_intervention_activations_and_generation(cfg, model_base, dataset,
                                   target_layer=target_layer,
                               ),
                               ) for layer in range(n_layers)]
+            if "attn" in intervention:
+                fwd_pre_hooks = []
+                fwd_hooks = [(block_modules[layer].attn,
+                              get_and_cache_direction_ablation_output_hook(
+                                  mean_diff=mean_diff,
+                                  layer=layer,
+                                  positions=positions,
+                                  batch_id=i,
+                                  batch_size=batch_size,
+                                  target_layer=target_layer,
+                              ),
+                              ) for layer in range(n_layers)]
+
             else:
-                fwd_pre_hooks = [(block_modules[layer],
-                                  get_and_cache_direction_ablation_input_pre_hook(
-                                                           mean_diff=mean_diff,
-                                                           cache=activations,
-                                                           layer=layer,
-                                                           positions=positions,
-                                                           batch_id=i,
-                                                           batch_size=batch_size,
-                                                           target_layer=target_layer,
-                                                           len_prompt=len_inputs),
-                                                        ) for layer in range(n_layers)]
+                fwd_pre_hooks = []
                 fwd_hooks = [(block_modules[layer],
                               get_and_cache_direction_ablation_output_hook(
                                                        mean_diff=mean_diff,
@@ -365,77 +361,48 @@ def get_intervention_activations_and_generation(cfg, model_base, dataset,
                                                        ),
                                                     ) for layer in range(n_layers)]
 
-        if 'direction addition' in intervention:
+        if 'direction_addition' in intervention:
             if "mlp" in intervention:
-                fwd_pre_hooks = [(block_modules[layer].mlp,
-                                  get_and_cache_direction_addition_input_hook(
-                                      mean_diff=mean_diff,
-                                      cache=activations,
-                                      layer=layer,
-                                      positions=positions,
-                                      batch_id=i,
-                                      batch_size=batch_size,
-                                      target_layer=target_layer,
-                                      len_prompt=len_inputs),
-                                  ) for layer in range(n_layers)]
+                # fwd_pre_hooks = [(block_modules[layer].mlp,
+                #                   get_and_cache_direction_addition_input_hook(
+                #                       mean_diff=mean_diff,
+                #                       cache=activations,
+                #                       layer=layer,
+                #                       positions=positions,
+                #                       batch_id=i,
+                #                       batch_size=batch_size,
+                #                       target_layer=target_layer,
+                #                       len_prompt=len_inputs),
+                #                   ) for layer in range(n_layers)]
+                fwd_pre_hooks = []
                 fwd_hooks = [(block_modules[layer].mlp,
                               get_and_cache_direction_addition_output_hook(
                                   mean_diff=mean_diff,
+                                  cache=activations,
                                   layer=layer,
                                   positions=positions,
                                   batch_id=i,
                                   batch_size=batch_size,
                                   target_layer=target_layer,
-                              ),
+                                  len_prompt=len_inputs),
                               ) for layer in range(n_layers)]
             elif "attn" in intervention:
-                if "QWEN" in model_name:
-                    fwd_pre_hooks = [(block_modules[layer].attn,
-                                      get_and_cache_direction_ablation_input_pre_hook(
-                                          mean_diff=mean_diff,
-                                          cache=activations,
-                                          layer=layer,
-                                          positions=positions,
-                                          batch_id=i,
-                                          batch_size=batch_size,
-                                          target_layer=target_layer,
-                                          len_prompt=len_inputs),
-                                      ) for layer in range(n_layers)]
+                if "Qwen" in model_name:
+                    fwd_pre_hooks = []
+
+                    # fwd_pre_hooks = [(block_modules[layer].attn,
+                    #                   get_and_cache_direction_addition_input_hook(
+                    #                       mean_diff=mean_diff,
+                    #                       cache=activations,
+                    #                       layer=layer,
+                    #                       positions=positions,
+                    #                       batch_id=i,
+                    #                       batch_size=batch_size,
+                    #                       target_layer=target_layer,
+                    #                       len_prompt=len_inputs),
+                    #                   ) for layer in range(n_layers)]
                     fwd_hooks = [(block_modules[layer].attn,
-                                  get_and_cache_direction_ablation_output_hook(
-                                      mean_diff=mean_diff,
-                                      layer=layer,
-                                      positions=positions,
-                                      batch_id=i,
-                                      batch_size=batch_size,
-                                      target_layer=target_layer,
-                                  ),
-                                  ) for layer in range(n_layers)]
-                else:
-                    fwd_pre_hooks = [(block_modules[layer].self_attn,
-                                      get_and_cache_direction_ablation_input_pre_hook(
-                                          mean_diff=mean_diff,
-                                          cache=activations,
-                                          layer=layer,
-                                          positions=positions,
-                                          batch_id=i,
-                                          batch_size=batch_size,
-                                          target_layer=target_layer,
-                                          len_prompt=len_inputs),
-                                      ) for layer in range(n_layers)]
-                    fwd_hooks = [(block_modules[layer].self_attn,
-                                  get_and_cache_direction_ablation_output_hook(
-                                      mean_diff=mean_diff,
-                                      layer=layer,
-                                      positions=positions,
-                                      batch_id=i,
-                                      batch_size=batch_size,
-                                      target_layer=target_layer,
-                                  ),
-                                  ) for layer in range(n_layers)]
-            else:
-                fwd_pre_hooks = [(block_modules[layer],
-                                  get_and_cache_direction_ablation_input_pre_hook(
+                                  get_and_cache_direction_addition_output_hook(
                                       mean_diff=mean_diff,
                                       cache=activations,
                                       layer=layer,
@@ -445,15 +412,55 @@ def get_intervention_activations_and_generation(cfg, model_base, dataset,
                                       target_layer=target_layer,
                                       len_prompt=len_inputs),
                                   ) for layer in range(n_layers)]
+                else:
+                    # fwd_pre_hooks = [(block_modules[layer].self_attn,
+                    #                   get_and_cache_direction_addition_input_hook(
+                    #                       mean_diff=mean_diff,
+                    #                       cache=activations,
+                    #                       layer=layer,
+                    #                       positions=positions,
+                    #                       batch_id=i,
+                    #                       batch_size=batch_size,
+                    #                       target_layer=target_layer,
+                    #                       len_prompt=len_inputs),
+                    #                   ) for layer in range(n_layers)]
+                    fwd_pre_hooks = []
+
+                    fwd_hooks = [(block_modules[layer].self_attn,
+                                  get_and_cache_direction_addition_output_hook(
+                                      mean_diff=mean_diff,
+                                      cache=activations,
+                                      layer=layer,
+                                      positions=positions,
+                                      batch_id=i,
+                                      batch_size=batch_size,
+                                      target_layer=target_layer,
+                                      len_prompt=len_inputs),
+                                  ) for layer in range(n_layers)]
+            else:
+                fwd_pre_hooks = []
+
+                # fwd_pre_hooks = [(block_modules[layer],
+                #                   get_and_cache_direction_addition_input_hook(
+                #                       mean_diff=mean_diff,
+                #                       cache=activations,
+                #                       layer=layer,
+                #                       positions=positions,
+                #                       batch_id=i,
+                #                       batch_size=batch_size,
+                #                       target_layer=target_layer,
+                #                       len_prompt=len_inputs),
+                #                   ) for layer in range(n_layers)]
                 fwd_hooks = [(block_modules[layer],
-                              get_and_cache_direction_ablation_output_hook(
+                              get_and_cache_direction_addition_output_hook(
                                   mean_diff=mean_diff,
+                                  cache=activations,
                                   layer=layer,
                                   positions=positions,
                                   batch_id=i,
                                   batch_size=batch_size,
                                   target_layer=target_layer,
-                              ),
+                                  len_prompt=len_inputs),
                               ) for layer in range(n_layers)]
 
         elif "addition" in intervention:
@@ -593,7 +600,109 @@ def get_intervention_activations_and_generation(cfg, model_base, dataset,
     first_gen_str_all = [x for xs in first_gen_str_all for x in xs]
     return activations, completions, first_gen_toks_all, first_gen_str_all
 
-#
+
+def generate_with_intervention_cache_contrastive_activations_and_plot_pca(cfg,
+                                                                          model_base,
+                                                                          dataset,
+                                                                          activations_honest,
+                                                                          activations_lying,
+                                                                          mean_diff=None,
+                                                                          labels=None,
+                                                                          save_activations=False):
+
+    intervention = cfg.intervention
+    source_layer = cfg.source_layer
+    target_layer_s = cfg.target_layer_s
+    target_layer_e = cfg.target_layer_e
+    artifact_dir = cfg.artifact_path()
+    model_name = cfg.model_alias
+    data_category = cfg.data_category
+    n_layers = model_base.model.config.num_hidden_layers
+    tokenize_fn = model_base.tokenize_statements_fn
+    true_token_id = model_base.true_token_id
+    false_token_id = model_base.false_token_id
+
+    # 1. Generation with Intervention
+    intervention_activations_honest, intervention_completions_honest, first_gen_toks_honest, first_gen_str_honest = get_intervention_activations_and_generation(
+        cfg, model_base, dataset,
+        tokenize_fn,
+        mean_diff=mean_diff,
+        positions=[-1],
+        max_new_tokens=64,
+        system_type="honest",
+        target_layer_s=target_layer_s,
+        target_layer_e=target_layer_e,
+        labels=labels)
+    intervention_activations_lying, intervention_completions_lying, first_gen_toks_lying, first_gen_str_lying = get_intervention_activations_and_generation(
+        cfg, model_base, dataset,
+        tokenize_fn,
+        mean_diff=mean_diff,
+        positions=[-1],
+        max_new_tokens=64,
+        system_type="lying",
+        target_layer_s=target_layer_s,
+        target_layer_e=target_layer_e,
+        labels=labels)
+
+    # 2. save completions and activations
+    if not os.path.exists(os.path.join(cfg.artifact_path(), intervention)):
+        os.makedirs(os.path.join(cfg.artifact_path(), intervention))
+
+    with open(
+            artifact_dir + os.sep + intervention + os.sep + f'{data_category}_{intervention}_completions_honest_layer_{source_layer}_{target_layer_s}_{target_layer_e}.json',
+            "w") as f:
+        json.dump(intervention_completions_honest, f, indent=4)
+    with open(
+            artifact_dir + os.sep + intervention + os.sep + f'{data_category}_{intervention}_completions_lying_layer_{source_layer}_{target_layer_s}_{target_layer_e}.json',
+            "w") as f:
+        json.dump(intervention_completions_lying, f, indent=4)
+
+    # save activations
+    if save_activations:
+        activations = {
+            "activations_honest": intervention_activations_honest,
+            "activations_lying": intervention_activations_lying,
+        }
+        with open(artifact_dir + os.sep + intervention + os.sep + model_name + '_' + f'{data_category}' +
+                        '_activation_pca_' + intervention + str(source_layer) + '_' + str(target_layer_s) +
+                        '_' + str(target_layer_e) + '.pkl', "wb") as f:
+            pickle.dump(activations, f)
+
+    # 3. pca with and without intervention, plot and save pca plots
+    contrastive_label = ["honest", "lying", "honest_addition", "lying_addition"]
+    fig = plot_contrastive_activation_intervention_pca(activations_honest,
+                                                       activations_lying,
+                                                       intervention_activations_honest,
+                                                       intervention_activations_lying,
+                                                       n_layers,
+                                                       contrastive_label,
+                                                       labels,
+                                                       plot_original=True,
+                                                       plot_intervention=True,
+                                                       )
+    fig.write_html(artifact_dir + os.sep + intervention + os.sep + data_category + '_' + intervention +
+                   '_pca_layer_' + str(source_layer) + '_' + str(target_layer_s) + '_' + str(target_layer_e) + '.html')
+    pio.write_image(fig, artifact_dir + os.sep + intervention + os.sep + data_category + '_' + intervention +
+                   '_pca_layer_' + str(source_layer) + '_' + str(target_layer_s) + '_' + str(target_layer_e) + '.png',
+                    scale=6)
+
+    # 4. get performance
+    model_performance, fig = get_performance_stats(cfg, first_gen_toks_honest, first_gen_str_honest, first_gen_toks_lying, first_gen_str_lying,
+                                                   labels,
+                                                   true_token_id, false_token_id
+                                                   )
+    fig.write_html(artifact_dir + os.sep + intervention + os.sep + f'{data_category}_{intervention}_'
+                   + 'model_performance_layer_' + str(source_layer) + '_' + str(target_layer_s) + '_' + str(
+        target_layer_e) +
+                   '_accuracy' + '.html')
+
+    # 4. Get stage statistics with intervention
+    stage_stats_intervention = get_state_quantification(cfg, intervention_activations_honest, intervention_activations_lying,
+                                                        labels,
+                                                        save_plot=False)
+    return intervention_activations_honest, intervention_activations_lying, model_performance, stage_stats_intervention
+
+
 # def extraction_intervention_and_plot_pca(cfg,model_base: ModelBase, harmful_instructions, harmless_instructions):
 #     artifact_dir = cfg.artifact_path()
 #     if not os.path.exists(artifact_dir):
