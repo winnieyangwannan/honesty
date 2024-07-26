@@ -63,7 +63,7 @@ def get_accuracy_and_unexpected(top_token_id, top_token_str, labels, true_token_
     correct = []
     wrong = []
     for ii, label_str in enumerate(label_strs):
-        if top_token_str[ii] in label_strs[ii]:
+        if top_token_str[ii].lower().strip() in label_strs[ii]:
             correct.append(1)
             wrong.append(0)
             unexpected.append(0)

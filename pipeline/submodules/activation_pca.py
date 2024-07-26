@@ -156,7 +156,7 @@ def generate_get_contrastive_activations_and_plot_pca(cfg, model_base, tokenize_
                     + 'model_performance.png',
                     scale=6)
 
-    # 5. Get stage statistics with intervention
+    # 5. Get stage statistics
     save_path = artifact_dir + os.sep + "stage_stats"
     if not os.path.exists(save_path):
         os.makedirs(save_path)
