@@ -2,18 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="53de5df3-4a9d-4612-9ea8-208ac77ab608" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/analysis/run_statistics_accuracy_change.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/analysis/run_statistics_accuracy_change.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/analysis/stage_statistics.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/analysis/stage_statistics.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/honesty_config_generation.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/honesty_config_generation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/model_utils/llama2_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/model_utils/llama2_model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pipeline/model_utils/llama3_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/model_utils/llama3_model.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation_intervention.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation_intervention.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_performance.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_performance.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pipeline/submodules/activation_pca.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/submodules/activation_pca.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/submodules/activation_pca_intervention.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/submodules/activation_pca_intervention.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/submodules/evaluate_truthful.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/submodules/evaluate_truthful.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/utils/hook_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/utils/hook_utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -275,7 +266,7 @@
       <updated>1720826730298</updated>
       <workItem from="1720826731627" duration="1115000" />
       <workItem from="1721008705897" duration="194000" />
-      <workItem from="1721008962201" duration="266900000" />
+      <workItem from="1721008962201" duration="267393000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit, copy from model_steering">
       <created>1720826847520</created>
@@ -340,7 +331,14 @@
       <option name="project" value="LOCAL" />
       <updated>1721793191159</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="updates on generation pipeline">
+      <created>1721968030676</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1721968030676</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -359,7 +357,8 @@
     <MESSAGE value="minor updates on plotting" />
     <MESSAGE value="updates on layer accuracy statistics" />
     <MESSAGE value="updates on direction addition" />
-    <option name="LAST_COMMIT_MESSAGE" value="updates on direction addition" />
+    <MESSAGE value="updates on generation pipeline" />
+    <option name="LAST_COMMIT_MESSAGE" value="updates on generation pipeline" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -376,12 +375,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pipeline/model_utils/llama3_model.py</url>
-          <line>250</line>
+          <line>253</line>
           <option name="timeStamp" value="138" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pipeline/model_utils/llama3_model.py</url>
-          <line>253</line>
+          <line>256</line>
           <option name="timeStamp" value="139" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">

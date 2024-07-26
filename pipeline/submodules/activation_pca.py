@@ -167,59 +167,11 @@ def generate_get_contrastive_activations_and_plot_pca(cfg, model_base, tokenize_
               '_stage_stats.pkl', "wb") as f:
         pickle.dump(stage_stats, f)
     return activations_honest, activations_lying
-#
-#
-# def get_ablation_activations(model, tokenizer, instructions, tokenize_instructions_fn, block_modules: List[torch.nn.Module],
-#                              direction,
-#                              batch_size=32, positions=[-1],target_layer=None):
-#     torch.cuda.empty_cache()
-#
-#     n_positions = len(positions)
-#     n_layers = model.config.num_hidden_layers
-#     n_samples = len(instructions)
-#     d_model = model.config.hidden_size
-#
-#     # we store the mean activations in high-precision to avoid numerical issues
-#     activation_pre = torch.zeros((n_samples, n_layers, d_model), dtype=torch.float64, device=model.device)
-#
-#     # if not specified, ablate all layers by default
-#     if target_layer==None:
-#         target_layer = np.arange(n_layers)
-#
-#     for i in tqdm(range(0, len(instructions), batch_size)):
-#         inputs = tokenize_instructions_fn(instructions=instructions[i:i+batch_size])
-#         fwd_pre_hooks = [(block_modules[layer],
-#                           get_and_cache_direction_ablation_input_pre_hook(
-#                                                    direction=direction,
-#                                                    cache=activation_pre,
-#                                                    layer=layer,
-#                                                    positions=positions,
-#                                                    batch_id=i,
-#                                                    batch_size=batch_size,
-#                                                    target_layer=target_layer),
-#                                                 ) for layer in range(n_layers)]
-#         fwd_hooks = [(block_modules[layer],
-#                           get_and_cache_direction_ablation_output_hook(
-#                                                    direction=direction,
-#                                                    layer=layer,
-#                                                    positions=positions,
-#                                                    batch_id=i,
-#                                                    batch_size=batch_size,
-#                                                    target_layer=target_layer),
-#                                                 ) for layer in range(n_layers)]
-#         with add_hooks(module_forward_pre_hooks=fwd_pre_hooks, module_forward_hooks=fwd_hooks):
-#             model(
-#                 input_ids=inputs.input_ids.to(model.device),
-#                 attention_mask=inputs.attention_mask.to(model.device),
-#             )
-#
-#     return activation_pre
-#
 
 
 def get_addition_activations_generation(model, tokenizer, instructions, tokenize_instructions_fn, block_modules: List[torch.nn.Module],
                              direction,
-                             batch_size=32, positions=[-1],target_layer=None,
+                             batch_size=32, positions=[-1], target_layer=None,
                              max_new_tokens=64):
     torch.cuda.empty_cache()
 

@@ -74,6 +74,8 @@ def contrastive_extraction_generation_and_plot_pca(cfg, model_base, dataset_trai
                                                       model_base,
                                                       tokenize_fn,
                                                       statements_train,
+                                                      save_activations=True,
+                                                      save_plot=True,
                                                       labels=labels_train)
     print("done extraction")
 
