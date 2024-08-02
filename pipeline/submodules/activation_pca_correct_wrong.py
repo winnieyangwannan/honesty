@@ -24,7 +24,7 @@ import plotly.io as pio
 from pipeline.submodules.evaluate_truthful import get_performance_stats
 from pipeline.analysis.stage_statistics import get_state_quantification
 from torch.nn.functional import softmax
-from pipeline.submodules.evaluate_truthful import get_performance_stats
+from pipeline.submodules.evaluate_truthful_correct_wrong import get_performance_stats
 import pickle
 import json
 from pipeline.analysis.stage_statistics import get_state_quantification
@@ -76,8 +76,11 @@ def get_addition_activations(model, tokenizer, instructions, tokenize_instructio
     return activations
 
 
-def generate_get_contrastive_activations_and_plot_pca(cfg, model_base, tokenize_fn, dataset, labels=None,
-                                                      save_activations=False, save_plot=False):
+def generate_get_contrastive_activations_and_plot_pca(cfg, model_base, tokenize_fn,
+                                                      dataset_1, dataset_2,
+                                                      labels_1=None, labels_2=None,
+                                                      save_activations=False, save_plot=False,
+                                                      contrastive_name=['correct', 'wrong']):
     artifact_dir = cfg.artifact_path()
     if not os.path.exists(artifact_dir):
         os.makedirs(artifact_dir)
@@ -91,53 +94,58 @@ def generate_get_contrastive_activations_and_plot_pca(cfg, model_base, tokenize_
     # tokenize_fn_syco = model_base.tokenize_statements_fn_syco
 
     # 1. activation extraction with generation
-    activations_lying, completions_lying, first_gen_toks_lying, first_gen_str_lying = generate_and_get_activations(cfg,
-                                                                                                                   model_base,
-                                                                                                                   dataset,
-                                                                                                                   tokenize_fn,
-                                                                                                                   positions=[
-                                                                                                                       -1],
-                                                                                                                   max_new_tokens=max_new_tokens,
-                                                                                                                   system_type="lying",
-                                                                                                                   labels=labels)
+    activations_1, completions_1, first_gen_toks_1, first_gen_str_1 = generate_and_get_activations(cfg,
+                                                                                                   model_base,
+                                                                                                   dataset_1,
+                                                                                                   tokenize_fn,
+                                                                                                   positions=[-1],
+                                                                                                   max_new_tokens=max_new_tokens,
+                                                                                                   system_type="honest",
+                                                                                                   labels=labels_1)
 
-    activations_honest, completions_honest, first_gen_toks_honest, first_gen_str_honest = generate_and_get_activations(
-        cfg, model_base, dataset,
+    activations_2, completions_2, first_gen_toks_2, first_gen_str_2 = generate_and_get_activations(
+        cfg, model_base, dataset_2,
         tokenize_fn,
         positions=[-1],
         max_new_tokens=max_new_tokens,
         system_type="honest",
-        labels=labels)
+        labels=labels_2)
 
     # 2.1 save activations
     if save_activations:
         activations = {
-            "activations_honest": activations_honest,
-            "activations_lying": activations_lying,
+            "activations_1": activations_1,
+            "activations_2": activations_2,
         }
         with open(artifact_dir + os.sep + model_name + '_' + f'{data_category}'
-                  + '_activation_pca.pkl', "wb") as f:
+                  + '_activation_pca_' + contrastive_name[0] + '_' + contrastive_name[1] + '.pkl', "wb") as f:
             pickle.dump(activations, f)
 
     # 2.2 save completions
     if not os.path.exists(os.path.join(cfg.artifact_path(), 'completions')):
         os.makedirs(os.path.join(cfg.artifact_path(), 'completions'))
 
-    with open(f'{cfg.artifact_path()}' + os.sep + 'completions' + os.sep + f'{data_category}_completions_honest.json',
+    with open(f'{cfg.artifact_path()}' + os.sep + 'completions' + os.sep +
+              f'{data_category}_completions_{contrastive_name[0]}.json',
               "w") as f:
-        json.dump(completions_honest, f, indent=4)
-    with open(f'{cfg.artifact_path()}' + os.sep + 'completions' + os.sep + f'{data_category}_completions_lying.json',
+        json.dump(completions_1, f, indent=4)
+    with open(f'{cfg.artifact_path()}' + os.sep + 'completions' + os.sep +
+              f'{data_category}_completions_{contrastive_name[1]}.json',
               "w") as f:
-        json.dump(completions_lying, f, indent=4)
+        json.dump(completions_2, f, indent=4)
 
     # 3. plot pca
     n_layers = model_base.model.config.num_hidden_layers
-    fig = plot_contrastive_activation_pca(activations_honest, activations_lying,
-                                          n_layers, contrastive_label=["honest", "lying"],
-                                          labels=labels)
+    fig = plot_contrastive_activation_pca(activations_1, activations_2,
+                                          n_layers,
+                                          contrastive_name=contrastive_name,
+                                          labels_1=labels_1, labels_2=labels_2)
     if save_plot:
-          fig.write_html(artifact_dir + os.sep + model_name + '_' + 'activation_pca.html')
-          pio.write_image(fig, artifact_dir + os.sep + model_name + '_' + 'activation_pca.png',
+          fig.write_html(artifact_dir + os.sep + model_name + '_' + 'activation_pca_' +
+                         contrastive_name[0] + '_' + contrastive_name[1] + '.html')
+
+          pio.write_image(fig, artifact_dir + os.sep + model_name + '_' + 'activation_pca_' +
+                          contrastive_name[0] + '_' + contrastive_name[1] + '.png',
                           scale=6)
 
     # 4. get performance
@@ -145,28 +153,29 @@ def generate_get_contrastive_activations_and_plot_pca(cfg, model_base, tokenize_
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
-    model_performance, fig = get_performance_stats(cfg, first_gen_toks_honest, first_gen_str_honest,
-                                                   first_gen_toks_lying, first_gen_str_lying,
-                                                   labels,
+    model_performance, fig = get_performance_stats(cfg,
+                                                   first_gen_toks_1, first_gen_str_1,
+                                                   first_gen_toks_2, first_gen_str_2,
+                                                   labels_1, labels_2,
                                                    true_token_id, false_token_id
                                                    )
-    fig.write_html(save_path + os.sep + f'{data_category}_performance_'
-                   + 'model_performance.html')
-    pio.write_image(fig, save_path + os.sep + f'{data_category}_performance_'
-                    + 'model_performance.png',
+    fig.write_html(save_path + os.sep + f'{data_category}_performance_' +
+                   contrastive_name[0] + '_' + contrastive_name[1] + '.html')
+    pio.write_image(fig, save_path + os.sep + f'{data_category}_performance_' +
+                    contrastive_name[0] + '_' + contrastive_name[1] + '.png',
                     scale=6)
 
-    # 5. Get stage statistics
-    save_path = artifact_dir + os.sep + "stage_stats"
-    if not os.path.exists(save_path):
-        os.makedirs(save_path)
-    stage_stats = get_state_quantification(cfg, activations_honest, activations_lying,
-                                           labels,
-                                           save_plot=True)
-    with open(save_path + os.sep + model_name + '_' + f'{data_category}' +
-              '_stage_stats.pkl', "wb") as f:
-        pickle.dump(stage_stats, f)
-    return activations_honest, activations_lying
+    # # 5. Get stage statistics
+    # save_path = artifact_dir + os.sep + "stage_stats"
+    # if not os.path.exists(save_path):
+    #     os.makedirs(save_path)
+    # stage_stats = get_state_quantification(cfg, activations_1, activations_lying,
+    #                                        labels,
+    #                                        save_plot=True)
+    # with open(save_path + os.sep + model_name + '_' + f'{data_category}' +
+    #           '_stage_stats.pkl', "wb") as f:
+    #     pickle.dump(stage_stats, f)
+    # return activations_1, activations_lying
 
 
 def get_addition_activations_generation(model, tokenizer, instructions, tokenize_instructions_fn, block_modules: List[torch.nn.Module],
@@ -497,7 +506,7 @@ def get_contrastive_activations_and_plot_pca(cfg,
                                         system_type="lying",
                                         intervention=intervention)
 
-    activations_honest, first_gen_toks_honest, first_gen_str_honest = get_activations(cfg, model_base, dataset,
+    activations_1, first_gen_toks_honest, first_gen_str_honest = get_activations(cfg, model_base, dataset,
                                          tokenize_fn,
                                          positions=[-1],
                                          system_type="honest",
@@ -506,7 +515,7 @@ def get_contrastive_activations_and_plot_pca(cfg,
     # save activations
     if save_activations:
         activations = {
-            "activations_honest": activations_honest,
+            "activations_1": activations_1,
             "activations_lying": activations_lying,
         }
         with open(artifact_dir + os.sep + intervention + os.sep + model_name + '_' + f'{data_category}'
@@ -516,8 +525,8 @@ def get_contrastive_activations_and_plot_pca(cfg,
     # 2. plot and save pca plots
     if save_plot:
         n_layers = model_base.model.config.num_hidden_layers
-        fig = plot_contrastive_activation_pca(activations_honest, activations_lying,
-                                              n_layers, contrastive_label=["honest", "lying"],
+        fig = plot_contrastive_activation_pca(activations_1, activations_lying,
+                                              n_layers, contrastive_name=["honest", "lying"],
                                               labels=labels)
         fig.write_html(artifact_dir + os.sep + intervention + os.sep + f'{data_category}'
                         + '_activation_pca.html')
@@ -542,19 +551,19 @@ def get_contrastive_activations_and_plot_pca(cfg,
                    + 'model_performance.png',
                     scale=6)
     # 4. quantify different lying stages
-    stage_stats = get_state_quantification(cfg, activations_honest, activations_lying, labels,
+    stage_stats = get_state_quantification(cfg, activations_1, activations_lying, labels,
                                            save_plot=False)
 
-    return activations_honest, activations_lying, model_performance, stage_stats
+    return activations_1, activations_lying, model_performance, stage_stats
 
 
-def plot_contrastive_activation_pca_with_trajectory(activations_honest, activations_lie,
+def plot_contrastive_activation_pca_with_trajectory(activations_1, activations_2,
                                                     activation_trajectory_honest, activation_trajectory_lie,
                                                     n_layers,
                                                     str_honest, str_lie,
-                                                    contrastive_label=["honest", "lying", "trajectory_honest", "trajectory_lying"],
+                                                    contrastive_name=["honest", "lying", "trajectory_honest", "trajectory_lying"],
                                                     labels=None):
-    n_contrastive_data = activations_lie.shape[0]
+    n_contrastive_data = activations_2.shape[0]
     n_trajectory_honest = len(str_honest)
     n_trajectory_lie = len(str_lie)
     # only take the part of the answer that is actually generated (otherwise the 0 will mess up pca and produce nan values)
@@ -566,12 +575,12 @@ def plot_contrastive_activation_pca_with_trajectory(activations_honest, activati
     activation_trajectory_honest = einops.rearrange(activation_trajectory_honest, '1 seq n_layers d_model -> seq n_layers d_model')
     labels_trajectory_honest = [3+0*i for i in range(activation_trajectory_honest.shape[0])]
     # concatenate all
-    # activations_all: Float[Tensor, "n_samples n_layers d_model"] = torch.cat((activations_honest,
-    #                                                                           activations_lie,
+    # activations_all: Float[Tensor, "n_samples n_layers d_model"] = torch.cat((activations_1,
+    #                                                                           activations_2,
     #                                                                           activation_trajectory_honest,
     #                                                                           activation_trajectory_lie), dim=0)
-    activations_all: Float[Tensor, "n_samples n_layers d_model"] = torch.cat((activations_honest,
-                                                                              activations_lie), dim=0)
+    activations_all: Float[Tensor, "n_samples n_layers d_model"] = torch.cat((activations_1,
+                                                                              activations_2), dim=0)
     activations_all_trajectory = torch.cat((activation_trajectory_honest,
                                             activation_trajectory_lie), dim=0)
     if labels is not None:
@@ -586,13 +595,13 @@ def plot_contrastive_activation_pca_with_trajectory(activations_honest, activati
 
     label_text = []
     for ii in range(n_contrastive_data):
-        label_text = np.append(label_text, f'{contrastive_label[0]}_{labels_tf[ii]}_{ii}')
+        label_text = np.append(label_text, f'{contrastive_name[0]}_{labels_tf[ii]}_{ii}')
     for ii in range(n_contrastive_data):
-        label_text = np.append(label_text, f'{contrastive_label[1]}_{labels_tf[ii]}_{ii}')
+        label_text = np.append(label_text, f'{contrastive_name[1]}_{labels_tf[ii]}_{ii}')
     for ii in range(n_trajectory_honest):
-        label_text = np.append(label_text, f'{contrastive_label[2]}_{labels_tf[ii]}_{ii}')
+        label_text = np.append(label_text, f'{contrastive_name[2]}_{labels_tf[ii]}_{ii}')
     for ii in range(n_trajectory_lie):
-        label_text = np.append(label_text, f'{contrastive_label[3]}_{labels_tf[ii]}_{ii}')
+        label_text = np.append(label_text, f'{contrastive_name[3]}_{labels_tf[ii]}_{ii}')
     cols = 4
     rows = math.ceil(n_layers/cols)
     fig = make_subplots(rows=rows, cols=cols,
@@ -769,32 +778,61 @@ def plot_contrastive_activation_pca_with_trajectory(activations_honest, activati
     return fig
 
 
-def plot_contrastive_activation_pca(activations_honest, activations_lie,
-                                    n_layers, contrastive_label,
-                                    labels=None):
+def plot_contrastive_activation_pca(activations_1, activations_2,
+                                    n_layers, contrastive_name,
+                                    labels_1=None, labels_2=None,
+                                    probability_1=None, probability_2=None,
+                                    color_by='label'):
 
-    activations_all: Float[Tensor, "n_samples n_layers d_model"] = torch.cat((activations_honest,
-                                                                              activations_lie), dim=0)
+    n_contrastive_data = activations_2.shape[0]
 
-    n_contrastive_data = activations_lie.shape[0]
-
-    if labels is not None:
-        labels_all = labels + labels
-        # true or false label
+    if color_by == 'label':
+        if labels_1 is not None and labels_2 is None:
+            labels_all = labels_1 + labels_1
+            labels_tf = []
+            for ll in labels_1:
+                if ll == 0:
+                    labels_tf.append('false')
+                elif ll == 1:
+                    labels_tf.append('true')
+            for ll in labels_2:
+                if ll == 0:
+                    labels_tf.append('false')
+                elif ll == 1:
+                    labels_tf.append('true')
+        elif labels_1 is not None and labels_2 is not None:
+            labels_all = labels_1 + labels_2
+            # true or false label
+            labels_tf = []
+            for ll in labels_1:
+                if ll == 0:
+                    labels_tf.append('false')
+                elif ll == 1:
+                    labels_tf.append('true')
+            for ll in labels_1:
+                if ll == 0:
+                    labels_tf.append('false')
+                elif ll == 1:
+                    labels_tf.append('true')
+    elif color_by == "probability":
+        labels_all = probability_1 + probability_2
         labels_tf = []
-        for ll in labels:
+        for ll in labels_1:
             if ll == 0:
                 labels_tf.append('false')
             elif ll == 1:
                 labels_tf.append('true')
-    else:
-        labels_all = np.zeros((n_contrastive_data*2), 1)
+        for ll in labels_2:
+            if ll == 0:
+                labels_tf.append('false')
+            elif ll == 1:
+                labels_tf.append('true')
 
     label_text = []
     for ii in range(n_contrastive_data):
-        label_text = np.append(label_text, f'{contrastive_label[0]}_{labels_tf[ii]}_{ii}')
+        label_text = np.append(label_text, f'{contrastive_name[0]}_{labels_tf[ii]}_{ii}_{probability_1[ii]}')
     for ii in range(n_contrastive_data):
-        label_text = np.append(label_text, f'{contrastive_label[1]}_{labels_tf[ii]}_{ii}')
+        label_text = np.append(label_text, f'{contrastive_name[1]}_{labels_tf[ii+n_contrastive_data]}_{ii}_{probability_2[ii]}')
 
     cols = 4
     rows = math.ceil(n_layers/cols)
@@ -802,51 +840,59 @@ def plot_contrastive_activation_pca(activations_honest, activations_lie,
                         subplot_titles=[f"layer {n}" for n in range(n_layers)])
 
     pca = PCA(n_components=3)
+    activations_all: Float[Tensor, "n_samples n_layers d_model"] = torch.cat((activations_1,
+                                                                              activations_2), dim=0)
     for row in range(rows):
         for ll, layer in enumerate(range(row * 4, row * 4 + 4)):
             # print(f'layer{layer}')
             if layer < n_layers:
+                # activations_pca_2 = pca.fit_transform(activations_2[:, layer, :].cpu())
+                # activations_pca_1 = pca.transform(activations_1[:, layer, :].cpu())
+                # activations_pca = np.concatenate((activations_pca_1,
+                #                                   activations_pca_2), axis=0)
                 activations_pca = pca.fit_transform(activations_all[:, layer, :].cpu())
                 df = {}
                 df['label'] = labels_all
                 df['pca0'] = activations_pca[:, 0]
                 df['pca1'] = activations_pca[:, 1]
                 df['pca2'] = activations_pca[:, 2]
-
                 df['label_text'] = label_text
 
                 fig.add_trace(
                     go.Scatter(x=df['pca0'][:n_contrastive_data],
-                                 y=df['pca1'][:n_contrastive_data],
-                                 # z=df['pca2'][:n_contrastive_data],
-                                 mode="markers",
-                                 name="honest",
-                                 showlegend=False,
-                                 marker=dict(
+                               y=df['pca1'][:n_contrastive_data],
+                               # z=df['pca2'][:n_contrastive_data],
+                               mode="markers",
+                               name="honest",
+                               showlegend=False,
+                               marker=dict(
                                    symbol="star",
                                    size=8,
                                    line=dict(width=1, color="DarkSlateGrey"),
-                                   color=df['label'][:n_contrastive_data]
+                                   color=df['label'][:n_contrastive_data],
+                                   colorscale="Viridis",
                                ),
-                             text=df['label_text'][:n_contrastive_data]),
-                             row=row+1, col=ll+1,
-                             )
-                fig.add_trace(
-                    go.Scatter(x=df['pca0'][n_contrastive_data:],
-                                 y=df['pca1'][n_contrastive_data:],
-                                 # z=df['pca2'][n_contrastive_data:],
-                                 mode="markers",
-                                 name="lying",
-                                 showlegend=False,
-                                 marker=dict(
-                                   symbol="circle",
-                                   size=5,
-                                   line=dict(width=1, color="DarkSlateGrey"),
-                                   color=df['label'][n_contrastive_data:],
-                                 ),
-                                 text=df['label_text'][n_contrastive_data:]),
-                    row=row+1, col=ll+1,
-                                 )
+                               text=df['label_text'][:n_contrastive_data]
+                               ),
+                               row=row+1, col=ll+1,
+                               )
+
+                # fig.add_trace(
+                #     go.Scatter(x=df['pca0'][n_contrastive_data:],
+                #                  y=df['pca1'][n_contrastive_data:],
+                #                  # z=df['pca2'][n_contrastive_data:],
+                #                  mode="markers",
+                #                  name="lying",
+                #                  showlegend=False,
+                #                  marker=dict(
+                #                    symbol="circle",
+                #                    size=5,
+                #                    line=dict(width=1, color="DarkSlateGrey"),
+                #                    color=df['label'][n_contrastive_data:],
+                #                  ),
+                #                  text=df['label_text'][n_contrastive_data:]),
+                #     row=row+1, col=ll+1,
+                #                  )
     # legend
     fig.add_trace(
         go.Scatter(x=[None],
@@ -900,58 +946,58 @@ def plot_contrastive_activation_pca(activations_honest, activations_lie,
     )
     fig.add_trace(
         go.Scatter(x=[None],
-                     y=[None],
-                     # z=[None],
-                     mode='markers',
-                     marker=dict(
+                   y=[None],
+                   # z=[None],
+                   mode='markers',
+                   marker=dict(
                        symbol="circle",
                        size=5,
                        line=dict(width=1, color="DarkSlateGrey"),
                        color=df['label'][n_contrastive_data:],
-                     ),
-                     name=f'lying_true',
-                     marker_color='yellow',
-                     ),
+                   ),
+                   name=f'lying_true',
+                   marker_color='yellow',
+                   ),
         row=row + 1, col=ll + 1,
     )
     fig.update_layout(height=1600, width=1000)
     fig.show()
-    # fig.write_html('honest_lying_pca.html')
+    fig.write_html('honest_lying_pca.html')
 
     return fig
 
 
-def plot_contrastive_activation_intervention_pca(activations_honest,
-                                                 activations_lie,
-                                                 ablation_activations_honest,
-                                                 ablation_activations_lie,
+def plot_contrastive_activation_intervention_pca(activations_1,
+                                                 activations_2,
+                                                 ablation_activations_1,
+                                                 ablation_activations_2,
                                                  n_layers,
-                                                 contrastive_label,
+                                                 contrastive_name,
                                                  labels=None,
                                                  ):
 
-    activations_all: Float[Tensor, "n_samples n_layers d_model"] = torch.cat((activations_honest,
-                                                                              activations_lie,
-                                                                              ablation_activations_honest,
-                                                                              ablation_activations_lie),
-                                                                             dim=0)
+    activations_all: Float[Tensor, "n_samples n_layers d_model"] = torch.cat((activations_1,
+                                                                              activations_2,
+                                                                              ablation_activations_1,
+                                                                              ablation_activations_2),
+                                                                              dim=0)
 
     pca = PCA(n_components=3)
 
     label_text = []
     label_plot = []
 
-    for ii in range(activations_honest.shape[0]):
-        label_text = np.append(label_text, f'{contrastive_label[0]}:{ii}')
+    for ii in range(activations_1.shape[0]):
+        label_text = np.append(label_text, f'{contrastive_name[0]}:{ii}')
         label_plot.append(0)
-    for ii in range(activations_lie.shape[0]):
-        label_text = np.append(label_text, f'{contrastive_label[1]}:{ii}')
+    for ii in range(activations_2.shape[0]):
+        label_text = np.append(label_text, f'{contrastive_name[1]}:{ii}')
         label_plot.append(1)
-    for ii in range(activations_honest.shape[0]):
-        label_text = np.append(label_text, f'{contrastive_label[2]}:{ii}')
+    for ii in range(activations_1.shape[0]):
+        label_text = np.append(label_text, f'{contrastive_name[2]}:{ii}')
         label_plot.append(2)
-    for ii in range(activations_honest.shape[0]):
-        label_text = np.append(label_text, f'{contrastive_label[3]}:{ii}')
+    for ii in range(activations_1.shape[0]):
+        label_text = np.append(label_text, f'{contrastive_name[3]}:{ii}')
         label_plot.append(3)
     cols = 4
     rows = int(n_layers/cols)
@@ -982,7 +1028,7 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
         go.Scatter(x=[None],
                    y=[None],
                    mode='markers',
-                   name=f'{contrastive_label[0]}',
+                   name=f'{contrastive_name[0]}',
                    marker_color='blue',
                  ),
         row=row + 1, col=ll + 1,
@@ -991,7 +1037,7 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
         go.Scatter(x=[None],
                    y=[None],
                    mode='markers',
-                   name=f'{contrastive_label[1]}',
+                   name=f'{contrastive_name[1]}',
                    marker_color='purple',
                  ),
         row=row + 1, col=ll + 1,
@@ -1000,7 +1046,7 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
         go.Scatter(x=[None],
                    y=[None],
                    mode='markers',
-                   name=f'{contrastive_label[2]}',
+                   name=f'{contrastive_name[2]}',
                    marker_color='orange',
                  ),
         row=row + 1, col=ll + 1,
@@ -1009,7 +1055,7 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
         go.Scatter(x=[None],
                    y=[None],
                    mode='markers',
-                   name=f'{contrastive_label[3]}',
+                   name=f'{contrastive_name[3]}',
                    marker_color='yellow',
                  ),
         row=row + 1, col=ll + 1,
@@ -1029,16 +1075,16 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
 #         os.makedirs(artifact_dir)
 #
 #     # 1. extract activations
-#     activations_honest,activations_lie = generate_activations_and_plot_pca(cfg,model_base, harmful_instructions, harmless_instructions)
+#     activations_1,activations_2 = generate_activations_and_plot_pca(cfg,model_base, harmful_instructions, harmless_instructions)
 #
 #     # 2. get steering vector = get mean difference of the source layer
-#     mean_activation_harmful = activations_honest.mean(dim=0)
-#     mean_activation_harmless = activations_lie.mean(dim=0)
+#     mean_activation_harmful = activations_1.mean(dim=0)
+#     mean_activation_harmless = activations_2.mean(dim=0)
 #     mean_diff = mean_activation_harmful-mean_activation_harmless
 #
 #
 #     # 3. refusal_intervention_and_plot_pca
-#     ablation_activations_honest,ablation_activations_lie = refusal_intervention_and_plot_pca(cfg, model_base,
+#     ablation_activations_1,ablation_activations_2 = refusal_intervention_and_plot_pca(cfg, model_base,
 #                                                                                              harmful_instructions,
 #                                                                                              harmless_instructions,
 #                                                                                              mean_diff)
@@ -1049,8 +1095,8 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
 #     target_layer = cfg.target_layer
 #     model_name = cfg.model_alias
 #     n_layers = model_base.model.config.num_hidden_layers
-#     fig = plot_contrastive_activation_intervention_pca(activations_honest, activations_lie,
-#                                                        ablation_activations_honest, ablation_activations_lie,
+#     fig = plot_contrastive_activation_intervention_pca(activations_1, activations_2,
+#                                                        ablation_activations_1, ablation_activations_2,
 #                                                        n_layers)
 #     fig.write_html(artifact_dir + os.sep + model_name + '_' + 'refusal_generation_activation_'
 #                    +intervention+'_pca_layer_'

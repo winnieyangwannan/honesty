@@ -2,7 +2,23 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="53de5df3-4a9d-4612-9ea8-208ac77ab608" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/pipeline/old/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pipeline/old/run_pipeline_honesty_performance.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pipeline/plot/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation_correct_wrong.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_performance_correct_wrong.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_simple_generation.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pipeline/submodules/activation_pca_correct_wrong.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pipeline/submodules/evaluate_truthful_correct_wrong.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/honest_lying_pca.html" beforeDir="false" afterPath="$PROJECT_DIR$/honest_lying_pca.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pipeline/analysis/checkout_one_layer.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/plot/checkout_one_layer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pipeline/blog/blog1_plot_pca_layer_with_centroid_vector.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/blog/blog1_plot_pca_layer_with_centroid_vector.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pipeline/honesty_config_generation.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/honesty_config_generation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pipeline/model_utils/gemma_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/model_utils/gemma_model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_layer_decode.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/old/run_pipeline_honesty_layer_decode.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_performance.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_performance.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pipeline/submodules/activation_pca.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/submodules/activation_pca.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pipeline/submodules/evaluate_truthful.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/submodules/evaluate_truthful.py" afterDir="false" />
     </list>
@@ -61,14 +77,17 @@
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\Code\honesty\pipeline" />
+      <recent name="D:\Code\honesty\pipeline\submodules" />
       <recent name="D:\Code\honesty" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\Code\honesty\pipeline\plot" />
+      <recent name="D:\Code\honesty\pipeline\old" />
       <recent name="D:\Code\honesty\pipeline" />
       <recent name="D:\Code\honesty\pipeline\analysis" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.run_pipeline_honesty_generation">
+  <component name="RunManager" selected="Python.run_pipeline_honesty_performance">
     <configuration name="blog1_plot_pca_layer_with_centroid_vector" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="honesty" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -91,6 +110,28 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="filter_data" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="honesty" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Users\a\anaconda3\envs\llmtt\python.exe" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pipeline/submodules/filter_data.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="run_pipeline_honesty_generation" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="honesty" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -105,7 +146,29 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation.py" />
-      <option name="PARAMETERS" value="--model_path Qwen/Qwen-1_8B-Chat --save_path D:\Data\honesty\" />
+      <option name="PARAMETERS" value="--model_path google/gemma-2-9b --save_path D:\Data\honesty\" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="run_pipeline_honesty_generation_correct_wrong" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="honesty" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Users\a\anaconda3\envs\llmtt\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation_correct_wrong.py" />
+      <option name="PARAMETERS" value="--model_path meta-llama/Llama-2-7b-chat-hf --save_path D:\Data\honesty\" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -149,7 +212,7 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pipeline/run_pipeline_honesty_performance.py" />
-      <option name="PARAMETERS" value="--model_path meta-llama/Llama-2-7b-chat-hf --save_path D:\Data\honesty" />
+      <option name="PARAMETERS" value="--model_path google/gemma-2-9b --save_path D:\Data\honesty" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -246,8 +309,10 @@
       <method v="2" />
     </configuration>
     <list>
+      <item itemvalue="Python.filter_data" />
       <item itemvalue="Python.run_statistics_honest_addition" />
       <item itemvalue="Python.run_pipeline_honesty_generation" />
+      <item itemvalue="Python.run_pipeline_honesty_generation_correct_wrong" />
       <item itemvalue="Python.run_pipeline_honesty_generation_intervention" />
       <item itemvalue="Python.run_statistics_accuracy_change" />
       <item itemvalue="Python.blog1_plot_pca_layer_with_centroid_vector" />
@@ -266,7 +331,7 @@
       <updated>1720826730298</updated>
       <workItem from="1720826731627" duration="1115000" />
       <workItem from="1721008705897" duration="194000" />
-      <workItem from="1721008962201" duration="270037000" />
+      <workItem from="1721008962201" duration="319801000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit, copy from model_steering">
       <created>1720826847520</created>
@@ -345,7 +410,14 @@
       <option name="project" value="LOCAL" />
       <updated>1721968625704</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="minor bug fix on performance">
+      <created>1721973085869</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1721973085869</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -366,7 +438,8 @@
     <MESSAGE value="updates on direction addition" />
     <MESSAGE value="updates on generation pipeline" />
     <MESSAGE value="updates on generation pipeline and system prompt" />
-    <option name="LAST_COMMIT_MESSAGE" value="updates on generation pipeline and system prompt" />
+    <MESSAGE value="minor bug fix on performance" />
+    <option name="LAST_COMMIT_MESSAGE" value="minor bug fix on performance" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -402,12 +475,12 @@
           <option name="timeStamp" value="151" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pipeline/analysis/checkout_one_layer.py</url>
+          <url>file://$PROJECT_DIR$/pipeline/plot/checkout_one_layer.py</url>
           <line>228</line>
           <option name="timeStamp" value="185" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pipeline/analysis/checkout_one_layer.py</url>
+          <url>file://$PROJECT_DIR$/pipeline/plot/checkout_one_layer.py</url>
           <line>219</line>
           <option name="timeStamp" value="186" />
         </line-breakpoint>
@@ -427,19 +500,44 @@
           <option name="timeStamp" value="231" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pipeline/submodules/activation_pca_correct_wrong.py</url>
+          <line>969</line>
+          <option name="timeStamp" value="304" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation_correct_wrong.py</url>
+          <line>79</line>
+          <option name="timeStamp" value="321" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pipeline/submodules/activation_pca_correct_wrong.py</url>
+          <line>137</line>
+          <option name="timeStamp" value="337" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pipeline/run_pipeline_honesty_performance.py</url>
+          <line>122</line>
+          <option name="timeStamp" value="339" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pipeline/plot/checkout_one_layer.py</url>
+          <line>144</line>
+          <option name="timeStamp" value="378" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pipeline/run_pipeline_honesty_performance_correct_wrong.py</url>
+          <line>125</line>
+          <option name="timeStamp" value="380" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pipeline/run_pipeline_honesty_performance_correct_wrong.py</url>
+          <line>131</line>
+          <option name="timeStamp" value="383" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pipeline/submodules/activation_pca.py</url>
-          <line>168</line>
-          <option name="timeStamp" value="274" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pipeline/analysis/stage_statistics.py</url>
-          <line>297</line>
-          <option name="timeStamp" value="284" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pipeline/analysis/stage_statistics.py</url>
-          <line>129</line>
-          <option name="timeStamp" value="287" />
+          <line>133</line>
+          <option name="timeStamp" value="392" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
@@ -458,12 +556,14 @@
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/honesty$blog1_plot_pca_layer_with_centroid_vector.coverage" NAME="blog1_plot_pca_layer_with_centroid_vector Coverage Results" MODIFIED="1721545072305" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_generation_correct_wrong.coverage" NAME="run_pipeline_honesty_generation_correct_wrong Coverage Results" MODIFIED="1722303088066" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_statistics_honest_addition.coverage" NAME="run_statistics_honest_addition Coverage Results" MODIFIED="1721697489148" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_statistics_skip_coonection.coverage" NAME="run_statistics_intervention_layer_accuracy Coverage Results" MODIFIED="1721854237689" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_stage.coverage" NAME="run_pipeline_honesty_stage Coverage Results" MODIFIED="1721683576845" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_performance.coverage" NAME="run_pipeline_honesty_performance Coverage Results" MODIFIED="1721538490040" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_stage.coverage" NAME="run_pipeline_honesty_stage Coverage Results" MODIFIED="1722119145371" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_performance.coverage" NAME="run_pipeline_honesty_performance_correct_wrong Coverage Results" MODIFIED="1722314333092" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_generation_skip_connection.coverage" NAME="run_pipeline_honesty_generation_intervention Coverage Results" MODIFIED="1721961234434" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_generation_honest_addition.coverage" NAME="run_pipeline_honesty_generation Coverage Results" MODIFIED="1721972917776" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/honesty$filter_data.coverage" NAME="filter_data Coverage Results" MODIFIED="1722290103012" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_generation_honest_addition.coverage" NAME="run_pipeline_honesty_generation Coverage Results" MODIFIED="1722557697109" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_statistics_honest.coverage" NAME="run_statistics_accuracy_change Coverage Results" MODIFIED="1721371080514" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

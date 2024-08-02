@@ -68,9 +68,9 @@ def get_accuracy_and_unexpected(top_token_id, top_token_str, labels, true_token_
             wrong.append(0)
             unexpected.append(0)
 
-        elif top_token_str[ii].lower().strip() not in label_strs[ii]:
+        elif top_token_str[ii] not in label_strs[ii]:
 
-            if top_token_id[ii] in false_token_id or top_token_id[ii] in true_token_id:
+            if top_token_id[ii] in false_token_id or top_token_id[ii] in false_token_id:
                 correct.append(0)
                 wrong.append(1)
                 unexpected.append(0)
@@ -97,8 +97,8 @@ def get_accuracy_and_probability(outputs, labels, tokenizer, true_token_id, fals
 
 
     correct, wrong, unexpected = get_accuracy_and_unexpected(top_token_id, top_token_str,
-                                                             labels,
-                                                             true_token_id, false_token_id)
+                                                      labels,
+                                                      true_token_id, false_token_id)
     return correct, top_token_prob, unexpected
 
 
@@ -212,22 +212,24 @@ def get_statement_accuracy_cache_activation(model_base, dataset, cfg, system_typ
                                                                          false_token_id=false_token_id)
         for aa, pp, ee in zip(accuracy, probability, unexpected):
             accuracy_all.append(aa)
-            probability_all.append(pp.cpu().tolist())
+            probability_all.append(pp)
             unexpected_all.append(ee)
 
     return accuracy_all, probability_all, unexpected_all, activations
 
 
-def get_performance_stats(cfg, first_gen_toks_honest, first_gen_str_honest, first_gen_toks_lying, first_gen_str_lying,
-                          labels,
+def get_performance_stats(cfg, first_gen_toks_1, first_gen_str_1, first_gen_toks_2, first_gen_str_2,
+                          labels_1, labels_2, 
                           true_token_id, false_token_id
                           ):
-    correct_honest, wrong_honest, unexpected_honest = get_accuracy_and_unexpected(first_gen_toks_honest, first_gen_str_honest,
-                                                                    labels,
-                                                                    true_token_id, false_token_id)
-    correct_lying, wrong_lying, unexpected_lying = get_accuracy_and_unexpected(first_gen_toks_lying, first_gen_str_lying,
-                                                                  labels,
-                                                                  true_token_id, false_token_id)
+    
+    correct_honest, wrong_honest, unexpected_honest = get_accuracy_and_unexpected(first_gen_toks_1, first_gen_str_1,
+                                                                                  labels_1,
+                                                                                  true_token_id, false_token_id)
+
+    correct_lying, wrong_lying, unexpected_lying = get_accuracy_and_unexpected(first_gen_toks_2, first_gen_str_2,
+                                                                               labels_2,
+                                                                               true_token_id, false_token_id)
     accuracy_lying = sum(correct_lying) / len(correct_lying)
     accuracy_honest = sum(correct_honest) / len(correct_honest)
     wrong_rate_lying = sum(wrong_lying) / len(wrong_lying)

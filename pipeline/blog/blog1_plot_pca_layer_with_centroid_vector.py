@@ -3,24 +3,11 @@ import os
 import argparse
 from pipeline.honesty_config_generation_skip_connection import Config
 from pipeline.model_utils.model_factory import construct_model_base
-import pickle
-import csv
-import math
-from tqdm import tqdm
-from pipeline.utils.hook_utils import add_hooks
-from pipeline.model_utils.model_base import ModelBase
-from plotly.subplots import make_subplots
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-from sklearn.metrics.pairwise import cosine_similarity
-from plotly.figure_factory import create_quiver
-import plotly.figure_factory as ff
-import plotly.io as pio
 from pipeline.analysis.stage_statistics import get_state_quantification
 from pipeline.honesty_config_performance import Config
 from pipeline.run_pipeline_honesty_stage import load_and_sample_datasets
 from pipeline.run_pipeline_honesty_stage import get_lying_honest_accuracy_and_plot
-from pipeline.analysis.checkout_one_layer import plot_one_layer_with_centroid_and_vector
+from pipeline.plot.checkout_one_layer import plot_one_layer_with_centroid_and_vector
 
 
 def parse_arguments():

@@ -36,8 +36,6 @@ def load_and_sample_datasets(cfg):
     dataset_train = random.sample(dataset, cfg.n_train)
     dataset_test = random.sample(dataset, cfg.n_test)
 
-
-
     return dataset_train, dataset_test
 
 

@@ -92,38 +92,38 @@ def get_lying_honest_accuracy_and_plot(cfg, model_base, dataset):
                                                                                 dataset,
                                                                                 cfg, system_type="honest",)
 
-    # accuracy_lying = sum(performance_lying)/len(performance_lying)
-    # accuracy_honest = sum(performance_honest) / len(performance_honest)
-    # unexpected_lying_rate = sum(unexpected_lying)/len(unexpected_lying)
-    # unexpected_honest_rate = sum(unexpected_honest)/len(unexpected_honest)
-    # print(f"accuracy_lying: {accuracy_lying}")
-    # print(f"accuracy_honest: {accuracy_honest}")
-    # print(f"unexpected_lying: {unexpected_lying_rate}")
-    # print(f"unexpected_honest: {unexpected_honest_rate}")
-    #
-    # model_performance = {
-    #     "performance_lying": performance_lying,
-    #     "performance_honest": performance_honest,
-    #     "accuracy_lying": accuracy_lying,
-    #     "accuracy_honest": accuracy_honest,
-    #     "unexpected_lying": unexpected_lying,
-    #     "unexpected_honest": unexpected_honest,
-    #     "unexpected_lying_rate": unexpected_lying_rate,
-    #     "unexpected_honest": unexpected_honest
-    # }
-    #
-    # if not os.path.exists(os.path.join(cfg.artifact_path(), intervention, 'performance')):
-    #     os.makedirs(os.path.join(cfg.artifact_path(), intervention, 'performance'))
-    # with open(artifact_dir + os.sep + intervention + os.sep + 'performance' + os.sep + model_name + '_' +
-    #           'model_performance.pkl', 'wb') as f:
-    #     pickle.dump(model_performance, f)
-    # print("saving done!")
-    #
-    # # plot and save accuracy
+    accuracy_lying = sum(performance_lying)/len(performance_lying)
+    accuracy_honest = sum(performance_honest) / len(performance_honest)
+    unexpected_lying_rate = sum(unexpected_lying)/len(unexpected_lying)
+    unexpected_honest_rate = sum(unexpected_honest)/len(unexpected_honest)
+    print(f"accuracy_lying: {accuracy_lying}")
+    print(f"accuracy_honest: {accuracy_honest}")
+    print(f"unexpected_lying: {unexpected_lying_rate}")
+    print(f"unexpected_honest: {unexpected_honest_rate}")
+
+    model_performance = {
+        "performance_lying": performance_lying,
+        "performance_honest": performance_honest,
+        "accuracy_lying": accuracy_lying,
+        "accuracy_honest": accuracy_honest,
+        "unexpected_lying": unexpected_lying,
+        "unexpected_honest": unexpected_honest,
+        "unexpected_lying_rate": unexpected_lying_rate,
+        "unexpected_honest": unexpected_honest
+    }
+
+    if not os.path.exists(os.path.join(cfg.artifact_path(), intervention, 'performance')):
+        os.makedirs(os.path.join(cfg.artifact_path(), intervention, 'performance'))
+    with open(artifact_dir + os.sep + intervention + os.sep + 'performance' + os.sep + model_name + '_' +
+              'model_performance.pkl', 'wb') as f:
+        pickle.dump(model_performance, f)
+    print("saving done!")
+
+    # plot and save accuracy
     # fig = plot_lying_honest_accuracy(cfg, accuracy_honest, accuracy_lying)
-    # # save
-    # # fig.write_html(artifact_dir + os.sep + 'performance' + os.sep + model_name + '_' + data_category + '_' +
-    # #                'accuracy'+'.html')
+    # save
+    # fig.write_html(artifact_dir + os.sep + 'performance' + os.sep + model_name + '_' + data_category + '_' +
+    #                'accuracy'+'.html')
     # pio.write_image(fig, artifact_dir + os.sep + intervention + os.sep + 'performance' + os.sep + model_name + '_' + data_category + '_' +
     #                'accuracy' + '.png', scale=6)
     # print("accuracy done!")
@@ -160,7 +160,7 @@ def run_pipeline(model_path, save_path, batch_size=16):
 
     # 3. Get Accuracy
     get_lying_honest_accuracy_and_plot(cfg, model_base, dataset)
-    
+
     # # 4. Quantify different lying stages
     # get_state_quantification(cfg, activations_honest, activations_lying, labels)
 

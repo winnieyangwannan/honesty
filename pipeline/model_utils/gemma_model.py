@@ -36,6 +36,11 @@ GEMMA_CHAT_TEMPLATE_STATEMENT = """<start_of_turn>user
 <start_of_turn>model
 """
 
+GEMMA_CHAT_TEMPLATE_STATEMENT = """
+{system_prompt}\n\n{user_prompt}\n\nStatement:\"{prompt}\"\n\n
+"""
+
+
 GEMMA_TRUE_TOKS = [1382, 5569] #includes " true" and " True"
 GEMMA_FALSE_TOKS = [1566, 7662]
 
