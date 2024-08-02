@@ -15,7 +15,7 @@ def parse_arguments():
     """Parse model path argument from command line."""
     parser = argparse.ArgumentParser(description="Parse model path argument.")
     parser.add_argument('--model_path', type=str, required=True, help='Path to the model')
-    parser.add_argument('--batch_size', type=int, required=False, default=16)
+    parser.add_argument('--checkpoint', type=int, required=False, default=None, help='Checkpoint for pyhia model family')
     parser.add_argument('--save_path', type=str, required=False, default=16)
 
     return parser.parse_args()
@@ -57,14 +57,17 @@ def contrastive_extraction_generation_and_plot_pca(cfg, model_base, dataset_trai
     print("done extraction")
 
 
-def run_pipeline(model_path, save_path):
+def run_pipeline(model_path, save_path, checkpoint=None):
     """Run the full pipeline."""
 
     # 1. Load model
     model_alias = os.path.basename(model_path)
-    cfg = Config(model_alias=model_alias, model_path=model_path, save_path=save_path)
+    cfg = Config(model_alias=model_alias,
+                 model_path=model_path,
+                 save_path=save_path,
+                 checkpoint=checkpoint)
     print(cfg)
-    model_base = construct_model_base(cfg.model_path)
+    model_base = construct_model_base(cfg.model_path, checkpoint=cfg.checkpoint)
 
     # 2. Load and sample filtered datasets
     dataset_train, dataset_test = load_and_sample_datasets(cfg)
@@ -76,5 +79,5 @@ def run_pipeline(model_path, save_path):
 
 if __name__ == "__main__":
     args = parse_arguments()
-    run_pipeline(model_path=args.model_path, save_path=args.save_path)
+    run_pipeline(model_path=args.model_path, save_path=args.save_path,  checkpoint=args.checkpoint)
     # run_pipeline(model_path="Qwen/Qwen-1_8B-Chat")

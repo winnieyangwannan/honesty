@@ -20,6 +20,7 @@ class Config:
     model_alias: str
     model_path: str
     save_path: str
+    checkpoint: int
     n_train: int = 100
     n_test: int = 32
     data_category: str = "facts"

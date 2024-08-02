@@ -69,7 +69,6 @@ def get_accuracy_and_unexpected(top_token_id, top_token_str, labels, true_token_
             unexpected.append(0)
 
         elif top_token_str[ii].lower().strip() not in label_strs[ii]:
-
             if top_token_id[ii] in false_token_id or top_token_id[ii] in true_token_id:
                 correct.append(0)
                 wrong.append(1)

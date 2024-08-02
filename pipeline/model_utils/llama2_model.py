@@ -163,7 +163,7 @@ def act_add_llama2_weights(model, direction: Float[Tensor, "d_model"], coeff, la
 
 class Llama2Model(ModelBase):
 
-    def _load_model(self, model_path, dtype=torch.float16):
+    def _load_model(self, model_path, dtype=torch.float16, checkpoint=None):
 
         model = AutoModelForCausalLM.from_pretrained(
             model_path,
@@ -176,7 +176,7 @@ class Llama2Model(ModelBase):
 
         return model
 
-    def _load_tokenizer(self, model_path):
+    def _load_tokenizer(self, model_path, checkpoint=None):
         tokenizer = AutoTokenizer.from_pretrained(
             model_path,
             trust_remote_code=True,

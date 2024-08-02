@@ -25,8 +25,8 @@ def parse_arguments():
     """Parse model path argument from command line."""
     parser = argparse.ArgumentParser(description="Parse model path argument.")
     parser.add_argument('--model_path', type=str, required=True, help='Path to the model')
-    parser.add_argument('--save_path', type=str, required=False, default=16)
-    parser.add_argument('--batch_size', type=int, required=False, default=16)
+    parser.add_argument('--checkpoint', type=int, required=False, default=None, help='Checkpoint for pyhia model family')
+    parser.add_argument('--save_path', type=str, required=True, default='')
 
     return parser.parse_args()
 
@@ -119,41 +119,45 @@ def get_lying_honest_accuracy_and_plot(cfg, model_base, dataset):
     #     pickle.dump(model_performance, f)
     # print("saving done!")
     #
-    # # plot and save accuracy
-    # fig = plot_lying_honest_accuracy(cfg, accuracy_honest, accuracy_lying)
-    # # save
-    # # fig.write_html(artifact_dir + os.sep + 'performance' + os.sep + model_name + '_' + data_category + '_' +
-    # #                'accuracy'+'.html')
-    # pio.write_image(fig, artifact_dir + os.sep + intervention + os.sep + 'performance' + os.sep + model_name + '_' + data_category + '_' +
-    #                'accuracy' + '.png', scale=6)
-    # print("accuracy done!")
+    # plot and save accuracy
+    fig = plot_lying_honest_accuracy(cfg, accuracy_honest, accuracy_lying)
+    # save
+    # fig.write_html(artifact_dir + os.sep + 'performance' + os.sep + model_name + '_' + data_category + '_' +
+    #                'accuracy'+'.html')
+    pio.write_image(fig, artifact_dir + os.sep + intervention + os.sep + 'performance' + os.sep + model_name + '_' + data_category + '_' +
+                   'accuracy' + '.png', scale=6)
+    print("accuracy done!")
 
     # plot activation pca
     contrastive_label = ["honest", "lying"]
     n_layers = model_base.model.config.num_hidden_layers
     labels = [row['label'] for row in dataset]
-
+    if not os.path.exists(os.path.join(cfg.artifact_path(), intervention)):
+        os.makedirs(os.path.join(cfg.artifact_path(), intervention))
     fig = plot_contrastive_activation_pca(activations_honest, activations_lying, n_layers,
                                           contrastive_label, labels=labels)
     fig.write_html(artifact_dir + os.sep + intervention + os.sep + model_name + '_' + 'honest_lying_pca.html')
     pio.write_image(fig, artifact_dir + os.sep + intervention + os.sep + model_name + '_'
                     + 'honest_lying_pca.png',
                     scale=6)
-    pio.write_image(fig, artifact_dir + os.sep + intervention + os.sep + model_name + '_'
-                    + 'honest_lying_pca.pdf',
-                    scale=6)
+
+
+
     return activations_honest, activations_lying, labels
 
 
-def run_pipeline(model_path, save_path, batch_size=16):
+def run_pipeline(model_path, save_path, checkpoint=None):
     """Run the full pipeline."""
 
     # 1. Load model
     model_alias = os.path.basename(model_path)
-    cfg = Config(model_alias=model_alias, model_path=model_path, save_path=save_path)
+    cfg = Config(model_alias=model_alias,
+                 model_path=model_path,
+                 save_path=save_path,
+                 checkpoint=checkpoint)
     print(cfg)
 
-    model_base = construct_model_base(cfg.model_path)
+    model_base = construct_model_base(cfg.model_path, checkpoint=cfg.checkpoint)
 
     # 2. Load and sample filtered datasets
     dataset = load_and_sample_datasets(cfg)
@@ -167,4 +171,4 @@ def run_pipeline(model_path, save_path, batch_size=16):
 
 if __name__ == "__main__":
     args = parse_arguments()
-    run_pipeline(model_path=args.model_path, save_path=args.save_path, batch_size=args.batch_size)
+    run_pipeline(model_path=args.model_path, save_path=args.save_path,  checkpoint=args.checkpoint)

@@ -19,11 +19,12 @@ class Config:
     model_alias: str
     model_path: str
     save_path: str
+    checkpoint: int
     n_train: int = 100
     n_test: int = 100
     data_category: str = "facts"
-    batch_size: int = 16
-    max_new_tokens: int = 10
+    batch_size: int = 1
+    max_new_tokens: int = 100
     intervention: str = "no_intervention"
     # for generation_trajectory
     dataset_id: list[int] = 3

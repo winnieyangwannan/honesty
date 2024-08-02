@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 from transformers import AutoTokenizer, AutoModelForCausalLM, GenerationConfig
+from transformers import GPTNeoXForCausalLM
+
 from tqdm import tqdm
 from torch import Tensor
 from jaxtyping import Int, Float
@@ -7,10 +9,14 @@ from jaxtyping import Int, Float
 from pipeline.utils.hook_utils import add_hooks
 
 class ModelBase(ABC):
-    def __init__(self, model_name_or_path: str):
+    def __init__(self, model_name_or_path: str, checkpoint=None):
         self.model_name_or_path = model_name_or_path
-        self.model: AutoModelForCausalLM = self._load_model(model_name_or_path)
-        self.tokenizer: AutoTokenizer = self._load_tokenizer(model_name_or_path)
+        self.checkpoint = checkpoint
+        if "pythia" in model_name_or_path:
+            self.model: GPTNeoXForCausalLM = self._load_model(model_name_or_path, checkpoint=checkpoint)
+        else:
+            self.model: AutoModelForCausalLM = self._load_model(model_name_or_path, checkpoint=checkpoint)
+        self.tokenizer: AutoTokenizer = self._load_tokenizer(model_name_or_path, checkpoint=checkpoint)
         
         self.tokenize_instructions_fn = self._get_tokenize_instructions_fn()
         self.tokenize_statements_fn = self._get_tokenize_statements_fn()

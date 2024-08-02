@@ -1,6 +1,6 @@
 from pipeline.model_utils.model_base import ModelBase
 
-def construct_model_base(model_path: str) -> ModelBase:
+def construct_model_base(model_path: str, checkpoint=None) -> ModelBase:
 
     if 'qwen' in model_path.lower():
         from pipeline.model_utils.qwen_model import QwenModel
@@ -20,5 +20,8 @@ def construct_model_base(model_path: str) -> ModelBase:
     elif 'yi' in model_path.lower():
         from pipeline.model_utils.yi_model import YiModel
         return YiModel(model_path)
+    elif 'pythia' in model_path.lower():
+        from pipeline.model_utils.pythia_model import PYTHIAModel
+        return PYTHIAModel(model_path,  checkpoint=checkpoint)
     else:
         raise ValueError(f"Unknown model family: {model_path}")

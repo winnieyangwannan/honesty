@@ -194,7 +194,7 @@ def act_add_qwen_weights(model, direction: Float[Tensor, "d_model"], coeff, laye
 
 class QwenModel(ModelBase):
 
-    def _load_model(self, model_path, dtype=torch.float16):
+    def _load_model(self, model_path, dtype=torch.float16, checkpoint=None):
         model_kwargs = {}
         model_kwargs.update({"use_flash_attn": True})
         if dtype != "auto":
@@ -216,7 +216,7 @@ class QwenModel(ModelBase):
 
         return model
 
-    def _load_tokenizer(self, model_path):
+    def _load_tokenizer(self, model_path, checkpoint=None):
         tokenizer = AutoTokenizer.from_pretrained(
             model_path,
             trust_remote_code=True,
