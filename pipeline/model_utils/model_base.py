@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from transformers import AutoTokenizer, AutoModelForCausalLM, GenerationConfig
+from transformers import AutoTokenizer, AutoModelForCausalLM, GenerationConfig, GenerationConfig
 from transformers import GPTNeoXForCausalLM
 
 from tqdm import tqdm

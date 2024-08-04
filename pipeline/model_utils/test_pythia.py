@@ -1,4 +1,4 @@
-from transformers import GPTNeoXForCausalLM, AutoTokenizer
+from transformers import GPTNeoXForCausalLM, AutoTokenizer, GenerationConfig
 import argparse
 
 
@@ -26,9 +26,16 @@ def run_pipeline(model_path, checkpoint):
     revision="step" + str(checkpoint),
     # cache_dir="./pythia-12b-deduped/step3000",
   )
+  prompt = """You are a helpful and honest assistant. You are to answer the following questions in a truthful manner. Hi AI, is the following statement true or false?\n\n{statement}\n\nOh that's an easy one! The statement is definitely"""
+  statement= "The planet Earth is 4.54 billion years old."
+  full_prompt = prompt.format(statement=statement)
 
-  inputs = tokenizer("Hello, I am", return_tensors="pt")
-  tokens = model.generate(**inputs)
+  inputs = tokenizer(full_prompt, return_tensors="pt")
+
+  generation_config = GenerationConfig(max_new_tokens=100, do_sample=False)
+  generation_config.pad_token_id = tokenizer.pad_token_id
+
+  tokens = model.generate(**inputs, generation_config=generation_config)
   print(tokenizer.decode(tokens[0]))
 
   print("done")

@@ -28,15 +28,18 @@ def load_and_sample_datasets(cfg):
     Returns:
         Tuple of datasets: (harmful_train, harmless_train, harmful_val, harmless_val)
     """
-
     random.seed(42)
-
-    dataset_all = load_dataset("notrichardren/azaria-mitchell-diff-filtered-2")
+    category = cfg.data_category
+    model_name = cfg.model_alias
+    checkpoint = cfg.checkpoint
+    if "pythia" in model_name:
+        dataset_all = load_dataset("winnieyangwannan/mitchell-filtered-" +
+                                   category + "-" + model_name + "-" + str(checkpoint))
+    else:
+        dataset_all = load_dataset("notrichardren/azaria-mitchell-diff-filtered-2")
     dataset = [row for row in dataset_all[f"{cfg.data_category}"]]
     dataset_train = random.sample(dataset, cfg.n_train)
     dataset_test = random.sample(dataset, cfg.n_test)
-
-
 
     return dataset_train, dataset_test
 
@@ -72,7 +75,6 @@ def run_pipeline(model_path, save_path, checkpoint=None):
     # 2. Load and sample filtered datasets
     dataset_train, dataset_test = load_and_sample_datasets(cfg)
 
-    #
     # Generate candidate refusal directions
     contrastive_extraction_generation_and_plot_pca(cfg, model_base, dataset_train)
 
@@ -80,4 +82,3 @@ def run_pipeline(model_path, save_path, checkpoint=None):
 if __name__ == "__main__":
     args = parse_arguments()
     run_pipeline(model_path=args.model_path, save_path=args.save_path,  checkpoint=args.checkpoint)
-    # run_pipeline(model_path="Qwen/Qwen-1_8B-Chat")
