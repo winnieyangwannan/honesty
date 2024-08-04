@@ -5,15 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="53de5df3-4a9d-4612-9ea8-208ac77ab608" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/pythia-12b-10-shot.out" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pythia-12b-20-shot.out" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/honesty_config_generation.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/honesty_config_generation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/model_utils/model_base.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/model_utils/model_base.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/model_utils/pythia_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/model_utils/pythia_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/model_utils/test_pythia.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/model_utils/test_pythia.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_filter_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_filter_data.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -122,7 +115,7 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pipeline/run_pipeline_filter_data.py" />
-      <option name="PARAMETERS" value="--model_path EleutherAI/pythia-160m --checkpoint 143000 --few_shot 4 --save_path D:\Data\honesty\" />
+      <option name="PARAMETERS" value="--model_path EleutherAI/pythia-160m --checkpoint 143000 --few_shot 4 --save_path D:\Data\honesty\ --category inventions" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -354,7 +347,7 @@
       <workItem from="1721008705897" duration="194000" />
       <workItem from="1721008962201" duration="348640000" />
       <workItem from="1722636770987" duration="15840000" />
-      <workItem from="1722714945845" duration="14817000" />
+      <workItem from="1722714945845" duration="20222000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit, copy from model_steering">
       <created>1720826847520</created>
@@ -454,7 +447,14 @@
       <option name="project" value="LOCAL" />
       <updated>1722629580980</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="pipeline for filter data for base model">
+      <created>1722730569752</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1722730569752</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -478,7 +478,8 @@
     <MESSAGE value="minor bug fix on performance" />
     <MESSAGE value="gemma_base_model" />
     <MESSAGE value="pipeline compatible with pythia and add filter data." />
-    <option name="LAST_COMMIT_MESSAGE" value="pipeline compatible with pythia and add filter data." />
+    <MESSAGE value="pipeline for filter data for base model" />
+    <option name="LAST_COMMIT_MESSAGE" value="pipeline for filter data for base model" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -623,6 +624,16 @@
           <line>34</line>
           <option name="timeStamp" value="464" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pipeline/run_pipeline_filter_data.py</url>
+          <line>117</line>
+          <option name="timeStamp" value="484" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pipeline/run_pipeline_filter_data.py</url>
+          <line>111</line>
+          <option name="timeStamp" value="485" />
+        </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
         <breakpoint type="python-exception">
@@ -651,6 +662,6 @@
     <SUITE FILE_PATH="coverage/honesty$test_pythia.coverage" NAME="test_pythia Coverage Results" MODIFIED="1722636121405" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_performance.coverage" NAME="run_pipeline_honesty_performance Coverage Results" MODIFIED="1722623202918" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$filter_data.coverage" NAME="run_pipeline_filter_data Coverage Results" MODIFIED="1722636142481" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
-    <SUITE FILE_PATH="coverage/honesty$run_pipeline_filter_data.coverage" NAME="run_pipeline_filter_data Coverage Results" MODIFIED="1722729643124" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/honesty$run_pipeline_filter_data.coverage" NAME="run_pipeline_filter_data Coverage Results" MODIFIED="1722740186161" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
   </component>
 </project>
