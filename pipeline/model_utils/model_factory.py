@@ -1,6 +1,6 @@
 from pipeline.model_utils.model_base import ModelBase
 
-def construct_model_base(model_path: str, checkpoint=None) -> ModelBase:
+def construct_model_base(model_path: str, checkpoint=None, few_shot=None) -> ModelBase:
 
     if 'qwen' in model_path.lower():
         from pipeline.model_utils.qwen_model import QwenModel
@@ -11,8 +11,8 @@ def construct_model_base(model_path: str, checkpoint=None) -> ModelBase:
     elif 'llama' in model_path.lower():
         from pipeline.model_utils.llama2_model import Llama2Model
         return Llama2Model(model_path)
-    elif 'gemma' in model_path.lower():
-        from pipeline.model_utils.gemma_model import GemmaModel
+    elif 'gemma' in model_path.lower() and '-it' in model_path.lower():
+        from pipeline.model_utils.gemma_model_it import GemmaModel
         return GemmaModel(model_path)
     elif 'gemma' in model_path.lower():
         from pipeline.model_utils.gemma_model import GemmaModel

@@ -16,6 +16,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description="Parse model path argument.")
     parser.add_argument('--model_path', type=str, required=True, help='Path to the model')
     parser.add_argument('--checkpoint', type=int, required=False, default=None, help='Checkpoint for pyhia model family')
+    parser.add_argument('--few_shot', type=int, required=False, default=None)
     parser.add_argument('--save_path', type=str, required=False, default=16)
 
     return parser.parse_args()
@@ -60,7 +61,8 @@ def contrastive_extraction_generation_and_plot_pca(cfg, model_base, dataset_trai
     print("done extraction")
 
 
-def run_pipeline(model_path, save_path, checkpoint=None):
+def run_pipeline(model_path, save_path,
+                 checkpoint=None, few_shot=None):
     """Run the full pipeline."""
 
     # 1. Load model
@@ -68,9 +70,12 @@ def run_pipeline(model_path, save_path, checkpoint=None):
     cfg = Config(model_alias=model_alias,
                  model_path=model_path,
                  save_path=save_path,
-                 checkpoint=checkpoint)
+                 checkpoint=checkpoint,
+                 few_shot=few_shot)
     print(cfg)
-    model_base = construct_model_base(cfg.model_path, checkpoint=cfg.checkpoint)
+    model_base = construct_model_base(cfg.model_path,
+                                      checkpoint=cfg.checkpoint,
+                                      )
 
     # 2. Load and sample filtered datasets
     dataset_train, dataset_test = load_and_sample_datasets(cfg)
@@ -81,4 +86,5 @@ def run_pipeline(model_path, save_path, checkpoint=None):
 
 if __name__ == "__main__":
     args = parse_arguments()
-    run_pipeline(model_path=args.model_path, save_path=args.save_path,  checkpoint=args.checkpoint)
+    run_pipeline(model_path=args.model_path, save_path=args.save_path,
+                 checkpoint=args.checkpoint, few_shot=args.few_shot)

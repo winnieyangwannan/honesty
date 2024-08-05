@@ -85,21 +85,23 @@ def generate_get_contrastive_activations_and_plot_pca(cfg, model_base, tokenize_
     model_name = cfg.model_alias
     data_category = cfg.data_category
     max_new_tokens = cfg.max_new_tokens
+    few_shot = cfg.few_shot
     tokenize_fn_lie = model_base.tokenize_statements_fn
     true_token_id = model_base.true_token_id
     false_token_id = model_base.false_token_id
     # tokenize_fn_syco = model_base.tokenize_statements_fn_syco
 
     # 1. activation extraction with generation
-    activations_lying, completions_lying, first_gen_toks_lying, first_gen_str_lying = generate_and_get_activations(cfg,
-                                                                                                                   model_base,
-                                                                                                                   dataset,
-                                                                                                                   tokenize_fn,
-                                                                                                                   positions=[
-                                                                                                                       -1],
-                                                                                                                   max_new_tokens=max_new_tokens,
-                                                                                                                   system_type="lying",
-                                                                                                                   labels=labels)
+    activations_lying, completions_lying, first_gen_toks_lying, first_gen_str_lying = generate_and_get_activations(
+        cfg,
+        model_base,
+        dataset,
+        tokenize_fn,
+        positions=[
+           -1],
+        max_new_tokens=max_new_tokens,
+        system_type="lying",
+        labels=labels)
 
     activations_honest, completions_honest, first_gen_toks_honest, first_gen_str_honest = generate_and_get_activations(
         cfg, model_base, dataset,
@@ -116,17 +118,19 @@ def generate_get_contrastive_activations_and_plot_pca(cfg, model_base, tokenize_
             "activations_lying": activations_lying,
         }
         with open(artifact_dir + os.sep + model_name + '_' + f'{data_category}'
-                  + '_activation_pca.pkl', "wb") as f:
+                  + '_' + str(few_shot) + '_activation_pca.pkl', "wb") as f:
             pickle.dump(activations, f)
 
     # 2.2 save completions
     if not os.path.exists(os.path.join(cfg.artifact_path(), 'completions')):
         os.makedirs(os.path.join(cfg.artifact_path(), 'completions'))
 
-    with open(f'{cfg.artifact_path()}' + os.sep + 'completions' + os.sep + f'{data_category}_completions_honest.json',
+    with open(f'{cfg.artifact_path()}' + os.sep + 'completions' + os.sep + f'{data_category}' +
+              '_' + str(few_shot) + '_completions_honest.json',
               "w") as f:
         json.dump(completions_honest, f, indent=4)
-    with open(f'{cfg.artifact_path()}' + os.sep + 'completions' + os.sep + f'{data_category}_completions_lying.json',
+    with open(f'{cfg.artifact_path()}' + os.sep + 'completions' + os.sep + f'{data_category}' +
+              '_' + str(few_shot) + '_completions_lying.json',
               "w") as f:
         json.dump(completions_lying, f, indent=4)
 
@@ -136,9 +140,9 @@ def generate_get_contrastive_activations_and_plot_pca(cfg, model_base, tokenize_
                                           n_layers, contrastive_label=["honest", "lying"],
                                           labels=labels)
     if save_plot:
-          fig.write_html(artifact_dir + os.sep + model_name + '_' + 'activation_pca.html')
-          pio.write_image(fig, artifact_dir + os.sep + model_name + '_' + 'activation_pca.png',
-                          scale=6)
+        fig.write_html(artifact_dir + os.sep + model_name + '_' + str(few_shot) + '_activation_pca.html')
+        pio.write_image(fig, artifact_dir + os.sep + model_name +  '_' + str(few_shot) + '_activation_pca.png',
+                        scale=6)
 
     # 4. get performance
     save_path = artifact_dir + os.sep + "performance"
@@ -150,10 +154,10 @@ def generate_get_contrastive_activations_and_plot_pca(cfg, model_base, tokenize_
                                                    labels,
                                                    true_token_id, false_token_id
                                                    )
-    fig.write_html(save_path + os.sep + f'{data_category}_performance_'
-                   + 'model_performance.html')
-    pio.write_image(fig, save_path + os.sep + f'{data_category}_performance_'
-                    + 'model_performance.png',
+    fig.write_html(save_path + os.sep + f'{data_category}'
+                   + '_' + str(few_shot) + 'model_performance.html')
+    pio.write_image(fig, save_path + os.sep + f'{data_category}'
+                    + '_' + str(few_shot) + 'model_performance.png',
                     scale=6)
 
     # 5. Get stage statistics
@@ -164,7 +168,7 @@ def generate_get_contrastive_activations_and_plot_pca(cfg, model_base, tokenize_
                                            labels,
                                            save_plot=True)
     with open(save_path + os.sep + model_name + '_' + f'{data_category}' +
-              '_stage_stats.pkl', "wb") as f:
+              '_' + str(few_shot) + '_stage_stats.pkl', "wb") as f:
         pickle.dump(stage_stats, f)
     return activations_honest, activations_lying
 
@@ -335,6 +339,7 @@ def generate_and_get_activations(cfg, model_base, dataset,
     model_name = cfg.model_alias
     batch_size = cfg.batch_size
     model = model_base.model
+    few_shot = cfg.few_shot
     block_modules = model_base.model_block_modules
     tokenizer = model_base.tokenizer
     n_layers = model.config.num_hidden_layers
@@ -350,7 +355,8 @@ def generate_and_get_activations(cfg, model_base, dataset,
     first_gen_toks_all = torch.zeros((n_samples), dtype=torch.long)
     first_gen_str_all = []
     for i in tqdm(range(0, len(dataset), batch_size)):
-        inputs = tokenize_fn(prompts=dataset[i:i+batch_size], system_type=system_type)
+        inputs = tokenize_fn(prompts=dataset[i:i+batch_size],
+                             system_type=system_type, few_shot=few_shot)
         len_prompt = inputs.input_ids.shape[1]
         fwd_pre_hooks = [(block_modules[layer],
                           get_generation_cache_activation_input_pre_hook(activations,

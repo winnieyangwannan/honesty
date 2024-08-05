@@ -123,14 +123,14 @@ def tokenize_instructions_qwen_chat(
     return result
 
 
-
 def tokenize_statements_qwen_chat(
     tokenizer: AutoTokenizer,
     prompts: List[str],
     outputs: List[str]=None,
     system_type: str="honest",
     user: str=None,
-    include_trailing_whitespace=True
+    include_trailing_whitespace=True,
+    few_shot: int = None
 ):
     """
     for the honesty project
