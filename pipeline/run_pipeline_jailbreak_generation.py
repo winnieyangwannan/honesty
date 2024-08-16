@@ -17,14 +17,14 @@ def parse_arguments():
     """Parse model path argument from command line."""
     parser = argparse.ArgumentParser(description="Parse model path argument.")
     parser.add_argument('--model_path', type=str, required=True, help='Path to the model')
-    parser.add_argument('--checkpoint', type=int, required=False, default=None, help='Checkpoint for pyhia model family')
+    parser.add_argument('--jailbreak_type', type=str, required=False, default='evil_confidant')
     parser.add_argument('--few_shot', type=int, required=False, default=None)
     parser.add_argument('--save_path', type=str, required=False, default=16)
 
     return parser.parse_args()
 
 
-def load_datasets():
+def load_datasets(cfg):
     """
     Load datasets and sample them based on the configuration.
 
@@ -32,8 +32,10 @@ def load_datasets():
         Tuple of datasets: (harmful_train, harmless_train, harmful_val, harmless_val)
     """
     random.seed(42)
-    harmful_train = load_dataset(dataset_name='jailbreakbench')
-    # harmful_train = load_dataset_split(dataset_name='harmful', split='train', instructions_only=False)
+    if "jailbreakbench" in cfg.evaluation_datasets:
+        harmful_train = load_dataset(dataset_name='jailbreakbench')
+    elif "harmful" in cfg.evaluation_datasets:
+        harmful_train = load_dataset_split(dataset_name='harmful', split='train', instructions_only=False)
     harmless_train = load_dataset_split(harmtype='harmless', split='train', instructions_only=False)
     # harmful_val = load_dataset_split(harmtype='harmful', split='val', instructions_only=False)
     # harmless_val = load_dataset_split(harmtype='harmless', split='val', instructions_only=False)
@@ -70,7 +72,8 @@ def filter_data(cfg, model_base, harmful_train, harmless_train, harmful_val, har
     return harmful_train, harmless_train, harmful_val, harmless_val
 
 
-def contrastive_extraction_generation_and_plot_pca(cfg, model_base, dataset_harmless, dataset_harmful):
+def contrastive_extraction_generation_and_plot_pca(cfg, model_base, dataset_harmless, dataset_harmful,
+                                                   jailbreak_type="evil_confidant"):
     tokenize_fn = model_base.tokenize_instructions_fn
 
     instructions_harmful = [x['instruction'] for x in dataset_harmful]
@@ -99,14 +102,14 @@ def contrastive_extraction_generation_and_plot_pca(cfg, model_base, dataset_harm
                                                       save_activations=True,
                                                       save_plot=True,
                                                       labels=labels_train,
-                                                      contrastive_label=["HHH", "BREAK"],
-                                                      data_label=["jailbreakbench", "harmless"],
+                                                      contrastive_label=["HHH", jailbreak_type],
+                                                      data_label=cfg.evaluation_datasets,
                                                       categories=categories_train)
     print("done extraction")
 
 
 def run_pipeline(model_path, save_path,
-                 checkpoint=None, few_shot=None):
+                 jailbreak_type='evil_confidant', few_shot=None):
     """Run the full pipeline."""
 
     # 1. Load model
@@ -114,21 +117,20 @@ def run_pipeline(model_path, save_path,
     cfg = Config(model_alias=model_alias,
                  model_path=model_path,
                  save_path=save_path,
-                 checkpoint=checkpoint,
+                 jailbreak_type=jailbreak_type,
                  few_shot=few_shot)
     print(cfg)
     model_base = construct_model_base(cfg.model_path,
-                                      checkpoint=cfg.checkpoint,
-                                      )
+                                      checkpoint=None)
 
     # 2. Load and sample filtered datasets
-    harmful_train, harmless_train = load_datasets()
+    harmful_train, harmless_train = load_datasets(cfg)
     # Filter datasets based on refusal scores
     # harmful_train, harmless_train, harmful_val, harmless_val = filter_data(cfg, model_base, harmful_train,
     #                                                                        harmless_train, harmful_val, harmless_val)
 
     # 3. Generate candidate refusal directions
-    contrastive_extraction_generation_and_plot_pca(cfg, model_base, harmless_train, harmful_train)
+    contrastive_extraction_generation_and_plot_pca(cfg, model_base, harmless_train, harmful_train, jailbreak_type=jailbreak_type)
 
     # 4. Evaluate
     # for dataset_name in cfg.evaluation_datasets:
@@ -139,5 +141,8 @@ def run_pipeline(model_path, save_path,
 
 if __name__ == "__main__":
     args = parse_arguments()
+    print("jailbreak_type")
+    print(args.jailbreak_type)
+
     run_pipeline(model_path=args.model_path, save_path=args.save_path,
-                 checkpoint=args.checkpoint, few_shot=args.few_shot)
+                 jailbreak_type=args.jailbreak_type, few_shot=args.few_shot)

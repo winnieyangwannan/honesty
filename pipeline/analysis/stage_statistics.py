@@ -45,7 +45,7 @@ def get_pca_layer_by_layer(activations_positive, activations_negative, n_layers,
 # Measurement: The distance between a pair of honest and lying prompt
 # Future: Measure the within group (lying and honest) vs across group distance
 def get_distance_pair_honest_lying(activations_all, activations_pca, n_layers, save_path,
-                                   save_plot=True):
+                                   contrastive_label=['HHH', 'evil_confidant'], save_plot=True):
     n_samples = int(activations_all.shape[0] / 2)
     dist_pair_pca = np.zeros((n_layers, n_samples))
     dist_pair_z_pca = np.zeros((n_layers, n_samples))
@@ -55,8 +55,8 @@ def get_distance_pair_honest_lying(activations_all, activations_pca, n_layers, s
     activations_negative = activations_all[n_samples:, :, :]
 
     for layer in range(n_layers):
-        activations_pca_honest = activations_pca[:n_samples, layer, :]
-        activations_pca_lying = activations_pca[n_samples:, layer, :]
+        activations_pca_positive = activations_pca[:n_samples, layer, :]
+        activations_pca_negative = activations_pca[n_samples:, layer, :]
 
         # original high dimensional space
         dist_between = cdist(activations_positive[:, layer, :].cpu(), activations_negative[:, layer, :].cpu()) # [n_samples by n_samples]
@@ -67,7 +67,7 @@ def get_distance_pair_honest_lying(activations_all, activations_pca, n_layers, s
         dist_pair_z[layer, :] = dist_z.diagonal()
 
         # pca
-        dist_between_pca = cdist(activations_pca_honest[:, :], activations_pca_lying[:, :]) # [n_samples by n_samples]
+        dist_between_pca = cdist(activations_pca_positive[:, :], activations_pca_negative[:, :]) # [n_samples by n_samples]
         # zscore
         dist_z_pca = stats.zscore(dist_between_pca)
         # for the pair of the prompt with same statement, take the diagonal
@@ -124,7 +124,8 @@ def get_distance_pair_honest_lying(activations_all, activations_pca, n_layers, s
 
         fig.show()
         # fig.write_html(save_path + os.sep + 'distance_pair.html')
-        pio.write_image(fig, save_path + os.sep + 'stage_1_distance_pair.png',
+        pio.write_image(fig, save_path + os.sep + 'stage_1_distance_pair_' +
+                        f'_{contrastive_label[0]}_{contrastive_label[1]}' + '.png',
                         scale=6)
 
     stage_1 = {
@@ -139,7 +140,8 @@ def get_distance_pair_honest_lying(activations_all, activations_pca, n_layers, s
 
 # 2. Stage 2:  Separation between True and False
 # Measurement: the distance between centroid between centroids of true and false
-def get_dist_centroid_true_false(activations_all, activations_pca, labels, n_layers, save_path, save_plot=True):
+def get_dist_centroid_true_false(activations_all, activations_pca, labels, n_layers, save_path,
+                                 contrastive_label=['HHH', 'evil_confidant'], save_plot=True):
     n_samples = int(activations_all.shape[0] / 2)
     centroid_dist_honest = np.zeros((n_layers))
     centroid_dist_lying = np.zeros((n_layers))
@@ -153,14 +155,14 @@ def get_dist_centroid_true_false(activations_all, activations_pca, labels, n_lay
 
     activations_negative = activations_all[n_samples:, :, :]
     for layer in range(n_layers):
-        activations_pca_honest = activations_pca[:n_samples, layer, :]
-        activations_pca_lying = activations_pca[n_samples:, layer, :]
+        activations_pca_positive = activations_pca[:n_samples, layer, :]
+        activations_pca_negative = activations_pca[n_samples:, layer, :]
 
         centroid_dist_honest[layer] = get_centroid_dist(activations_positive[:, layer, :].cpu().numpy(), labels) # [n_samples by n_samples]
         centroid_dist_lying[layer] = get_centroid_dist(activations_negative[:, layer, :].cpu().numpy(), labels) # [n_samples by n_samples]
 
-        centroid_dist_honest_pca[layer] = get_centroid_dist(activations_pca_honest[:, :], labels) # [n_samples by n_samples]
-        centroid_dist_lying_pca[layer] = get_centroid_dist(activations_pca_lying[:, :], labels) # [n_samples by n_samples]
+        centroid_dist_honest_pca[layer] = get_centroid_dist(activations_pca_positive[:, :], labels) # [n_samples by n_samples]
+        centroid_dist_lying_pca[layer] = get_centroid_dist(activations_pca_negative[:, :], labels) # [n_samples by n_samples]
         #
 
     # # plot
@@ -200,8 +202,8 @@ def get_dist_centroid_true_false(activations_all, activations_pca, labels, n_lay
         fig.update_layout(height=500, width=700)
         fig.show()
         # fig.write_html(save_path + os.sep + 'centroid_distance_true_false.html')
-        pio.write_image(fig, save_path
-                        + os.sep + 'state_2_centroid_distance_true_false.png',
+        pio.write_image(fig, save_path + os.sep + 'state_2_centroid_distance_true_false_' +
+                        f'_{contrastive_label[0]}_{contrastive_label[1]}' + '.png',
                         scale=6)
     stage_2 = {
                'centroid_dist_honest': centroid_dist_honest,
@@ -227,7 +229,7 @@ def get_centroid_dist(arr, labels):
 # 3. Stage 3: cosine similarity between the honest vector and lying vector
 # Measurement:
 def get_cos_sim_honest_lying_vector(activations_all, activations_pca, labels, n_layers, save_path,
-                                    save_plot=True):
+                                    contrastive_label=['HHH', 'evil_confidant'], save_plot=True):
     n_samples = int(activations_all.shape[0] / 2)
     n_components = activations_pca.shape[-1]
     cos_honest_lying = np.zeros((n_layers))
@@ -242,8 +244,8 @@ def get_cos_sim_honest_lying_vector(activations_all, activations_pca, labels, n_
     centroid_honest_vector_pca_all = np.zeros((n_layers, n_components))
 
     for layer in range(n_layers):
-        activations_pca_honest = activations_pca[:n_samples, layer, :]
-        activations_pca_lying = activations_pca[n_samples:, layer, :]
+        activations_pca_positive = activations_pca[:n_samples, layer, :]
+        activations_pca_negative = activations_pca[n_samples:, layer, :]
         # original high d
         centroid_honest_true, centroid_honest_false, centroid_vector_honest = get_centroid_vector(activations_positive[:, layer, :].cpu().numpy(), labels) # [n_samples by n_samples]
         centroid_lying_true, centroid_lying_false, centroid_vector_lying = get_centroid_vector(activations_negative[:, layer, :].cpu().numpy(), labels) # [n_samples by n_samples]
@@ -251,8 +253,8 @@ def get_cos_sim_honest_lying_vector(activations_all, activations_pca, labels, n_
         centroid_dir_lying = unit_vector(centroid_vector_lying)
         cos_honest_lying[layer] = cosine_similarity(centroid_dir_honest, centroid_dir_lying)
         # pca
-        centroid_honest_true, centroid_honest_false, centroid_vector_honest = get_centroid_vector(activations_pca_honest, labels) # [n_samples by n_samples]
-        centroid_lying_true, centroid_lying_false, centroid_vector_lying = get_centroid_vector(activations_pca_lying, labels) # [n_samples by n_samples]
+        centroid_honest_true, centroid_honest_false, centroid_vector_honest = get_centroid_vector(activations_pca_positive, labels) # [n_samples by n_samples]
+        centroid_lying_true, centroid_lying_false, centroid_vector_lying = get_centroid_vector(activations_pca_negative, labels) # [n_samples by n_samples]
         centroid_dir_honest = unit_vector(centroid_vector_honest)
         centroid_dir_lying = unit_vector(centroid_vector_lying)
         cos_honest_lying_pca[layer] = cosine_similarity(centroid_dir_honest, centroid_dir_lying)
@@ -296,11 +298,12 @@ def get_cos_sim_honest_lying_vector(activations_all, activations_pca, labels, n_
         fig['layout']['yaxis2']['tickvals'] = np.arange(-1, 1.2, 0.5)
 
         fig['layout']['yaxis']['range'] = [-1, 1.2]
-        fig['layout']['yaxis2']['range'] = [-1,1.2]
+        fig['layout']['yaxis2']['range'] = [-1, 1.2]
 
         fig.show()
         # fig.write_html(save_path + os.sep + 'cos_sim_honest_lying.html')
-        pio.write_image(fig, save_path + os.sep + 'stage_3_cos_sim_honest_lying.png',
+        pio.write_image(fig, save_path + os.sep + 'stage_3_cos_sim_honest_lying_' +
+                        f'_{contrastive_label[0]}_{contrastive_label[1]}.png',
                         scale=6)
     stage_3 = {
                'centroid_honest_true_pca_all': centroid_honest_true_pca_all,
@@ -347,7 +350,7 @@ def cosine_similarity(v1, v2):
 
 
 def get_state_quantification(cfg, activations_positive, activations_negative, labels,
-                             save_plot=True):
+                             contrastive_label=['HHH', 'evil_confidant'], save_plot=True):
     """Run the full pipeline."""
     intervention = cfg.intervention
 
@@ -372,18 +375,18 @@ def get_state_quantification(cfg, activations_positive, activations_negative, la
     # Measurement: The distance between a pair of honest and lying prompt
     # Future: Measure the within group (lying and honest) vs across group distance
     stage_1 = get_distance_pair_honest_lying(activations_all, activations_pca, n_layers, save_path,
-                                             save_plot=save_plot)
+                                             contrastive_label=contrastive_label, save_plot=save_plot)
 
     # 2. Stage 2:  Separation between True and False
     # Measurement: the distance between centroid between centroids of true and false
     stage_2 = get_dist_centroid_true_false(activations_all, activations_pca, labels, n_layers, save_path,
-                                           save_plot=save_plot)
+                                           contrastive_label=contrastive_label, save_plot=save_plot)
 
     # 3. Stage 3: cosine similarity between the honest vector and lying vector
     # Measurement: cosine similarity between honest vector and lying vector 
     # honest vector is the centroid between honest true and honest false
     stage_3 = get_cos_sim_honest_lying_vector(activations_all, activations_pca, labels, n_layers, save_path,
-                                              save_plot=save_plot)
+                                              contrastive_label=contrastive_label, save_plot=save_plot)
 
     stage_stats = {
       'stage_1': stage_1,

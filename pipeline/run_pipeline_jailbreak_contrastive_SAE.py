@@ -211,10 +211,11 @@ def run_pipeline(model_path, save_path,
     # 1. Load model and sae
     sae_name = cfg.sae_name
 
-    model = HookedSAETransformer.from_pretrained(cfg.model_path)
+    model = HookedSAETransformer.from_pretrained(cfg.model_path, device="cuda")
     sae, cfg_sae, sparsity = SAE.from_pretrained(
         release=sae_name,  # <- Release name
-        sae_id=sae_id,  # <- SAE id (not always a hook point!)
+        sae_id=sae_id,
+        device="cuda"# <- SAE id (not always a hook point!)
     )
     # 2. Load  data
     dataset_harmful, dataset_harmless = load_datasets()

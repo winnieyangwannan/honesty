@@ -5,79 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="53de5df3-4a9d-4612-9ea8-208ac77ab608" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/dataset/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dataset/generate_datasets.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dataset/load_dataset.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dataset/processed/advbench.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dataset/processed/alpaca.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dataset/processed/harmbench_test.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dataset/processed/harmbench_val.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dataset/processed/jailbreakbench.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dataset/processed/malicious_instruct.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dataset/processed/strongreject.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dataset/processed/tdc2023.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dataset/raw/advbench.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dataset/raw/harmbench_test.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dataset/raw/harmbench_val.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dataset/raw/jailbreakbench.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dataset/raw/malicious_instruct.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dataset/raw/strongreject.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dataset/raw/tdc2023_dev_behaviors.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dataset/raw/tdc2023_test_behaviors.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dataset/splits/harmful_test.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dataset/splits/harmful_train.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dataset/splits/harmful_val.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dataset/splits/harmless_test.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dataset/splits/harmless_train.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dataset/splits/harmless_val.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pipeline/analysis/honest_performance_cosine_all_models.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pipeline/analysis/run_evaluate_jailbreak.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pipeline/analysis/run_statistics_intervention_layer_refusal_score.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pipeline/jailbreak_config_SAE.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pipeline/jailbreak_config_generation.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pipeline/jailbreak_config_generation_intervention.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pipeline/old/run_pipeline_jailbreak_generation.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pipeline/plot/run_plot_pca_layers.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pipeline/run_pipeline_jailbreak_contrastive_SAE.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pipeline/run_pipeline_jailbreak_generation.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pipeline/run_pipeline_jailbreak_generation_intervention.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pipeline/submodules/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pipeline/submodules/save/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pipeline/submodules/save/activation_pca.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/summary.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/honesty.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/honesty.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pipeline/model_utils/old/gemma_model_it_new.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/honest_lying_pca.html" beforeDir="false" afterPath="$PROJECT_DIR$/honest_lying_pca.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/analysis/run_statistics_accuracy_change.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/analysis/run_statistics_accuracy_change.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/analysis/run_statistics_intervention_layer_accuracy.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/analysis/run_statistics_intervention_layer_accuracy.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pipeline/analysis/stage_statistics.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/analysis/stage_statistics.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/blog/blog1_plot_pca_layer_with_centroid_vector.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/blog/blog1_plot_pca_layer_with_centroid_vector.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/honesty_config_generation_honest_addition.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/old/honesty_config_generation_honest_addition.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/honesty_config_generation_skip_connection.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/honesty_config_generation_intervention.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/model_utils/gemma_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/model_utils/gemma_model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pipeline/jailbreak_config_generation.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/jailbreak_config_generation.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pipeline/model_utils/gemma_model_it.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/model_utils/gemma_model_it.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/model_utils/llama2_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/model_utils/llama2_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/model_utils/llama3_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/model_utils/llama3_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/model_utils/model_base.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/model_utils/model_base.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/model_utils/model_factory.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/model_utils/model_factory.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/model_utils/qwen_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/model_utils/qwen_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/model_utils/yi_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/model_utils/yi_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/old/run_pipeline_honesty_layer_decode.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/old/run_pipeline_honesty_layer_decode.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/old/run_pipeline_honesty_performance.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/old/run_pipeline_honesty_performance.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/plot/checkout_one_layer.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/plot/checkout_one_layer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation_correct_wrong.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation_correct_wrong.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation_intervention.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation_intervention.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation_trajectory.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation_trajectory.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_performance.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_performance.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_simple_generation.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_simple_generation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_stage.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_stage.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_jailbreak_contrastive_SAE.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_jailbreak_contrastive_SAE.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_jailbreak_generation.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_jailbreak_generation.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pipeline/submodules/activation_pca.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/submodules/activation_pca.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/submodules/activation_pca_intervention.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/submodules/activation_pca_intervention.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/submodules/evaluate_jailbreak.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/submodules/evaluate_jailbreak.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/submodules/evaluate_truthful.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/submodules/evaluate_truthful.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/submodules/select_direction.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/submodules/select_direction.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/utils/hook_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/utils/hook_utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -128,7 +63,7 @@
     <property name="WebServerToolWindowPanel.toolwindow.show.date" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/pipeline" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/pipeline/model_utils/old" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
@@ -137,11 +72,11 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\Code\honesty\pipeline\model_utils\old" />
       <recent name="D:\Code\honesty\pipeline" />
       <recent name="D:\Code\honesty\pipeline\blog" />
       <recent name="D:\Code\honesty\pipeline\analysis" />
       <recent name="D:\Code\honesty" />
-      <recent name="D:\Code\honesty\pipeline\model_utils" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="D:\Code\honesty\pipeline\plot" />
@@ -364,7 +299,7 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pipeline/run_pipeline_jailbreak_generation.py" />
-      <option name="PARAMETERS" value="--model_path google/gemma-2-2b --checkpoint 143000 --save_path D:\Data\jailbreak\" />
+      <option name="PARAMETERS" value="--model_path google/gemma-7b-it --jailbreak_type BREAK --save_path D:\Data\jailbreak\" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -538,7 +473,8 @@
       <workItem from="1722714945845" duration="71311000" />
       <workItem from="1722963951936" duration="61267000" />
       <workItem from="1723263166813" duration="27623000" />
-      <workItem from="1723583174476" duration="78993000" />
+      <workItem from="1723583174476" duration="92517000" />
+      <workItem from="1723840743178" duration="5806000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit, copy from model_steering">
       <created>1720826847520</created>
@@ -659,7 +595,14 @@
       <option name="project" value="LOCAL" />
       <updated>1722833444396</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="sae pipeline">
+      <created>1723772751574</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1723772751574</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -685,7 +628,8 @@
     <MESSAGE value="pipeline compatible with pythia and add filter data." />
     <MESSAGE value="pipeline for filter data for base model" />
     <MESSAGE value="pipeline for few shot generation with base model" />
-    <option name="LAST_COMMIT_MESSAGE" value="pipeline for few shot generation with base model" />
+    <MESSAGE value="sae pipeline" />
+    <option name="LAST_COMMIT_MESSAGE" value="sae pipeline" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -847,7 +791,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pipeline/analysis/stage_statistics.py</url>
-          <line>452</line>
+          <line>455</line>
           <option name="timeStamp" value="638" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -859,11 +803,6 @@
           <url>file://$PROJECT_DIR$/pipeline/submodules/select_direction.py</url>
           <line>42</line>
           <option name="timeStamp" value="656" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pipeline/model_utils/gemma_model_it.py</url>
-          <line>225</line>
-          <option name="timeStamp" value="673" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pipeline/run_pipeline_honesty_generation_intervention.py</url>
@@ -892,12 +831,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pipeline/submodules/activation_pca.py</url>
-          <line>655</line>
+          <line>662</line>
           <option name="timeStamp" value="772" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pipeline/submodules/activation_pca.py</url>
-          <line>660</line>
+          <line>667</line>
           <option name="timeStamp" value="773" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -917,7 +856,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pipeline/submodules/activation_pca.py</url>
-          <line>199</line>
+          <line>201</line>
           <option name="timeStamp" value="822" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -931,14 +870,14 @@
           <option name="timeStamp" value="828" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pipeline/submodules/evaluate_jailbreak.py</url>
-          <line>210</line>
-          <option name="timeStamp" value="864" />
+          <url>file://$PROJECT_DIR$/pipeline/submodules/activation_pca.py</url>
+          <line>385</line>
+          <option name="timeStamp" value="831" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pipeline/run_pipeline_jailbreak_contrastive_SAE.py</url>
-          <line>213</line>
-          <option name="timeStamp" value="865" />
+          <url>file://$PROJECT_DIR$/pipeline/submodules/activation_pca.py</url>
+          <line>393</line>
+          <option name="timeStamp" value="832" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
@@ -968,10 +907,10 @@
     <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_generation_correct_wrong.coverage" NAME="run_pipeline_honesty_generation_correct_wrong Coverage Results" MODIFIED="1722303088066" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_statistics_skip_coonection.coverage" NAME="run_statistics_intervention_layer_accuracy Coverage Results" MODIFIED="1721854237689" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_stage.coverage" NAME="run_pipeline_honesty_stage Coverage Results" MODIFIED="1722119145371" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/honesty$run_pipeline_jailbreak_generation.coverage" NAME="run_pipeline_jailbreak_generation Coverage Results" MODIFIED="1723766353842" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/honesty$run_pipeline_jailbreak_generation.coverage" NAME="run_pipeline_jailbreak_generation Coverage Results" MODIFIED="1723846070836" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$test_pythia.coverage" NAME="test_pythia Coverage Results" MODIFIED="1722636121405" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_performance.coverage" NAME="run_pipeline_honesty_performance Coverage Results" MODIFIED="1722623202918" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/honesty$run_pipeline_jailbreak_contrastive_SAE.coverage" NAME="run_pipeline_jailbreak_contrastive_SAE Coverage Results" MODIFIED="1723763658969" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/honesty$run_pipeline_jailbreak_contrastive_SAE.coverage" NAME="run_pipeline_jailbreak_contrastive_SAE Coverage Results" MODIFIED="1723774670819" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$honest_performance_cosine_all_models.coverage" NAME="honest_performance_cosine_all_models Coverage Results" MODIFIED="1723670670917" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$filter_data.coverage" NAME="run_pipeline_filter_data Coverage Results" MODIFIED="1722636142481" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
     <SUITE FILE_PATH="coverage/honesty$run_pipeline_jailbreak_generation_intervention.coverage" NAME="run_pipeline_jailbreak_generation_intervention Coverage Results" MODIFIED="1723665636189" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />

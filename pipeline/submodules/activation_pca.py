@@ -129,8 +129,8 @@ def generate_get_contrastive_activations_and_plot_pca(cfg, model_base, tokenize_
                       + '_' + str(few_shot) + '_activation_pca.pkl', "wb") as f:
                 pickle.dump(activations, f)
         else:
-            with open(artifact_dir + os.sep + model_name
-                      + '_activation_pca.pkl', "wb") as f:
+            with open(artifact_dir + os.sep + model_name + '_activation_pca_' +
+                      f'{contrastive_label[0]}_{contrastive_label[1]}.pkl', "wb") as f:
                 pickle.dump(activations, f)
 
     # 2.2 save completions
@@ -178,8 +178,10 @@ def generate_get_contrastive_activations_and_plot_pca(cfg, model_base, tokenize_
                                           n_layers, contrastive_label=contrastive_label,
                                           labels=labels, prompt_label=data_label)
     if save_plot:
-        fig.write_html(artifact_dir + os.sep + model_name + '_' + str(few_shot) + '_activation_pca.html')
-        pio.write_image(fig, artifact_dir + os.sep + model_name +  '_' + str(few_shot) + '_activation_pca.png',
+        fig.write_html(artifact_dir + os.sep + model_name + '_' + str(few_shot) + '_activation_pca_' +
+                       f'{contrastive_label[0]}_{contrastive_label[1]}' + '.html')
+        pio.write_image(fig, artifact_dir + os.sep + model_name + '_' + str(few_shot) + '_activation_pca_' +
+                        f'{contrastive_label[0]}_{contrastive_label[1]}' + '.png',
                         scale=6)
 
     # 4. get performance
@@ -200,7 +202,7 @@ def generate_get_contrastive_activations_and_plot_pca(cfg, model_base, tokenize_
         with open(save_path + os.sep + model_name + '_model_performance.pkl', "wb") as f:
             pickle.dump(model_performance, f)
     elif 'HHH' in contrastive_label:
-        dataset_name = ['jailbreakbench', 'harmless']
+        dataset_name = cfg.evaluation_datasets
         save_path = f'{cfg.artifact_path()}' + os.sep
         evaluate_completions_and_save_results_for_dataset(cfg, dataset_name,
                                                           cfg.jailbreak_eval_methodologies,
@@ -213,11 +215,16 @@ def generate_get_contrastive_activations_and_plot_pca(cfg, model_base, tokenize_
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     stage_stats = get_state_quantification(cfg, activations_positive, activations_negative,
-                                           labels,
+                                           labels,contrastive_label=contrastive_label,
                                            save_plot=True)
-    with open(save_path + os.sep + model_name + '_' + f'{data_category}' +
-              '_' + str(few_shot) + '_stage_stats.pkl', "wb") as f:
-        pickle.dump(stage_stats, f)
+    if 'HHH' in contrastive_label:
+        with open(save_path + os.sep + model_name +
+                  f'_{contrastive_label[0]}_{contrastive_label[1]}_stage_stats.pkl', "wb") as f:
+            pickle.dump(stage_stats, f)
+    else:
+        with open(save_path + os.sep + model_name + '_' + f'{data_category}' +
+                  '_' + str(few_shot) + '_stage_stats.pkl', "wb") as f:
+            pickle.dump(stage_stats, f)
     return activations_positive, activations_negative
 
 
