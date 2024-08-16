@@ -4,16 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="53de5df3-4a9d-4612-9ea8-208ac77ab608" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/pipeline/model_utils/old/gemma_model_it_new.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/analysis/stage_statistics.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/analysis/stage_statistics.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/jailbreak_config_generation.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/jailbreak_config_generation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/model_utils/gemma_model_it.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/model_utils/gemma_model_it.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_jailbreak_contrastive_SAE.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_jailbreak_contrastive_SAE.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_jailbreak_generation.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_jailbreak_generation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/submodules/activation_pca.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/submodules/activation_pca.py" afterDir="false" />
-    </list>
+    <list default="true" id="53de5df3-4a9d-4612-9ea8-208ac77ab608" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -474,7 +465,7 @@
       <workItem from="1722963951936" duration="61267000" />
       <workItem from="1723263166813" duration="27623000" />
       <workItem from="1723583174476" duration="92517000" />
-      <workItem from="1723840743178" duration="5806000" />
+      <workItem from="1723840743178" duration="6189000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit, copy from model_steering">
       <created>1720826847520</created>
@@ -602,7 +593,14 @@
       <option name="project" value="LOCAL" />
       <updated>1723772751574</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="add generation for old gemma-2-2b-it">
+      <created>1723847753966</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1723847753966</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -629,7 +627,8 @@
     <MESSAGE value="pipeline for filter data for base model" />
     <MESSAGE value="pipeline for few shot generation with base model" />
     <MESSAGE value="sae pipeline" />
-    <option name="LAST_COMMIT_MESSAGE" value="sae pipeline" />
+    <MESSAGE value="add generation for old gemma-2-2b-it" />
+    <option name="LAST_COMMIT_MESSAGE" value="add generation for old gemma-2-2b-it" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
