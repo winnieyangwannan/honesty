@@ -1,4 +1,3 @@
-import torch
 import random
 import json
 import os
@@ -8,8 +7,8 @@ from datasets import load_dataset
 from pipeline.honesty_config_generation_trajectory import Config
 from pipeline.model_utils.model_factory import construct_model_base
 from pipeline.submodules.select_direction import get_refusal_scores
-from pipeline.submodules.activation_pca import plot_contrastive_activation_pca_with_trajectory, generate_and_get_activations
-from pipeline.submodules.activation_pca import generate_and_get_activation_trajectory
+from pipeline.submodules.save.activation_pca import plot_contrastive_activation_pca_with_trajectory, generate_and_get_activations
+from pipeline.submodules.save.activation_pca import generate_and_get_activation_trajectory
 
 
 def parse_arguments():

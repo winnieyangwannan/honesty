@@ -1,13 +1,9 @@
 import random
-import json
 import os
 import argparse
 from datasets import load_dataset
 from pipeline.honesty_config_generation import Config
 from pipeline.model_utils.model_factory import construct_model_base
-from pipeline.submodules.activation_pca import plot_contrastive_activation_pca, plot_contrastive_activation_intervention_pca
-from pipeline.submodules.select_direction import get_refusal_scores
-from pipeline.submodules.activation_pca import get_activations
 from pipeline.submodules.activation_pca import generate_get_contrastive_activations_and_plot_pca
 
 
@@ -33,11 +29,11 @@ def load_and_sample_datasets(cfg):
     category = cfg.data_category
     model_name = cfg.model_alias
     checkpoint = cfg.checkpoint
-    if "pythia" in model_name:
-        dataset_all = load_dataset("winnieyangwannan/mitchell-filtered-" +
-                                   category + "-" + model_name + "-" + str(checkpoint))
-    else:
-        dataset_all = load_dataset("notrichardren/azaria-mitchell-diff-filtered-2")
+    # if "pythia" in model_name:
+    #     dataset_all = load_dataset("winnieyangwannan/mitchell-filtered-" +
+    #                                category + "-" + model_name + "-" + str(checkpoint))
+    # else:
+    dataset_all = load_dataset("notrichardren/azaria-mitchell-diff-filtered-2")
     dataset = [row for row in dataset_all[f"{cfg.data_category}"]]
     dataset_train = random.sample(dataset, cfg.n_train)
     dataset_test = random.sample(dataset, cfg.n_test)
@@ -49,6 +45,7 @@ def contrastive_extraction_generation_and_plot_pca(cfg, model_base, dataset_trai
     tokenize_fn = model_base.tokenize_statements_fn
     statements_train = [row['claim'] for row in dataset_train]
     labels_train = [row['label'] for row in dataset_train]
+    categories_train=[row['dataset'] for row in dataset_train]
     # 1. extract activations
     print("start extraction")
     generate_get_contrastive_activations_and_plot_pca(cfg,
@@ -57,7 +54,9 @@ def contrastive_extraction_generation_and_plot_pca(cfg, model_base, dataset_trai
                                                       statements_train,
                                                       save_activations=True,
                                                       save_plot=True,
-                                                      labels=labels_train)
+                                                      labels=labels_train,
+                                                      contrastive_label=["honest", "lying"],
+                                                      categories=categories_train)
     print("done extraction")
 
 

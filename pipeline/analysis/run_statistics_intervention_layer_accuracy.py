@@ -1,6 +1,6 @@
 import os
 import argparse
-from pipeline.honesty_config_generation_skip_connection import Config
+from pipeline.honesty_config_generation_intervention import Config
 from pipeline.model_utils.model_factory import construct_model_base
 import pickle
 import plotly.io as pio
@@ -50,11 +50,15 @@ def get_accuracy_statistics(cfg, model_base):
     accuracy_honest = []
     for layer in source_layers:
         if "skip_connection" in intervention:
-            filename = artifact_path + os.sep + intervention + os.sep + f'{data_category}_{intervention}_' +\
-                       'model_performance_layer_0_' + str(layer) + '_' + str(layer+1) + '.pkl'
-        elif "addition" in intervention:
-            filename = artifact_path + os.sep + intervention + os.sep + f'{data_category}_{intervention}_' + \
-                       'model_performance_layer_' + str(layer) + '_' + str(layer) + '_None' + '.pkl'
+            filename = artifact_path + os.sep + intervention + os.sep + f'{data_category}' +\
+                       '_model_performance_' + intervention + '_layer_0_' + str(layer) + '_' + str(layer+1) + '.pkl'
+        elif "addition" in intervention or "ablation" in intervention:
+            # filename = artifact_path + os.sep + intervention + os.sep + f'{data_category}' + \
+            #            '_model_performance_'+ intervention + '_layer'+ str(layer) + '_' + str(layer)\
+            #            + '_None' + '.pkl'
+            filename = artifact_path + os.sep + intervention + os.sep + f'{data_category}' + \
+                       'model_performance_layer_'+ intervention + '_' + str(layer) + '_' + str(layer)\
+                       + '_None' + '.pkl'
         with open(filename, 'rb') as file:
             data = pickle.load(file)
         accuracy_honest.append(data["accuracy_honest"])

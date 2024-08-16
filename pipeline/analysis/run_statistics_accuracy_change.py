@@ -1,6 +1,6 @@
 import os
 import argparse
-from pipeline.honesty_config_generation_skip_connection import Config
+from pipeline.honesty_config_generation_intervention import Config
 from pipeline.model_utils.model_factory import construct_model_base
 import pickle
 import csv

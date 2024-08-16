@@ -30,14 +30,19 @@ def refusal_score(
     nonrefusal_probs = torch.ones_like(refusal_probs) - refusal_probs
     return torch.log(refusal_probs + epsilon) - torch.log(nonrefusal_probs + epsilon)
 
-def get_refusal_scores(model, instructions, tokenize_instructions_fn, refusal_toks, fwd_pre_hooks=[], fwd_hooks=[], batch_size=32):
+
+def get_refusal_scores(model, instructions, tokenize_instructions_fn,
+                       refusal_toks,
+                       fwd_pre_hooks=[], fwd_hooks=[],
+                       batch_size=32, system_type=[]):
     refusal_score_fn = functools.partial(refusal_score, refusal_toks=refusal_toks)
 
     refusal_scores = torch.zeros(len(instructions), device=model.device)
 
     for i in range(0, len(instructions), batch_size):
-        tokenized_instructions = tokenize_instructions_fn(instructions=instructions[i:i+batch_size])
-
+        # tokenized_instructions = tokenize_instructions_fn(instructions=instructions[i:i+batch_size])
+        tokenized_instructions = tokenize_instructions_fn(prompts=instructions[i:i + batch_size],
+                                                          system_type=system_type)
         with add_hooks(module_forward_pre_hooks=fwd_pre_hooks, module_forward_hooks=fwd_hooks):
             logits = model(
                 input_ids=tokenized_instructions.input_ids.to(model.device),

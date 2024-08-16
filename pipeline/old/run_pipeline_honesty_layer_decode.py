@@ -1,4 +1,3 @@
-import torch
 import random
 import json
 import os
@@ -6,14 +5,11 @@ import argparse
 import pickle
 
 from datasets import load_dataset
-from torch.utils.data import DataLoader
 from pipeline.submodules.layer_decode import cache_activation_and_decode, generate_and_decode
 from pipeline.honesty_config_layer_decode import Config
 from pipeline.model_utils.model_factory import construct_model_base
-from pipeline.submodules.activation_pca import plot_contrastive_activation_pca
-from pipeline.submodules.select_direction import select_direction, get_refusal_scores
+from pipeline.submodules.select_direction import get_refusal_scores
 # from pipeline.submodules.evaluate_jailbreak import evaluate_jailbreak
-from pipeline.submodules.evaluate_loss import evaluate_loss
 
 def parse_arguments():
     """Parse model path argument from command line."""

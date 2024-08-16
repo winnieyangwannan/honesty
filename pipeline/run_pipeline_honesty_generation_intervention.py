@@ -1,18 +1,15 @@
 import torch
 import random
-import json
 import os
 import argparse
 import pickle
 from datasets import load_dataset
-from typing import List, Tuple, Callable
-from pipeline.analysis.stage_statistics import get_state_quantification
-from pipeline.honesty_config_generation_skip_connection import Config
+from pipeline.honesty_config_generation_intervention import Config
 from pipeline.model_utils.model_factory import construct_model_base
 from pipeline.submodules.select_direction import get_refusal_scores
-from pipeline.submodules.activation_pca import get_contrastive_activations_and_plot_pca
+from pipeline.submodules.save.activation_pca import get_contrastive_activations_and_plot_pca
 from pipeline.analysis.stage_statistics import plot_stage_quantification_original_intervention
-from pipeline.submodules.activation_pca_intervention import generate_with_intervention_cache_contrastive_activations_and_plot_pca
+from pipeline.submodules.activation_pca_intervention import generate_with_intervention_contrastive_activations_pca
 
 
 def parse_arguments():
@@ -88,44 +85,50 @@ def contrastive_extraction_generation_intervention_and_plot_pca(cfg, model_base,
     intervention = cfg.intervention
     save_path = os.path.join(artifact_dir, intervention, "stage_stats")
     statements_train = [row['claim'] for row in dataset_train]
-    statements_test = [row['claim'] for row in dataset_test]
+    statements_val = [row['claim'] for row in dataset_test]
     labels_train = [row['label'] for row in dataset_train]
-    labels_test = [row['label'] for row in dataset_test]
+    labels_val = [row['label'] for row in dataset_test]
 
     # 1.1 extract activations
     print("start extraction")
-    activations_honest, activations_lying, model_performance_original, stage_stats_original = get_contrastive_activations_and_plot_pca(cfg=cfg,
-                                                                                                                     model_base=model_base,
-                                                                                                                     dataset=statements_train,
-                                                                                                                     labels=labels_train,
-                                                                                                                     save_activations=False,
-                                                                                                                     save_plot=False)
-
+    results = get_contrastive_activations_and_plot_pca(cfg=cfg,
+                                                       model_base=model_base,
+                                                       dataset=statements_train,
+                                                       labels=labels_train,
+                                                       save_activations=False,
+                                                       save_plot=False,
+                                                       contrastive_label=["honest", "lying"])
+    activations_positive = results['activations_positive']
+    activations_negative = results['activations_negative']
+    stage_stats_original = results['stage_stats']
     print("done extraction")
 
     if intervention != "no_intervention":
         # 2. get steering vector = get mean difference of the source layer
-        mean_activation_honest = activations_honest.mean(dim=0)
-        mean_activation_lying = activations_lying.mean(dim=0)
+        mean_activation_honest = activations_positive.mean(dim=0)
+        mean_activation_lying = activations_negative.mean(dim=0)
 
-        if "honest_addition" in intervention or "lying_ablation" in intervention or "honest_direction_addition" in intervention:
+        if "honest_addition" in intervention or "honest_direction_ablation" in intervention or "honest_direction_addition" in intervention:
             mean_diff = mean_activation_honest - mean_activation_lying
-        elif "lying_addition" in intervention or "honest_ablation" in intervention or "lying_direction_addition" in intervention:
+        elif "lying_addition" in intervention or "lying_direction_ablation" in intervention or "lying_direction_addition" in intervention:
             mean_diff = mean_activation_lying - mean_activation_honest
         elif "skip_connection_mlp" or "skip_connection_attn" in intervention:
             mean_diff = 0.000001*torch.ones_like(mean_activation_honest) # 0 ablation
 
         # 3.1  generate with adding steering vector and get activations
-        intervention_activations_honest, intervention_activations_lying, model_performance_intervention, stage_stats_intervention = generate_with_intervention_cache_contrastive_activations_and_plot_pca(cfg,
-                                                                              model_base,
-                                                                              statements_test,
-                                                                              activations_honest,
-                                                                              activations_lying,
-                                                                              mean_diff=mean_diff[source_layer, :],
-                                                                              labels=labels_test,
-                                                                              save_activations=False)
+        intervention_results = generate_with_intervention_contrastive_activations_pca(cfg,
+                                                                                      model_base,
+                                                                                      statements_val,
+                                                                                      activations_positive,
+                                                                                      activations_negative,
+                                                                                      mean_diff=mean_diff[source_layer,:],
+                                                                                      labels=labels_val,
+                                                                                      save_activations=False,
+                                                                                      contrastive_label=["honest", "lying"])
+
         # 4.1 Compare and plot stage statistics with and without intervention
-        n_layers = activations_lying.shape[1]
+        stage_stats_intervention = intervention_results['stage_stats_intervention']
+        n_layers = activations_negative.shape[1]
         if not os.path.exists(save_path):
             os.makedirs(save_path)
         plot_stage_quantification_original_intervention(cfg, stage_stats_original, stage_stats_intervention,

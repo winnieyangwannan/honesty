@@ -1,14 +1,10 @@
 import random
-import json
 import os
 import argparse
 from datasets import load_dataset
 from pipeline.honesty_config_generation import Config
 from pipeline.model_utils.model_factory import construct_model_base
-from pipeline.submodules.activation_pca import plot_contrastive_activation_pca, plot_contrastive_activation_intervention_pca
-from pipeline.submodules.select_direction import get_refusal_scores
-from pipeline.submodules.activation_pca import get_activations
-from pipeline.submodules.activation_pca import generate_get_contrastive_activations_and_plot_pca
+from pipeline.submodules.save.activation_pca import generate_get_contrastive_activations_and_plot_pca
 
 
 def parse_arguments():

@@ -46,7 +46,7 @@ class ModelBase(ABC):
         pass
 
     @abstractmethod
-    def _get_tokenize_instructions_fn(self, system_type=None):
+    def _get_tokenize_instructions_fn(self):
         pass
 
     @abstractmethod

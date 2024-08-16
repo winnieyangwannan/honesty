@@ -1,18 +1,12 @@
-import torch
 import random
-import json
 import os
 import argparse
-import pickle
 from datasets import load_dataset
-from typing import List, Tuple, Callable
 from pipeline.analysis.stage_statistics import get_state_quantification
 from pipeline.honesty_config_stage import Config
 from pipeline.model_utils.model_factory import construct_model_base
 from pipeline.submodules.select_direction import get_refusal_scores
-from pipeline.submodules.activation_pca import get_activations, plot_contrastive_activation_pca
-from pipeline.submodules.activation_pca import get_contrastive_activations_and_plot_pca
-from pipeline.submodules.evaluate_truthful import get_accuracy_and_unexpected, plot_lying_honest_accuracy
+from pipeline.submodules.save.activation_pca import get_contrastive_activations_and_plot_pca
 import numpy as np
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go

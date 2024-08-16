@@ -24,50 +24,61 @@ from pipeline.submodules.evaluate_truthful import get_performance_stats
 import pickle
 import json
 from pipeline.analysis.stage_statistics import get_state_quantification
+from pipeline.submodules.evaluate_jailbreak import evaluate_completions_and_save_results_for_dataset
 
-def plot_contrastive_activation_intervention_pca(activations_honest,
-                                                 activations_lie,
-                                                 intervention_activations_honest,
-                                                 intervention_activations_lie,
+
+def plot_contrastive_activation_intervention_pca(activations_positive,
+                                                 activations_negative,
+                                                 intervention_activations_positive,
+                                                 intervention_activations_negative,
                                                  n_layers,
                                                  contrastive_label,
-                                                 labels=None,
+                                                 labels_ori=None,
+                                                 labels_int=None,
                                                  plot_original=True,
                                                  plot_intervention=True,
+                                                 prompt_label=['true', 'false']
                                                  ):
-    activations_all: Float[Tensor, "n_samples n_layers d_model"] = torch.cat((activations_honest,
-                                                                              activations_lie),
+    activations_all: Float[Tensor, "n_samples n_layers d_model"] = torch.cat((activations_positive,
+                                                                              activations_negative),
                                                                               dim=0)
     activations_all_intervention = torch.cat((
-                                              intervention_activations_honest,
-                                              intervention_activations_lie),
+                                              intervention_activations_positive,
+                                              intervention_activations_negative),
                                               dim=0)
     pca = PCA(n_components=3)
 
     label_text = []
     label_plot = []
-    n_data = activations_honest.shape[0]
+    n_data_ori = activations_positive.shape[0]
+    n_data_int = intervention_activations_positive.shape[0]
     # true or false label
-    labels_tf = []
-    for ll in labels:
+    labels_tf_ori = []
+    for ll in labels_ori:
         if ll == 0:
-            labels_tf.append('false')
+            labels_tf_ori.append(prompt_label[1])
         elif ll == 1:
-            labels_tf.append('true')
+            labels_tf_ori.append(prompt_label[0])
+    labels_tf_int = []
+    for ll in labels_int:
+        if ll == 0:
+            labels_tf_int.append(prompt_label[1])
+        elif ll == 1:
+            labels_tf_int.append(prompt_label[0])
 
-    for ii in range(n_data):
-        label_text = np.append(label_text, f'{contrastive_label[0]}_{labels_tf[ii]}:{ii}')
+    for ii in range(n_data_ori):
+        label_text = np.append(label_text, f'{contrastive_label[0]}_{labels_tf_ori[ii]}:{ii}')
         # label_plot.append(0)
-    for ii in range(n_data):
-        label_text = np.append(label_text, f'{contrastive_label[1]}_{labels_tf[ii]}:{ii}')
+    for ii in range(n_data_ori):
+        label_text = np.append(label_text, f'{contrastive_label[1]}_{labels_tf_ori[ii]}:{ii}')
         # label_plot.append(1)
-    for ii in range(n_data):
-        label_text = np.append(label_text, f'{contrastive_label[2]}_{labels_tf[ii]}:{ii}')
+    for ii in range(n_data_int):
+        label_text = np.append(label_text, f'{contrastive_label[2]}_{labels_tf_int[ii]}:{ii}')
         # label_plot.append(2)
-    for ii in range(n_data):
-        label_text = np.append(label_text, f'{contrastive_label[3]}_{labels_tf[ii]}:{ii}')
+    for ii in range(n_data_int):
+        label_text = np.append(label_text, f'{contrastive_label[3]}_{labels_tf_int[ii]}:{ii}')
         # label_plot.append(3)
-    label_plot = labels + labels + labels + labels
+    label_plot = labels_ori + labels_ori + labels_int + labels_int
     cols = 4
     rows = int(n_layers/cols)
     fig = make_subplots(rows=rows, cols=cols,
@@ -78,14 +89,14 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
             # print(f'layer{layer}')
             if layer <= n_layers:
                 # project to the original honest and lying space
-                # activations_pca = pca.fit_transform(activations_all[:, layer, :].cpu())
-                # activations_pca_intervention = pca.transform(activations_all_intervention[:, layer, :].cpu())
-                # activation_pca_all = np.concatenate((activations_pca, activations_pca_intervention), axis=0)
+                activations_pca = pca.fit_transform(activations_all[:, layer, :].cpu())
+                activations_pca_intervention = pca.transform(activations_all_intervention[:, layer, :].cpu())
+                activation_pca_all = np.concatenate((activations_pca, activations_pca_intervention), axis=0)
 
                 # project to the intervened honest and lying space
-                activations_pca_intervention = pca.fit_transform(activations_all_intervention[:, layer, :].cpu())
-                activations_pca = pca.transform(activations_all[:, layer, :].cpu())
-                activation_pca_all = np.concatenate((activations_pca, activations_pca_intervention), axis=0)
+                # activations_pca_intervention = pca.fit_transform(activations_all_intervention[:, layer, :].cpu())
+                # activations_pca = pca.transform(activations_all[:, layer, :].cpu())
+                # activation_pca_all = np.concatenate((activations_pca, activations_pca_intervention), axis=0)
 
                 df = {}
                 df['label'] = label_plot
@@ -95,61 +106,61 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
 
                 if plot_original:
                     fig.add_trace(
-                        go.Scatter(x=df['pca0'][:n_data],
-                                   y=df['pca1'][:n_data],
+                        go.Scatter(x=df['pca0'][:n_data_ori],
+                                   y=df['pca1'][:n_data_ori],
                                    mode='markers',
                                    showlegend=False,
                                    marker=dict(
                                        symbol="star-open",
                                        size=8,
                                        line=dict(width=2, color="DarkSlateGrey"),
-                                       color=df['label'][:n_data],
+                                       color=df['label'][:n_data_ori],
                                    ),
-                                   text=df['label_text'][:n_data]),
+                                   text=df['label_text'][:n_data_ori]),
                         row=row + 1, col=ll + 1,
                     )
 
                     fig.add_trace(
-                        go.Scatter(x=df['pca0'][n_data:n_data*2],
-                                   y=df['pca1'][n_data:n_data*2],
+                        go.Scatter(x=df['pca0'][n_data_ori:n_data_ori*2],
+                                   y=df['pca1'][n_data_ori:n_data_ori*2],
                                    mode='markers',
                                    showlegend=False,
                                    marker=dict(
                                        symbol="circle-open",
                                        size=8,
                                        line=dict(width=2, color="DarkSlateGrey"),
-                                       color=df['label'][n_data:n_data*2],
+                                       color=df['label'][n_data_ori:n_data_ori*2],
                                    ),
-                                   text=df['label_text'][n_data:n_data*2]),
+                                   text=df['label_text'][n_data_ori:n_data_ori*2]),
                         row=row + 1, col=ll + 1,
                     )
                 if plot_intervention:
                     fig.add_trace(
-                        go.Scatter(x=df['pca0'][n_data*2:n_data*3],
-                                   y=df['pca1'][n_data*2:n_data*3],
+                        go.Scatter(x=df['pca0'][n_data_ori*2:n_data_ori*2+n_data_int],
+                                   y=df['pca1'][n_data_ori*2:n_data_ori*2+n_data_int],
                                    mode='markers',
                                    showlegend=False,
                                    marker=dict(
                                        symbol="star",
                                        size=8,
                                        line=dict(width=1, color="DarkSlateGrey"),
-                                       color=df['label'][n_data*2:n_data*3],
+                                       color=df['label'][n_data_ori*2:n_data_ori*2+n_data_int],
                                    ),
-                                   text=df['label_text'][n_data*2:n_data*3]),
+                                   text=df['label_text'][n_data_ori*2:n_data_ori*2+n_data_int]),
                         row=row + 1, col=ll + 1,
                     )
                     fig.add_trace(
-                        go.Scatter(x=df['pca0'][-n_data:],
-                                   y=df['pca1'][-n_data:],
+                        go.Scatter(x=df['pca0'][-n_data_int:],
+                                   y=df['pca1'][-n_data_int:],
                                    mode='markers',
                                    showlegend=False,
                                    marker=dict(
                                        symbol="circle",
                                        size=8,
                                        line=dict(width=1, color="DarkSlateGrey"),
-                                       color=df['label'][-n_data:],
+                                       color=df['label'][-n_data_int:],
                                    ),
-                                   text=df['label_text'][-n_data:]),
+                                   text=df['label_text'][-n_data_int:]),
                         row=row + 1, col=ll + 1,
                     )
     # legend
@@ -165,7 +176,7 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
                            colorscale='PiYG',
                            color=1
                        ),
-                       name=f'honest_true',
+                       name=f'{contrastive_label[0]}_{prompt_label[0]}',
                        ),
         )
 
@@ -180,7 +191,7 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
                            color=1,
                            colorscale='PiYG',
                        ),
-                       name=f'honest_false',
+                       name=f'{contrastive_label[0]}_{prompt_label[1]}',
                        ),
         )
         fig.add_trace(
@@ -194,7 +205,7 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
                            colorscale='PiYG',
                            color=1
                        ),
-                       name=f'lying_true',
+                       name=f'{contrastive_label[1]}_{prompt_label[0]}',
                        ),
         )
         fig.add_trace(
@@ -208,7 +219,7 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
                            colorscale='PiYG',
                            color=0
                        ),
-                       name=f'lying_false',
+                       name=f'{contrastive_label[1]}_{prompt_label[1]}',
                        ),
         )
     if plot_intervention:
@@ -222,7 +233,7 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
                            line=dict(width=1, color="DarkSlateGrey"),
                            color='yellow'
                        ),
-                       name=f'honest_intervention_true',
+                       name=f'{contrastive_label[0]}_intervention_{prompt_label[0]}',
                        ),
         )
         fig.add_trace(
@@ -235,7 +246,7 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
                            line=dict(width=1, color="DarkSlateGrey"),
                            color='blue'
                        ),
-                       name=f'honest_intervention_false',
+                       name=f'{contrastive_label[0]}_intervention_{prompt_label[1]}',
                        ),
         )
         fig.add_trace(
@@ -248,7 +259,7 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
                            line=dict(width=1, color="DarkSlateGrey"),
                            color='yellow'
                        ),
-                       name=f'lying_intervention_true',
+                       name=f'{contrastive_label[1]}_intervention_{prompt_label[0]}',
                        ),
         )
         fig.add_trace(
@@ -262,7 +273,7 @@ def plot_contrastive_activation_intervention_pca(activations_honest,
                            color='blue'
 
                        ),
-                       name=f'lying_intervention_false',
+                       name=f'{contrastive_label[1]}_intervention_{prompt_label[1]}',
                        ),
         )
 
@@ -279,7 +290,8 @@ def get_intervention_activations_and_generation(cfg, model_base, dataset,
                                                 target_layer_e=None,
                                                 max_new_tokens=64,
                                                 system_type=None,
-                                                labels=None):
+                                                labels=None,
+                                                categories=None):
     """
     output:
         activations: Tensor[batch,layer,1],
@@ -305,8 +317,10 @@ def get_intervention_activations_and_generation(cfg, model_base, dataset,
     # if not specified, ablate all layers by default
     if target_layer_s is None:
         target_layer = np.arange(n_layers)
+    # apply intervention on one single layer
     elif type(target_layer_s) == int and target_layer_e is None:
         target_layer = [np.arange(n_layers)[target_layer_s]]
+    # apply intervention on a range of layers
     elif type(target_layer_s) == int and type(target_layer_e) == int:
         target_layer = np.arange(target_layer_s, target_layer_e)
 
@@ -323,43 +337,47 @@ def get_intervention_activations_and_generation(cfg, model_base, dataset,
         len_inputs = inputs.input_ids.shape[1]
 
         if 'direction_ablation' in intervention:
+            fwd_pre_hooks = []
             if "mlp" in intervention:
-                fwd_pre_hooks = []
                 fwd_hooks = [(block_modules[layer].mlp,
                               get_and_cache_direction_ablation_output_hook(
                                   mean_diff=mean_diff,
+                                  cache=activations,
                                   layer=layer,
                                   positions=positions,
                                   batch_id=i,
                                   batch_size=batch_size,
                                   target_layer=target_layer,
+                                  len_prompt=len_inputs
                               ),
                               ) for layer in range(n_layers)]
             if "attn" in intervention:
-                fwd_pre_hooks = []
                 fwd_hooks = [(block_modules[layer].attn,
                               get_and_cache_direction_ablation_output_hook(
                                   mean_diff=mean_diff,
+                                  cache=activations,
                                   layer=layer,
                                   positions=positions,
                                   batch_id=i,
                                   batch_size=batch_size,
                                   target_layer=target_layer,
+                                  len_prompt=len_inputs
                               ),
                               ) for layer in range(n_layers)]
 
             else:
-                fwd_pre_hooks = []
                 fwd_hooks = [(block_modules[layer],
                               get_and_cache_direction_ablation_output_hook(
-                                                       mean_diff=mean_diff,
-                                                       layer=layer,
-                                                       positions=positions,
-                                                       batch_id=i,
-                                                       batch_size=batch_size,
-                                                       target_layer=target_layer,
-                                                       ),
-                                                    ) for layer in range(n_layers)]
+                                  mean_diff=mean_diff,
+                                  cache=activations,
+                                  layer=layer,
+                                  positions=positions,
+                                  batch_id=i,
+                                  batch_size=batch_size,
+                                  target_layer=target_layer,
+                                  len_prompt=len_inputs
+                              ),
+                              ) for layer in range(n_layers)]
 
         if 'direction_addition' in intervention:
             if "mlp" in intervention:
@@ -389,18 +407,6 @@ def get_intervention_activations_and_generation(cfg, model_base, dataset,
             elif "attn" in intervention:
                 if "Qwen" in model_name:
                     fwd_pre_hooks = []
-
-                    # fwd_pre_hooks = [(block_modules[layer].attn,
-                    #                   get_and_cache_direction_addition_input_hook(
-                    #                       mean_diff=mean_diff,
-                    #                       cache=activations,
-                    #                       layer=layer,
-                    #                       positions=positions,
-                    #                       batch_id=i,
-                    #                       batch_size=batch_size,
-                    #                       target_layer=target_layer,
-                    #                       len_prompt=len_inputs),
-                    #                   ) for layer in range(n_layers)]
                     fwd_hooks = [(block_modules[layer].attn,
                                   get_and_cache_direction_addition_output_hook(
                                       mean_diff=mean_diff,
@@ -413,19 +419,7 @@ def get_intervention_activations_and_generation(cfg, model_base, dataset,
                                       len_prompt=len_inputs),
                                   ) for layer in range(n_layers)]
                 else:
-                    # fwd_pre_hooks = [(block_modules[layer].self_attn,
-                    #                   get_and_cache_direction_addition_input_hook(
-                    #                       mean_diff=mean_diff,
-                    #                       cache=activations,
-                    #                       layer=layer,
-                    #                       positions=positions,
-                    #                       batch_id=i,
-                    #                       batch_size=batch_size,
-                    #                       target_layer=target_layer,
-                    #                       len_prompt=len_inputs),
-                    #                   ) for layer in range(n_layers)]
                     fwd_pre_hooks = []
-
                     fwd_hooks = [(block_modules[layer].self_attn,
                                   get_and_cache_direction_addition_output_hook(
                                       mean_diff=mean_diff,
@@ -439,18 +433,6 @@ def get_intervention_activations_and_generation(cfg, model_base, dataset,
                                   ) for layer in range(n_layers)]
             else:
                 fwd_pre_hooks = []
-
-                # fwd_pre_hooks = [(block_modules[layer],
-                #                   get_and_cache_direction_addition_input_hook(
-                #                       mean_diff=mean_diff,
-                #                       cache=activations,
-                #                       layer=layer,
-                #                       positions=positions,
-                #                       batch_id=i,
-                #                       batch_size=batch_size,
-                #                       target_layer=target_layer,
-                #                       len_prompt=len_inputs),
-                #                   ) for layer in range(n_layers)]
                 fwd_hooks = [(block_modules[layer],
                               get_and_cache_direction_addition_output_hook(
                                   mean_diff=mean_diff,
@@ -558,6 +540,7 @@ def get_intervention_activations_and_generation(cfg, model_base, dataset,
                                                                       len_prompt=len_inputs),
                                                                     ) for layer in range(n_layers)]
             else:
+                fwd_pre_hooks = []
                 fwd_hooks = [(block_modules[layer],
                               get_and_cache_skip_connection_hook(
                                                                   mean_diff=mean_diff,
@@ -588,7 +571,8 @@ def get_intervention_activations_and_generation(cfg, model_base, dataset,
                         'prompt': dataset[i + generation_idx],
                         'response': tokenizer.decode(generation, skip_special_tokens=True).strip(),
                         'label': labels[i + generation_idx],
-                        'ID': i + generation_idx
+                        'ID': i + generation_idx,
+                        'category': categories[i + generation_idx],
 
                     })
                 else:
@@ -601,14 +585,36 @@ def get_intervention_activations_and_generation(cfg, model_base, dataset,
     return activations, completions, first_gen_toks_all, first_gen_str_all
 
 
-def generate_with_intervention_cache_contrastive_activations_and_plot_pca(cfg,
-                                                                          model_base,
-                                                                          dataset,
-                                                                          activations_honest,
-                                                                          activations_lying,
-                                                                          mean_diff=None,
-                                                                          labels=None,
-                                                                          save_activations=False):
+def evaluate_jailbreak_completions(cfg, contrastive_label, dataset_name, eval_methodologies, few_shot=None):
+    """Evaluate completions and save results for a dataset."""
+    # with open(os.path.join(cfg.artifact_path(), f'completions/{dataset_name}_{intervention_label}_completions.json'), 'r') as f:
+    with open(f'{cfg.artifact_path()}' + os.sep + 'completions' + os.sep + f'{dataset_name}' +
+               '_completions_' + contrastive_label +'.json',
+               "r") as f:
+        completions = json.load(f)
+
+    evaluation = evaluate_jailbreak(
+        completions=completions,
+        methodologies=eval_methodologies,
+        evaluation_path=os.path.join(cfg.artifact_path(), "completions", f"{dataset_name}_evaluations.json"),
+    )
+
+    with open(f'{cfg.artifact_path()}' + os.sep + 'completions' + os.sep + f'{dataset_name}' +
+               '_evaluations_' + contrastive_label +'.json', "w") as f:
+        json.dump(evaluation, f, indent=4)
+
+
+def generate_with_intervention_contrastive_activations_pca(cfg,
+                                                           model_base,
+                                                           dataset,
+                                                           activations_positive,
+                                                           activations_negative,
+                                                           mean_diff=None,
+                                                           labels_ori=None,
+                                                           labels_int=None,
+                                                           save_activations=False,
+                                                           contrastive_label=["honest", "lying"],
+                                                           categories=None):
 
     intervention = cfg.intervention
     source_layer = cfg.source_layer
@@ -618,67 +624,118 @@ def generate_with_intervention_cache_contrastive_activations_and_plot_pca(cfg,
     model_name = cfg.model_alias
     data_category = cfg.data_category
     n_layers = model_base.model.config.num_hidden_layers
-    tokenize_fn = model_base.tokenize_statements_fn
+    if 'honest' in contrastive_label:
+        tokenize_fn = model_base.tokenize_statements_fn
+    elif 'HHH' in contrastive_label:
+        tokenize_fn = model_base.tokenize_instructions_fn
     true_token_id = model_base.true_token_id
     false_token_id = model_base.false_token_id
 
     # 1. Generation with Intervention
-    intervention_activations_honest, intervention_completions_honest, first_gen_toks_honest, first_gen_str_honest = get_intervention_activations_and_generation(
+    intervention_activations_positive, intervention_completions_positive, first_gen_toks_honest, first_gen_str_honest = get_intervention_activations_and_generation(
         cfg, model_base, dataset,
         tokenize_fn,
         mean_diff=mean_diff,
         positions=[-1],
         max_new_tokens=64,
-        system_type="honest",
+        system_type=contrastive_label[0],
         target_layer_s=target_layer_s,
         target_layer_e=target_layer_e,
-        labels=labels)
-    intervention_activations_lying, intervention_completions_lying, first_gen_toks_lying, first_gen_str_lying = get_intervention_activations_and_generation(
+        labels=labels_int,
+        categories=categories)
+    intervention_activations_negative, intervention_completions_negative, first_gen_toks_lying, first_gen_str_lying = get_intervention_activations_and_generation(
         cfg, model_base, dataset,
         tokenize_fn,
         mean_diff=mean_diff,
         positions=[-1],
         max_new_tokens=64,
-        system_type="lying",
+        system_type=contrastive_label[-1],
         target_layer_s=target_layer_s,
         target_layer_e=target_layer_e,
-        labels=labels)
+        labels=labels_int,
+        categories=categories)
 
     # 2. save completions and activations
-    if not os.path.exists(os.path.join(cfg.artifact_path(), intervention)):
-        os.makedirs(os.path.join(cfg.artifact_path(), intervention))
+    if not os.path.exists(os.path.join(cfg.artifact_path(), intervention,  'completions')):
+        os.makedirs(os.path.join(cfg.artifact_path(), intervention,  'completions'))
 
-    with open(
-            artifact_dir + os.sep + intervention + os.sep + f'{data_category}_{intervention}_completions_honest_layer_{source_layer}_{target_layer_s}_{target_layer_e}.json',
-            "w") as f:
-        json.dump(intervention_completions_honest, f, indent=4)
-    with open(
-            artifact_dir + os.sep + intervention + os.sep + f'{data_category}_{intervention}_completions_lying_layer_{source_layer}_{target_layer_s}_{target_layer_e}.json',
-            "w") as f:
-        json.dump(intervention_completions_lying, f, indent=4)
+    if 'honest' in contrastive_label:
+        with open(
+                artifact_dir + os.sep + intervention + os.sep + 'completions' + os.sep 
+                + f'{data_category}_{intervention}_completions_' +
+                contrastive_label[0] + f'_layer_{source_layer}_{target_layer_s}_{target_layer_e}.json',
+                "w") as f:
+            json.dump(intervention_completions_positive, f, indent=4)
+        with open(
+                artifact_dir + os.sep + intervention + os.sep + 'completions' + os.sep 
+                + f'{data_category}_{intervention}_completions_' + 
+                contrastive_label[-1] + f'_layer_{source_layer}_{target_layer_s}_{target_layer_e}.json',
+                "w") as f:
+            json.dump(intervention_completions_negative, f, indent=4)
+            
+    elif 'HHH' in contrastive_label:
+        # HHH persona
+        # data = harmful
+        with open(artifact_dir + os.sep + intervention + os.sep + 'completions' + os.sep +
+                  'harmful_completions_' +
+                  contrastive_label[0] + f'_layer_{source_layer}_{target_layer_s}_{target_layer_e}.json',
+                  "w") as f:
+            json.dump(intervention_completions_positive[:cfg.n_train], f, indent=4)
+        # data= harmless
+        with open(artifact_dir + os.sep + intervention + os.sep + 'completions' + os.sep +
+                  'harmless_completions_' +
+                  contrastive_label[0] + f'_layer_{source_layer}_{target_layer_s}_{target_layer_e}.json',
+                  "w") as f:
+            json.dump(intervention_completions_positive[cfg.n_train:], f, indent=4)
+
+        # jailbreak persona
+        # data= harmful
+        with open(artifact_dir + os.sep + intervention + os.sep + 'completions' + os.sep +
+                  'harmful_completions_' +
+                  contrastive_label[1] + f'_layer_{source_layer}_{target_layer_s}_{target_layer_e}.json',
+                  "w") as f:
+            json.dump(intervention_completions_negative[:cfg.n_train], f, indent=4)
+        # data= harmless
+        with open(artifact_dir + os.sep + intervention + os.sep + 'completions' + os.sep +
+                  'harmless_completions_' +
+                  contrastive_label[1] + f'_layer_{source_layer}_{target_layer_s}_{target_layer_e}.json',
+                  "w") as f:
+            json.dump(intervention_completions_negative[cfg.n_train:], f, indent=4)
 
     # save activations
     if save_activations:
+        if not os.path.exists(os.path.join(cfg.artifact_path(), intervention, 'activations')):
+            os.makedirs(os.path.join(cfg.artifact_path(), intervention, 'activations'))
+
         activations = {
-            "activations_honest": intervention_activations_honest,
-            "activations_lying": intervention_activations_lying,
+            "activations_positive": intervention_activations_positive,
+            "activations_negative": intervention_activations_negative,
         }
-        with open(artifact_dir + os.sep + intervention + os.sep + model_name + '_' + f'{data_category}' +
-                        '_activation_pca_' + intervention + str(source_layer) + '_' + str(target_layer_s) +
-                        '_' + str(target_layer_e) + '.pkl', "wb") as f:
+        with open(artifact_dir + os.sep + intervention + os.sep + 'activations' + os.sep +
+                  os.sep + model_name + '_' + f'{data_category}' +
+                  '_activation_pca_' + intervention + '_' + str(source_layer) + '_' + str(target_layer_s) +
+                  '_' + str(target_layer_e) + '.pkl', "wb") as f:
             pickle.dump(activations, f)
 
     # 3. pca with and without intervention, plot and save pca plots
-    contrastive_label = ["honest", "lying", "honest_addition", "lying_addition"]
-    fig = plot_contrastive_activation_intervention_pca(activations_honest,
-                                                       activations_lying,
-                                                       intervention_activations_honest,
-                                                       intervention_activations_lying,
+    if "skip_connection" in intervention:
+        plot_original = False
+        plot_intervention = True
+    else:
+        plot_original = True
+        plot_intervention = True
+    contrastive_intervention_label = [contrastive_label[0], contrastive_label[1],
+                                      contrastive_label[0] + "_intervention", contrastive_label[1] + "_intervention"]
+    fig = plot_contrastive_activation_intervention_pca(activations_positive,
+                                                       activations_negative,
+                                                       intervention_activations_positive,
+                                                       intervention_activations_negative,
                                                        n_layers,
-                                                       contrastive_label,
-                                                       labels,
-                                                       plot_original=True,
-                                                       plot_intervention=True,
+                                                       contrastive_intervention_label,
+                                                       labels_ori,
+                                                       labels_int,
+                                                       plot_original=plot_original,
+                                                       plot_intervention=plot_intervention,
                                                        )
     fig.write_html(artifact_dir + os.sep + intervention + os.sep + data_category + '_' + intervention +
                    '_pca_layer_' + str(source_layer) + '_' + str(target_layer_s) + '_' + str(target_layer_e) + '.html')
@@ -687,20 +744,46 @@ def generate_with_intervention_cache_contrastive_activations_and_plot_pca(cfg,
                     scale=6)
 
     # 4. get performance
-    model_performance, fig = get_performance_stats(cfg, first_gen_toks_honest, first_gen_str_honest, first_gen_toks_lying, first_gen_str_lying,
-                                                   labels,
-                                                   true_token_id, false_token_id
-                                                   )
-    fig.write_html(artifact_dir + os.sep + intervention + os.sep + f'{data_category}_{intervention}_'
-                   + 'model_performance_layer_' + str(source_layer) + '_' + str(target_layer_s) + '_' + str(
-        target_layer_e) +
-                   '_accuracy' + '.html')
+    # todo: get it compatible with jailbreak
+    if 'honest' in contrastive_label:
+        model_performance, fig = get_performance_stats(cfg, first_gen_toks_honest, first_gen_str_honest,
+                                                       first_gen_toks_lying, first_gen_str_lying,
+                                                       labels_int,
+                                                       true_token_id, false_token_id
+                                                       )
+        fig.write_html(artifact_dir + os.sep + intervention + os.sep + f'{data_category}_{intervention}_'
+                       + 'model_performance_layer_' + str(source_layer) + '_' + str(target_layer_s) + '_' + str(
+                         target_layer_e) + '_accuracy' + '.html')
+        with open(artifact_dir + os.sep + intervention + os.sep + f'{data_category}' +
+                  '_model_performance_' + intervention + '_layer_' + str(source_layer) + '_' + str(target_layer_s) +
+                  '_' + str(target_layer_e) + '.pkl', "wb") as f:
+            pickle.dump(model_performance, f)
+
+    elif "HHH" in contrastive_label:
+        dataset_name = ['harmful', 'harmless']
+        save_path = artifact_dir + os.sep + intervention + os.sep
+        evaluate_completions_and_save_results_for_dataset(cfg, dataset_name,
+                                                          cfg.jailbreak_eval_methodologies,
+                                                          contrastive_label,
+                                                          save_path,
+                                                          source_layer=source_layer,
+                                                          target_layer_s=target_layer_s,
+                                                          target_layer_e=target_layer_e,
+                                                          few_shot=None)
 
     # 4. Get stage statistics with intervention
-    stage_stats_intervention = get_state_quantification(cfg, intervention_activations_honest, intervention_activations_lying,
-                                                        labels,
+    stage_stats_intervention = get_state_quantification(cfg, intervention_activations_positive,
+                                                        intervention_activations_negative,
+                                                        labels_int,
                                                         save_plot=False)
-    return intervention_activations_honest, intervention_activations_lying, model_performance, stage_stats_intervention
+    intervention_results = {
+        'intervention_activations_positive': intervention_activations_positive,
+        'intervention_activations_negative': intervention_activations_negative,
+        # 'model_performance': model_performance,
+        'stage_stats_intervention': stage_stats_intervention
+        
+    }
+    return intervention_results
 
 
 # def extraction_intervention_and_plot_pca(cfg,model_base: ModelBase, harmful_instructions, harmless_instructions):
@@ -709,16 +792,16 @@ def generate_with_intervention_cache_contrastive_activations_and_plot_pca(cfg,
 #         os.makedirs(artifact_dir)
 #
 #     # 1. extract activations
-#     activations_honest,activations_lie = generate_activations_and_plot_pca(cfg,model_base, harmful_instructions, harmless_instructions)
+#     activations_positive,activations_negative = generate_activations_and_plot_pca(cfg,model_base, harmful_instructions, harmless_instructions)
 #
 #     # 2. get steering vector = get mean difference of the source layer
-#     mean_activation_harmful = activations_honest.mean(dim=0)
-#     mean_activation_harmless = activations_lie.mean(dim=0)
+#     mean_activation_harmful = activations_positive.mean(dim=0)
+#     mean_activation_harmless = activations_negative.mean(dim=0)
 #     mean_diff = mean_activation_harmful-mean_activation_harmless
 #
 #
 #     # 3. refusal_intervention_and_plot_pca
-#     intervention_activations_honest,intervention_activations_lie = refusal_intervention_and_plot_pca(cfg, model_base,
+#     intervention_activations_positive,intervention_activations_negative = refusal_intervention_and_plot_pca(cfg, model_base,
 #                                                                                                    harmful_instructions,
 #                                                                                                    harmless_instructions,
 #                                                                                                    mean_diff)
@@ -729,8 +812,8 @@ def generate_with_intervention_cache_contrastive_activations_and_plot_pca(cfg,
 #     target_layer = cfg.target_layer
 #     model_name = cfg.model_alias
 #     n_layers = model_base.model.config.num_hidden_layers
-#     fig = plot_contrastive_activation_intervention_pca(activations_honest, activations_lie,
-#                                                        intervention_activations_honest, intervention_activations_lie,
+#     fig = plot_contrastive_activation_intervention_pca(activations_positive, activations_negative,
+#                                                        intervention_activations_positive, intervention_activations_negative,
 #                                                        n_layers)
 #     fig.write_html(artifact_dir + os.sep + model_name + '_' + 'refusal_generation_activation_'
 #                    +intervention+'_pca_layer_'

@@ -19,17 +19,25 @@ class Config:
     model_alias: str
     model_path: str
     save_path: str
-    target_layer: int
-    source_layer: int
-    intervention: str
-    n_train: int = 32
-    n_test: int = 32
-    data_category: str = "facts"
-    batch_size: int = 16
+    sae_id: int
+    hook_point: int
+    sae_name: str = "gemma-scope-2b-pt-res"
+    filter_train: bool = True
+    filter_val: bool = True
+    n_train: int = 100
+    n_eval: int = 50
+    batch_size: int = 1
     max_new_tokens: int = 100
+    intervention: str = "no_intervention"
+    evaluation_datasets: Tuple[str] = ("jailbreakbench", "harmless")
+    # evaluation_datasets: Tuple[str] = ("jailbreakbench",)
+    jailbreak_eval_methodologies: Tuple[str] = ("substring_matching")
+    refusal_eval_methodologies: Tuple[str] = ("substring_matching",)
+    evalution_persona: Tuple[str] = ("HHH", "BREAK")
+    # evalution_persona: Tuple[str] = ("BREAK",)
+
     # for generation_trajectory
     dataset_id: list[int] = 3
-
 
     def artifact_path(self) -> str:
         save_path = self.save_path

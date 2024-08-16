@@ -1,6 +1,6 @@
 import os
 import argparse
-from pipeline.honesty_config_generation_skip_connection import Config
+from pipeline.honesty_config_generation_intervention import Config
 from pipeline.model_utils.model_factory import construct_model_base
 import pickle
 import csv
@@ -15,19 +15,168 @@ from sklearn.metrics.pairwise import cosine_similarity
 from plotly.figure_factory import create_quiver
 import plotly.figure_factory as ff
 import plotly.io as pio
-
-
 from sklearn.decomposition import PCA
 import numpy as np
 import torch
-
 from typing import List, Tuple, Callable
 from jaxtyping import Float
 from torch import Tensor
-
-
 from scipy.spatial.distance import cdist
 from scipy import stats
+
+
+def plot_contrastive_activation_pca_layer(activations_positive, activations_negative,
+                                          contrastive_label,
+                                          labels=None, prompt_label=['true', 'false'],
+                                          layers=[0, 1]):
+
+    activations_all: Float[Tensor, "n_samples n_layers d_model"] = torch.cat((activations_positive,
+                                                                              activations_negative), dim=0)
+
+    n_contrastive_data = activations_negative.shape[0]
+    n_layers = len(layers)
+    if labels is not None:
+        labels_all = labels + labels
+        # true or false label
+        labels_tf = []
+        for ll in labels:
+            if ll == 0:
+                labels_tf.append(prompt_label[1])
+            elif ll == 1:
+                labels_tf.append(prompt_label[0])
+    else:
+        labels_all = np.zeros((n_contrastive_data*2,1))
+        labels_tf = np.zeros((n_contrastive_data*2,1))
+
+    label_text = []
+    for ii in range(n_contrastive_data):
+        label_text = np.append(label_text, f'{contrastive_label[0]}_{labels_tf[ii]}_{ii}')
+    for ii in range(n_contrastive_data):
+        label_text = np.append(label_text, f'{contrastive_label[1]}_{labels_tf[ii]}_{ii}')
+
+    cols = 4
+    rows = math.ceil(n_layers/cols)
+    fig = make_subplots(rows=rows, cols=cols,
+                        subplot_titles=[f"layer {n}" for n in (layers)])
+
+    pca = PCA(n_components=3)
+    for row in range(rows):
+        for ll, layer in enumerate(layers):
+            # print(f'layer{layer}')
+            activations_pca = pca.fit_transform(activations_all[:, layer, :].cpu())
+            df = {}
+            df['label'] = labels_all
+            df['pca0'] = activations_pca[:, 0]
+            df['pca1'] = activations_pca[:, 1]
+            df['pca2'] = activations_pca[:, 2]
+
+            df['label_text'] = label_text
+
+            fig.add_trace(
+                go.Scatter(x=df['pca0'][:n_contrastive_data],
+                             y=df['pca1'][:n_contrastive_data],
+                             # z=df['pca2'][:n_contrastive_data],
+                             mode="markers",
+                             name=contrastive_label[0],
+                             showlegend=False,
+                             marker=dict(
+                               symbol="star",
+                               size=8,
+                               line=dict(width=1, color="DarkSlateGrey"),
+                               color=df['label'][:n_contrastive_data]
+                           ),
+                         text=df['label_text'][:n_contrastive_data]),
+                         row=row+1, col=ll+1,
+                         )
+            fig.add_trace(
+                go.Scatter(x=df['pca0'][n_contrastive_data:],
+                             y=df['pca1'][n_contrastive_data:],
+                             # z=df['pca2'][n_contrastive_data:],
+                             mode="markers",
+                             name=contrastive_label[1],
+                             showlegend=False,
+                             marker=dict(
+                               symbol="circle",
+                               size=5,
+                               line=dict(width=1, color="DarkSlateGrey"),
+                               color=df['label'][n_contrastive_data:],
+                             ),
+                             text=df['label_text'][n_contrastive_data:]),
+                row=row+1, col=ll+1,
+                             )
+    # legend
+    fig.add_trace(
+        go.Scatter(x=[None],
+                     y=[None],
+                     # z=[None],
+                     mode='markers',
+                     marker=dict(
+                       symbol="star",
+                       size=5,
+                       line=dict(width=1, color="DarkSlateGrey"),
+                       color=df['label'][n_contrastive_data:],
+                     ),
+                     name=f'{contrastive_label[0]}_{prompt_label[1]}',
+                     marker_color='blue',
+                     ),
+        row=row + 1, col=ll + 1,
+    )
+
+    fig.add_trace(
+        go.Scatter(x=[None],
+                     y=[None],
+                     # z=[None],
+                     mode='markers',
+                     marker=dict(
+                       symbol="star",
+                       size=5,
+                       line=dict(width=1, color="DarkSlateGrey"),
+                       color=df['label'][n_contrastive_data:],
+                     ),
+                     name=f'{contrastive_label[0]}_{prompt_label[0]}',
+                     marker_color='yellow',
+                     ),
+        row=row + 1, col=ll + 1,
+    )
+
+    fig.add_trace(
+        go.Scatter(x=[None],
+                     y=[None],
+                     # z=[None],
+                     mode='markers',
+                     marker=dict(
+                       symbol="circle",
+                       size=5,
+                       line=dict(width=1, color="DarkSlateGrey"),
+                       color=df['label'][n_contrastive_data:],
+                     ),
+                     name=f'{contrastive_label[1]}_{prompt_label[1]}',
+                     marker_color='blue',
+                     ),
+        row=row + 1, col=ll + 1,
+    )
+    fig.add_trace(
+        go.Scatter(x=[None],
+                     y=[None],
+                     # z=[None],
+                     mode='markers',
+                     marker=dict(
+                       symbol="circle",
+                       size=5,
+                       line=dict(width=1, color="DarkSlateGrey"),
+                       color=df['label'][n_contrastive_data:],
+                     ),
+                     name=f'{contrastive_label[1]}_{prompt_label[0]}',
+                     marker_color='yellow',
+                     ),
+        row=row + 1, col=ll + 1,
+    )
+
+    fig.update_layout(height=330, width=1000)
+    fig.show()
+    fig.write_html('honest_lying_pca.html')
+
+    return fig
 
 
 def plot_one_layer_3d(activations_1, activations_2,

@@ -63,22 +63,30 @@ def get_accuracy_and_unexpected(top_token_id, top_token_str, labels, true_token_
     correct = []
     wrong = []
     for ii, label_str in enumerate(label_strs):
-        if top_token_str[ii].lower().strip() in label_strs[ii]:
-            correct.append(1)
-            wrong.append(0)
-            unexpected.append(0)
 
-        elif top_token_str[ii].lower().strip() not in label_strs[ii]:
-            if top_token_id[ii] in false_token_id or top_token_id[ii] in true_token_id:
-                correct.append(0)
-                wrong.append(1)
-                unexpected.append(0)
-            elif top_token_id[ii] not in true_token_id and top_token_id[ii] not in false_token_id:
-                unexpected.append(1)
-                correct.append(0)
+        if top_token_str is not None:
+            if top_token_str[ii].lower().strip() in label_strs[ii]:
+                correct.append(1)
                 wrong.append(0)
-                print("unexpected: ")
-                print(top_token_str[ii])
+                unexpected.append(0)
+
+            elif top_token_str[ii].lower().strip() not in label_strs[ii]:
+                if top_token_id[ii] in false_token_id or top_token_id[ii] in true_token_id:
+                    correct.append(0)
+                    wrong.append(1)
+                    unexpected.append(0)
+                elif top_token_id[ii] not in true_token_id and top_token_id[ii] not in false_token_id:
+                    unexpected.append(1)
+                    correct.append(0)
+                    wrong.append(0)
+                    print("unexpected: ")
+                    print(top_token_str[ii])
+        else:
+            unexpected.append(1)
+            correct.append(0)
+            wrong.append(0)
+            print("unexpected: ")
+            print(top_token_str[ii])
 
     return correct, wrong, unexpected
 

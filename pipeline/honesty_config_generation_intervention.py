@@ -22,8 +22,8 @@ class Config:
     target_layer_s: int
     target_layer_e: int
     source_layer: int = 14
-    n_train: int = 32
-    n_test: int = 32
+    n_train: int = 100
+    n_test: int = 100
     data_category: str = "facts"
     batch_size: int = 16
     max_new_tokens: int = 100

@@ -11,6 +11,9 @@ def construct_model_base(model_path: str, checkpoint=None, few_shot=None) -> Mod
     elif 'llama' in model_path.lower():
         from pipeline.model_utils.llama2_model import Llama2Model
         return Llama2Model(model_path)
+    elif 'vicuna' in model_path.lower():
+        from pipeline.model_utils.llama2_model import Llama2Model
+        return Llama2Model(model_path)
     elif 'gemma' in model_path.lower() and '-it' in model_path.lower():
         from pipeline.model_utils.gemma_model_it import GemmaModel
         return GemmaModel(model_path)

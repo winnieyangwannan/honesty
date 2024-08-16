@@ -1,6 +1,6 @@
 import os
 import argparse
-from pipeline.honesty_config_generation_skip_connection import Config
+from pipeline.honesty_config_generation_intervention import Config
 from pipeline.model_utils.model_factory import construct_model_base
 import pickle
 import csv
@@ -29,14 +29,14 @@ from scipy import stats
 
 
 # 0. Perform PCA layer by layer
-def get_pca_layer_by_layer(activations_honest, activations_lying, n_layers,
+def get_pca_layer_by_layer(activations_positive, activations_negative, n_layers,
                            n_components=3, save_plot=True):
-    n_samples = activations_honest.shape[0]
+    n_samples = activations_positive.shape[0]
     pca = PCA(n_components=n_components)
     activations_pca = np.zeros((n_samples*2, n_layers, n_components))
     for layer in range(n_layers):
-        activations_all: Float[Tensor, "n_samples n_layers d_model"] = torch.cat((activations_honest,
-                                                                                  activations_lying), dim=0)
+        activations_all: Float[Tensor, "n_samples n_layers d_model"] = torch.cat((activations_positive,
+                                                                                  activations_negative), dim=0)
         activations_pca[:, layer, :] = pca.fit_transform(activations_all[:, layer, :].cpu())
     return activations_pca
 
@@ -51,15 +51,15 @@ def get_distance_pair_honest_lying(activations_all, activations_pca, n_layers, s
     dist_pair_z_pca = np.zeros((n_layers, n_samples))
     dist_pair = np.zeros((n_layers, n_samples))
     dist_pair_z = np.zeros((n_layers, n_samples))
-    activations_honest = activations_all[:n_samples, :, :]
-    activations_lying = activations_all[n_samples:, :, :]
+    activations_positive = activations_all[:n_samples, :, :]
+    activations_negative = activations_all[n_samples:, :, :]
 
     for layer in range(n_layers):
         activations_pca_honest = activations_pca[:n_samples, layer, :]
         activations_pca_lying = activations_pca[n_samples:, layer, :]
 
         # original high dimensional space
-        dist_between = cdist(activations_honest[:, layer, :].cpu(), activations_lying[:, layer, :].cpu()) # [n_samples by n_samples]
+        dist_between = cdist(activations_positive[:, layer, :].cpu(), activations_negative[:, layer, :].cpu()) # [n_samples by n_samples]
         # zscore
         dist_z = stats.zscore(dist_between)
         # for the pair of the prompt with same statement, take the diagonal
@@ -149,15 +149,15 @@ def get_dist_centroid_true_false(activations_all, activations_pca, labels, n_lay
     centroid_dist_lying_z = np.zeros((n_layers))
     centroid_dist_honest_pca_z = np.zeros((n_layers))
     centroid_dist_lying_pca_z = np.zeros((n_layers))
-    activations_honest = activations_all[:n_samples, :, :]
+    activations_positive = activations_all[:n_samples, :, :]
 
-    activations_lying = activations_all[n_samples:, :, :]
+    activations_negative = activations_all[n_samples:, :, :]
     for layer in range(n_layers):
         activations_pca_honest = activations_pca[:n_samples, layer, :]
         activations_pca_lying = activations_pca[n_samples:, layer, :]
 
-        centroid_dist_honest[layer] = get_centroid_dist(activations_honest[:, layer, :].cpu().numpy(), labels) # [n_samples by n_samples]
-        centroid_dist_lying[layer] = get_centroid_dist(activations_lying[:, layer, :].cpu().numpy(), labels) # [n_samples by n_samples]
+        centroid_dist_honest[layer] = get_centroid_dist(activations_positive[:, layer, :].cpu().numpy(), labels) # [n_samples by n_samples]
+        centroid_dist_lying[layer] = get_centroid_dist(activations_negative[:, layer, :].cpu().numpy(), labels) # [n_samples by n_samples]
 
         centroid_dist_honest_pca[layer] = get_centroid_dist(activations_pca_honest[:, :], labels) # [n_samples by n_samples]
         centroid_dist_lying_pca[layer] = get_centroid_dist(activations_pca_lying[:, :], labels) # [n_samples by n_samples]
@@ -167,7 +167,7 @@ def get_dist_centroid_true_false(activations_all, activations_pca, labels, n_lay
     if save_plot:
         line_width = 3
         fig = make_subplots(rows=2, cols=1,
-                            subplot_titles=('Original High Dimensional Space', '', 'PCA', ''))
+                            subplot_titles=('Original High Dimensional Space', 'PCA'))
         fig.add_trace(go.Scatter(
                                  x=np.arange(n_layers), y=centroid_dist_honest,
                                  name="honest",
@@ -232,8 +232,8 @@ def get_cos_sim_honest_lying_vector(activations_all, activations_pca, labels, n_
     n_components = activations_pca.shape[-1]
     cos_honest_lying = np.zeros((n_layers))
     cos_honest_lying_pca = np.zeros((n_layers))
-    activations_honest = activations_all[:n_samples, :, :]
-    activations_lying = activations_all[n_samples:, :, :]
+    activations_positive = activations_all[:n_samples, :, :]
+    activations_negative = activations_all[n_samples:, :, :]
     centroid_lying_true_pca_all = np.zeros((n_layers, n_components))
     centroid_lying_false_pca_all = np.zeros((n_layers, n_components))
     centroid_lying_vector_pca_all = np.zeros((n_layers, n_components))
@@ -245,8 +245,8 @@ def get_cos_sim_honest_lying_vector(activations_all, activations_pca, labels, n_
         activations_pca_honest = activations_pca[:n_samples, layer, :]
         activations_pca_lying = activations_pca[n_samples:, layer, :]
         # original high d
-        centroid_honest_true, centroid_honest_false, centroid_vector_honest = get_centroid_vector(activations_honest[:, layer, :].cpu().numpy(), labels) # [n_samples by n_samples]
-        centroid_lying_true, centroid_lying_false, centroid_vector_lying = get_centroid_vector(activations_lying[:, layer, :].cpu().numpy(), labels) # [n_samples by n_samples]
+        centroid_honest_true, centroid_honest_false, centroid_vector_honest = get_centroid_vector(activations_positive[:, layer, :].cpu().numpy(), labels) # [n_samples by n_samples]
+        centroid_lying_true, centroid_lying_false, centroid_vector_lying = get_centroid_vector(activations_negative[:, layer, :].cpu().numpy(), labels) # [n_samples by n_samples]
         centroid_dir_honest = unit_vector(centroid_vector_honest)
         centroid_dir_lying = unit_vector(centroid_vector_lying)
         cos_honest_lying[layer] = cosine_similarity(centroid_dir_honest, centroid_dir_lying)
@@ -280,8 +280,9 @@ def get_cos_sim_honest_lying_vector(activations_all, activations_pca, labels, n_
                                  showlegend=False,
                                  line=dict(color="royalblue", width=line_width),
         ), row=2, col=1)
-        fig.update_xaxes(tickvals=np.arange(0, n_layers, 5))
-        fig.update_layout(height=500, width=700)
+
+
+        fig.update_layout(height=700, width=500)
         fig['layout']['xaxis']['title'] = 'Layer'
         fig['layout']['xaxis2']['title'] = 'Layer'
 
@@ -290,6 +291,12 @@ def get_cos_sim_honest_lying_vector(activations_all, activations_pca, labels, n_
 
         fig['layout']['xaxis']['tickvals'] = np.arange(0, n_layers, 5)
         fig['layout']['xaxis2']['tickvals'] = np.arange(0, n_layers, 5)
+
+        fig['layout']['yaxis']['tickvals'] = np.arange(-1, 1.2, 0.5)
+        fig['layout']['yaxis2']['tickvals'] = np.arange(-1, 1.2, 0.5)
+
+        fig['layout']['yaxis']['range'] = [-1, 1.2]
+        fig['layout']['yaxis2']['range'] = [-1,1.2]
 
         fig.show()
         # fig.write_html(save_path + os.sep + 'cos_sim_honest_lying.html')
@@ -339,7 +346,7 @@ def cosine_similarity(v1, v2):
     return np.dot(v1_u, v2_u)
 
 
-def get_state_quantification(cfg, activations_honest, activations_lying, labels,
+def get_state_quantification(cfg, activations_positive, activations_negative, labels,
                              save_plot=True):
     """Run the full pipeline."""
     intervention = cfg.intervention
@@ -352,13 +359,13 @@ def get_state_quantification(cfg, activations_honest, activations_lying, labels,
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
-    n_layers = activations_honest.shape[1]
+    n_layers = activations_positive.shape[1]
     n_components = 3
 
-    activations_all = torch.cat((activations_honest,
-                                 activations_lying), dim=0)
+    activations_all = torch.cat((activations_positive,
+                                 activations_negative), dim=0)
     # 0. pca
-    activations_pca = get_pca_layer_by_layer(activations_honest, activations_lying, n_layers, 
+    activations_pca = get_pca_layer_by_layer(activations_positive, activations_negative, n_layers, 
                                              n_components=n_components)
 
     # 1. Stage 1: Separation between Honest and Lying
@@ -437,6 +444,10 @@ def plot_stage_3_stats_original_intervention(cfg, stage_3_original, stage_3_inte
     fig['layout']['yaxis']['title'] = 'Cosine similarity'
     fig['layout']['yaxis2']['title'] = 'Cosine similarity'
 
+    fig['layout']['yaxis']['tickvals'] = np.arange(-1, 1.2, 0.5)
+    fig['layout']['yaxis2']['tickvals'] = np.arange(-1, 1.2, 0.5)
+    fig['layout']['yaxis']['range'] = [-1, 1.2]
+    fig['layout']['yaxis2']['range'] = [-1, 1.2]
     fig.show()
     # fig.write_html(save_path + os.sep + 'distance_pair.html')
     pio.write_image(fig, save_path + os.sep + 'stage_3_cosine_similarity_layer_' + str(source_layer) + '_' + str(target_layer_s) + '_' + str(target_layer_e) + '.png',
