@@ -20,13 +20,12 @@ class Config:
     model_path: str
     save_path: str
     jailbreak_type: str
-    few_shot: int
     filter_train: bool = True
     filter_val: bool = True
     n_train: int = 50
     n_eval: int = 50
     data_category: str = "facts"
-    batch_size: int = 10
+    batch_size: int = 1
     max_new_tokens: int = 100
     intervention: str = "no_intervention"
     evaluation_datasets: Tuple[str] = ("jailbreakbench", "harmless")
