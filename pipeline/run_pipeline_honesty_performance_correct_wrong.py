@@ -14,7 +14,7 @@ from pipeline.submodules.evaluate_truthful import plot_lying_honest_performance,
 from pipeline.honesty_config_performance import Config
 from pipeline.model_utils.model_factory import construct_model_base
 from pipeline.submodules.activation_pca_correct_wrong import plot_contrastive_activation_pca
-from pipeline.plot.checkout_one_layer import plot_one_layer_3d
+from pipeline.plot.plot_some_layer_pca import plot_one_layer_3d
 from pipeline.analysis.stage_statistics import get_state_quantification
 
 # from pipeline.submodules.evaluate_jailbreak import evaluate_jailbreak

@@ -118,7 +118,7 @@ def run_pipeline(model_path, save_path,
                  model_path=model_path,
                  save_path=save_path,
                  jailbreak_type=jailbreak_type,
-                 few_shot=few_shot)
+                )
     print(cfg)
     model_base = construct_model_base(cfg.model_path,
                                       checkpoint=None)
@@ -145,4 +145,4 @@ if __name__ == "__main__":
     print(args.jailbreak_type)
 
     run_pipeline(model_path=args.model_path, save_path=args.save_path,
-                 jailbreak_type=args.jailbreak_type, few_shot=args.few_shot)
+                 jailbreak_type=args.jailbreak_type)

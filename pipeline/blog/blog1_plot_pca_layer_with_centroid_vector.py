@@ -7,7 +7,7 @@ from pipeline.analysis.stage_statistics import get_state_quantification
 from pipeline.honesty_config_performance import Config
 from pipeline.run_pipeline_honesty_stage import load_and_sample_datasets
 from pipeline.run_pipeline_honesty_stage import get_lying_honest_accuracy_and_plot
-from pipeline.plot.checkout_one_layer import plot_one_layer_with_centroid_and_vector
+from pipeline.plot.plot_some_layer_pca import plot_one_layer_with_centroid_and_vector
 
 
 def parse_arguments():

@@ -22,6 +22,7 @@ class Config:
     jailbreak_type: str
     filter_train: bool = True
     filter_val: bool = True
+    few_shot: int = None
     n_train: int = 50
     n_eval: int = 50
     data_category: str = "facts"
