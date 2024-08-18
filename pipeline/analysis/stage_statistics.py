@@ -8,14 +8,15 @@ import math
 from tqdm import tqdm
 from pipeline.utils.hook_utils import add_hooks
 from pipeline.model_utils.model_base import ModelBase
-from plotly.subplots import make_subplots
+
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from sklearn.metrics.pairwise import cosine_similarity
 from plotly.figure_factory import create_quiver
 import plotly.figure_factory as ff
 import plotly.io as pio
 
+
+from sklearn.metrics.pairwise import cosine_similarity
 
 from sklearn.decomposition import PCA
 import numpy as np
@@ -41,10 +42,10 @@ def get_pca_layer_by_layer(activations_positive, activations_negative, n_layers,
     return activations_pca
 
 
-# 1. Stage 1: Separation between Honest and Lying
+# 1. Stage 1: Separation between Honest and Lying (or harmful and harmless)
 # Measurement: The distance between a pair of honest and lying prompt
 # Future: Measure the within group (lying and honest) vs across group distance
-def get_distance_pair_honest_lying(activations_all, activations_pca, n_layers, save_path,
+def get_distance_pair_contrastive(activations_all, activations_pca, n_layers, save_path,
                                    contrastive_label=['HHH', 'evil_confidant'], save_plot=True):
     n_samples = int(activations_all.shape[0] / 2)
     dist_pair_pca = np.zeros((n_layers, n_samples))
@@ -143,14 +144,14 @@ def get_distance_pair_honest_lying(activations_all, activations_pca, n_layers, s
 def get_dist_centroid_true_false(activations_all, activations_pca, labels, n_layers, save_path,
                                  contrastive_label=['HHH', 'evil_confidant'], save_plot=True):
     n_samples = int(activations_all.shape[0] / 2)
-    centroid_dist_honest = np.zeros((n_layers))
-    centroid_dist_lying = np.zeros((n_layers))
-    centroid_dist_honest_pca = np.zeros((n_layers))
-    centroid_dist_lying_pca = np.zeros((n_layers))
-    centroid_dist_honest_z = np.zeros((n_layers))
-    centroid_dist_lying_z = np.zeros((n_layers))
-    centroid_dist_honest_pca_z = np.zeros((n_layers))
-    centroid_dist_lying_pca_z = np.zeros((n_layers))
+    centroid_dist_positive = np.zeros((n_layers))
+    centroid_dist_negative = np.zeros((n_layers))
+    centroid_dist_positive_pca = np.zeros((n_layers))
+    centroid_dist_negative_pca = np.zeros((n_layers))
+    centroid_dist_positive_z = np.zeros((n_layers))
+    centroid_dist_negative_z = np.zeros((n_layers))
+    centroid_dist_positive_pca_z = np.zeros((n_layers))
+    centroid_dist_negative_pca_z = np.zeros((n_layers))
     activations_positive = activations_all[:n_samples, :, :]
 
     activations_negative = activations_all[n_samples:, :, :]
@@ -158,11 +159,11 @@ def get_dist_centroid_true_false(activations_all, activations_pca, labels, n_lay
         activations_pca_positive = activations_pca[:n_samples, layer, :]
         activations_pca_negative = activations_pca[n_samples:, layer, :]
 
-        centroid_dist_honest[layer] = get_centroid_dist(activations_positive[:, layer, :].cpu().numpy(), labels) # [n_samples by n_samples]
-        centroid_dist_lying[layer] = get_centroid_dist(activations_negative[:, layer, :].cpu().numpy(), labels) # [n_samples by n_samples]
+        centroid_dist_positive[layer] = get_centroid_dist(activations_positive[:, layer, :].cpu().numpy(), labels) # [n_samples by n_samples]
+        centroid_dist_negative[layer] = get_centroid_dist(activations_negative[:, layer, :].cpu().numpy(), labels) # [n_samples by n_samples]
 
-        centroid_dist_honest_pca[layer] = get_centroid_dist(activations_pca_positive[:, :], labels) # [n_samples by n_samples]
-        centroid_dist_lying_pca[layer] = get_centroid_dist(activations_pca_negative[:, :], labels) # [n_samples by n_samples]
+        centroid_dist_positive_pca[layer] = get_centroid_dist(activations_pca_positive[:, :], labels) # [n_samples by n_samples]
+        centroid_dist_negative_pca[layer] = get_centroid_dist(activations_pca_negative[:, :], labels) # [n_samples by n_samples]
         #
 
     # # plot
@@ -171,25 +172,25 @@ def get_dist_centroid_true_false(activations_all, activations_pca, labels, n_lay
         fig = make_subplots(rows=2, cols=1,
                             subplot_titles=('Original High Dimensional Space', 'PCA'))
         fig.add_trace(go.Scatter(
-                                 x=np.arange(n_layers), y=centroid_dist_honest,
-                                 name="honest",
+                                 x=np.arange(n_layers), y=centroid_dist_positive,
+                                 name=contrastive_label[0],
                                  mode='lines+markers',
                                  line=dict(color="royalblue", width=line_width)
         ), row=1, col=1)
         fig.add_trace(go.Scatter(
-                                 x=np.arange(n_layers), y=centroid_dist_lying,
-                                 name="lying",
+                                 x=np.arange(n_layers), y=centroid_dist_negative,
+                                 name=contrastive_label[1],
                                  mode='lines+markers',
                                  line=dict(color="firebrick", width=line_width)
         ), row=1, col=1)
         fig.add_trace(go.Scatter(
-                                 x=np.arange(n_layers), y=centroid_dist_honest_pca,
+                                 x=np.arange(n_layers), y=centroid_dist_positive_pca,
                                  showlegend=False,
                                  mode='lines+markers',
                                  line=dict(color="royalblue", width=line_width)
         ), row=2, col=1)
         fig.add_trace(go.Scatter(
-                                 x=np.arange(n_layers), y=centroid_dist_lying_pca,
+                                 x=np.arange(n_layers), y=centroid_dist_negative_pca,
                                  showlegend=False,
                                  mode='lines+markers',
                                  line=dict(color="firebrick", width=line_width)
@@ -206,10 +207,10 @@ def get_dist_centroid_true_false(activations_all, activations_pca, labels, n_lay
                         f'_{contrastive_label[0]}_{contrastive_label[1]}' + '.png',
                         scale=6)
     stage_2 = {
-               'centroid_dist_honest': centroid_dist_honest,
-               'centroid_dist_lying': centroid_dist_lying,
-               'centroid_dist_honest_pca': centroid_dist_honest_pca,
-               'centroid_dist_lying_pca': centroid_dist_lying_pca
+               'centroid_dist_positive': centroid_dist_positive,
+               'centroid_dist_negative': centroid_dist_negative,
+               'centroid_dist_positive_pca': centroid_dist_positive_pca,
+               'centroid_dist_negative_pca': centroid_dist_negative_pca
 
     }
     return stage_2
@@ -374,7 +375,7 @@ def get_state_quantification(cfg, activations_positive, activations_negative, la
     # 1. Stage 1: Separation between Honest and Lying
     # Measurement: The distance between a pair of honest and lying prompt
     # Future: Measure the within group (lying and honest) vs across group distance
-    stage_1 = get_distance_pair_honest_lying(activations_all, activations_pca, n_layers, save_path,
+    stage_1 = get_distance_pair_contrastive(activations_all, activations_pca, n_layers, save_path,
                                              contrastive_label=contrastive_label, save_plot=save_plot)
 
     # 2. Stage 2:  Separation between True and False
@@ -466,26 +467,26 @@ def plot_stage_2_stats_original_intervention(cfg, stage_2_original, stage_2_inte
                         )
 
     fig.add_trace(go.Scatter(
-                             x=np.arange(n_layers), y=stage_2_original['centroid_dist_honest'],
+                             x=np.arange(n_layers), y=stage_2_original['centroid_dist_positive'],
                              mode='lines+markers',
                              showlegend=False,
                              line=dict(color="royalblue", width=line_width)
     ), row=1, col=1)
     
     fig.add_trace(go.Scatter(
-                             x=np.arange(n_layers), y=stage_2_original['centroid_dist_lying'],
+                             x=np.arange(n_layers), y=stage_2_original['centroid_dist_negative'],
                              mode='lines+markers',
                              showlegend=False,
                              line=dict(color="firebrick", width=line_width)
     ), row=1, col=1)
     fig.add_trace(go.Scatter(
-                             x=np.arange(n_layers), y=stage_2_intervention['centroid_dist_honest'],
+                             x=np.arange(n_layers), y=stage_2_intervention['centroid_dist_positive'],
                              mode='lines+markers',
                              showlegend=False,
                              line=dict(color="royalblue", width=line_width, dash='dot')
     ), row=1, col=1)
     fig.add_trace(go.Scatter(
-                             x=np.arange(n_layers), y=stage_2_intervention['centroid_dist_lying'],
+                             x=np.arange(n_layers), y=stage_2_intervention['centroid_dist_negative'],
                              mode='lines+markers',
                              showlegend=False,
                              line=dict(color="firebrick", width=line_width, dash='dot')
@@ -493,25 +494,25 @@ def plot_stage_2_stats_original_intervention(cfg, stage_2_original, stage_2_inte
  
     # PCA
     fig.add_trace(go.Scatter(
-                             x=np.arange(n_layers), y=stage_2_original['centroid_dist_honest_pca'],
+                             x=np.arange(n_layers), y=stage_2_original['centroid_dist_positive_pca'],
                              mode='lines+markers',
                              name="Original_honest",
                              line=dict(color="royalblue", width=line_width)
     ), row=2, col=1)
     fig.add_trace(go.Scatter(
-                             x=np.arange(n_layers), y=stage_2_original['centroid_dist_lying_pca'],
+                             x=np.arange(n_layers), y=stage_2_original['centroid_dist_negative_pca'],
                              mode='lines+markers',
                              name="Original_lying",
                              line=dict(color="firebrick", width=line_width)
     ), row=2, col=1)
     fig.add_trace(go.Scatter(
-                             x=np.arange(n_layers), y=stage_2_intervention['centroid_dist_honest_pca'],
+                             x=np.arange(n_layers), y=stage_2_intervention['centroid_dist_positive_pca'],
                              mode='lines+markers',
                              name="Intervention_honest",
                              line=dict(color="royalblue", width=line_width, dash='dot')
     ), row=2, col=1)
     fig.add_trace(go.Scatter(
-                             x=np.arange(n_layers), y=stage_2_intervention['centroid_dist_lying_pca'],
+                             x=np.arange(n_layers), y=stage_2_intervention['centroid_dist_negative_pca'],
                              mode='lines+markers',
                              name="Intervention_lying",
                              line=dict(color="firebrick", width=line_width, dash='dot')

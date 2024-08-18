@@ -136,6 +136,35 @@ def get_generation_cache_activation_input_pre_hook(cache,
     return hook_fn
 
 
+def get_and_cache_direction_projection_output_hook(mean_diff: Tensor,
+                                                    cache: Float[Tensor, "batch layer d_model"],
+                                                    layer:int,
+                                                    positions: List[int],
+                                                    batch_id:int,
+                                                    batch_size:int,
+                                                    target_layer,
+                                                    len_prompt=1):
+
+    def hook_fn(module, input, output):
+        nonlocal cache, layer, positions, batch_id, batch_size, len_prompt
+
+        if isinstance(output, tuple):
+            activation: Float[Tensor, "batch_size seq_len d_model"] = output[0]
+        else:
+            activation: Float[Tensor, "batch_size seq_len d_model"] = output
+
+        direction = mean_diff / (mean_diff.norm(dim=-1, keepdim=True) + 1e-8)
+        direction = direction.to(activation)
+        activation = (activation @ direction).unsqueeze(-1) * direction
+
+        # only cache the last token of the prompt not the generated answer
+        if activation.shape[1] == len_prompt:
+                cache[batch_id:batch_id+batch_size, layer, :] = torch.squeeze(activation[:, positions, :], 1)
+
+        if isinstance(output, tuple):
+            return (activation, *output[1:])
+        else:
+            return activation
 
 
 def get_generation_cache_activation_post_hook(cache,

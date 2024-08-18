@@ -27,7 +27,7 @@ class Config:
     n_eval: int = 50
     data_category: str = "facts"
     batch_size: int = 1
-    max_new_tokens: int = 100
+    max_new_tokens: int = 200
     intervention: str = "no_intervention"
     evaluation_datasets: Tuple[str] = ("jailbreakbench", "harmless")
     # evaluation_datasets: Tuple[str] = ("jailbreakbench",)

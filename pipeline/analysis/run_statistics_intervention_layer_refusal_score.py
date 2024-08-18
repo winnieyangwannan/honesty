@@ -52,14 +52,14 @@ def get_accuracy_statistics(cfg, model_base):
     for layer in source_layers:
         if "skip_connection" in intervention:
             filename_positive = artifact_path + os.sep + intervention + os.sep + 'performance' + os.sep + \
-                                'harmful' + '_refusal_score_' + contrastive_label[0] + \
+                                'harmless' + '_refusal_score_' + contrastive_label[1] + \
                                 '_layer_' + str(0) + '_' + str(layer) + '_' + str(layer+1) + '.pkl'
             filename_negative = artifact_path + os.sep + intervention + os.sep + 'performance' + os.sep + \
                                 'harmful' + '_refusal_score_' + contrastive_label[1] + \
                                 '_layer_' + str(0) + '_' + str(layer) + '_' + str(layer+1) + '.pkl'
         elif "addition" in intervention or "ablation" in intervention:
             filename_positive = artifact_path + os.sep + intervention + os.sep + 'performance' + os.sep + \
-                       'harmful' + '_refusal_score_' + contrastive_label[0] +\
+                       'harmless' + '_refusal_score_' + contrastive_label[1] +\
                        '_layer_' + str(layer) + '_' + str(layer) + '_None' + '.pkl'
             filename_negative = artifact_path + os.sep + intervention + os.sep + 'performance' + os.sep + \
                        'harmful' + '_refusal_score_' + contrastive_label[1] +\
@@ -84,7 +84,7 @@ def get_accuracy_statistics(cfg, model_base):
                                 color='dodgerblue')
                              ))
     fig.add_trace(go.Scatter(x=source_layers, y=score_positive,
-                             name='Default',
+                             name='Harmless',
                              mode='lines+markers',
                              marker=dict(
                                  color='gold')

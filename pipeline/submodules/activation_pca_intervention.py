@@ -25,6 +25,7 @@ import pickle
 import json
 from pipeline.analysis.stage_statistics import get_state_quantification
 from pipeline.submodules.evaluate_jailbreak import evaluate_completions_and_save_results_for_dataset
+from pipeline.utils.hook_utils import get_and_cache_direction_projection_output_hook
 
 
 def plot_contrastive_activation_intervention_pca(activations_positive,
@@ -335,6 +336,20 @@ def get_intervention_activations_and_generation(cfg, model_base, dataset,
     for i in tqdm(range(0, len(dataset), batch_size)):
         inputs = tokenize_fn(prompts=dataset[i:i+batch_size], system_type=system_type)
         len_inputs = inputs.input_ids.shape[1]
+        if 'positive_projection' in intervention:
+            fwd_pre_hooks = []
+            fwd_hooks = [(block_modules[layer],
+                          get_and_cache_direction_projection_output_hook(
+                              mean_diff=mean_diff,
+                              cache=activations,
+                              layer=layer,
+                              positions=positions,
+                              batch_id=i,
+                              batch_size=batch_size,
+                              target_layer=target_layer,
+                              len_prompt=len_inputs
+                          ),
+                          ) for layer in range(n_layers)]
 
         if 'direction_ablation' in intervention:
             fwd_pre_hooks = []

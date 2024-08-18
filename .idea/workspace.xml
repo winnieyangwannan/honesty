@@ -5,14 +5,21 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="53de5df3-4a9d-4612-9ea8-208ac77ab608" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/pipeline/plot/plot_layer_pca_jailbreaks.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pipeline/analysis/new_file.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pipeline/analysis/run_stage_statistics_jailbreak.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pipeline/plot/run_plot_contrastive_activation_jailbreaks_all.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pipeline/plot/run_plot_jailbreak_performance_all.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/blog/blog1_plot_pca_layer_with_centroid_vector.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/blog/blog1_plot_pca_layer_with_centroid_vector.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pipeline/analysis/run_evaluate_jailbreak_generation.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/analysis/run_evaluate_jailbreak_generation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pipeline/analysis/run_statistics_intervention_layer_refusal_score.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/analysis/run_statistics_intervention_layer_refusal_score.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pipeline/analysis/stage_statistics.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/analysis/stage_statistics.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pipeline/jailbreak_config_generation.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/jailbreak_config_generation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/plot/checkout_one_layer.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/plot/plot_some_layer_pca.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/plot/run_plot_pca_layers.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/plot/run_plot_pca_layers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_performance_correct_wrong.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_performance_correct_wrong.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_jailbreak_generation.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_jailbreak_generation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pipeline/plot/plot_layer_pca_jailbreaks.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/plot/plot_layer_pca_jailbreaks.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pipeline/plot/plot_some_layer_pca.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/plot/plot_some_layer_pca.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_jailbreak_generation_intervention.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_jailbreak_generation_intervention.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pipeline/submodules/activation_pca_intervention.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/submodules/activation_pca_intervention.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pipeline/submodules/evaluate_jailbreak.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/submodules/evaluate_jailbreak.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pipeline/utils/hook_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/utils/hook_utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -63,7 +70,7 @@
     <property name="WebServerToolWindowPanel.toolwindow.show.date" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/pipeline/analysis" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/pipeline/plot" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
@@ -72,11 +79,11 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\Code\honesty\pipeline\plot" />
       <recent name="D:\Code\honesty\pipeline\analysis" />
       <recent name="D:\Code\honesty\pipeline\model_utils\old" />
       <recent name="D:\Code\honesty\pipeline" />
       <recent name="D:\Code\honesty\pipeline\blog" />
-      <recent name="D:\Code\honesty" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="D:\Code\honesty\pipeline\plot" />
@@ -86,7 +93,7 @@
       <recent name="D:\Code\honesty\pipeline\analysis" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.run_pipeline_jailbreak_generation">
+  <component name="RunManager" selected="Python.run_statistics_intervention_layer_refusal_score">
     <configuration name="blog1_plot_pca_layer_with_centroid_vector" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="honesty" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -145,7 +152,7 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pipeline/analysis/run_evaluate_jailbreak_generation.py" />
-      <option name="PARAMETERS" value="" />
+      <option name="PARAMETERS" value="--contrastive_type HHH poem --model_path google/gemma-2-9b-it" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -351,6 +358,50 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="run_plot_contrastive_activation_jailbreaks_all" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="honesty" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Users\a\anaconda3\envs\llmtt\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pipeline/plot/run_plot_contrastive_activation_jailbreaks_all.py" />
+      <option name="PARAMETERS" value="--contrastive_type evil_confidant --model_path google/gemma-2-9b-it --layer_plot 41" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="run_plot_jailbreak_performance_all" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="honesty" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Users\a\anaconda3\envs\llmtt\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pipeline/plot/run_plot_jailbreak_performance_all.py" />
+      <option name="PARAMETERS" value="--contrastive_type refusal_suppression poem style_injection_short distractors --model_path google/gemma-2-9b-it" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="run_plot_pca_layers" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="honesty" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -366,6 +417,28 @@
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pipeline/plot/run_plot_pca_layers.py" />
       <option name="PARAMETERS" value="--model_path meta-llama/Llama-2-7b-chat-hf --save_path D:\Data\honesty --layer_plot 5 6 7 8" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="run_stage_statistics_jailbreak" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="honesty" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Users\a\anaconda3\envs\llmtt\python.exe" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pipeline/analysis/run_stage_statistics_jailbreak.py" />
+      <option name="PARAMETERS" value="--contrastive_type HHH evil_confidant --model_path google/gemma-2-9b-it" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -453,7 +526,7 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pipeline/analysis/run_statistics_intervention_layer_refusal_score.py" />
-      <option name="PARAMETERS" value="--model_path google/gemma-2-2b-it --save_path D:\Data\jailbreak --intervention skip_connection_attn" />
+      <option name="PARAMETERS" value="--model_path google/gemma-2-2b-it --save_path D:\Data\jailbreak --intervention positive_addition" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -461,7 +534,28 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="Doctests in " type="tests" factoryName="Doctests" nameIsGenerated="true">
+      <module name="honesty" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="C:\Users\a\anaconda3\envs\llmtt\python.exe" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_SCRIPT" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <method v="2" />
+    </configuration>
     <list>
+      <item itemvalue="Python.run_plot_contrastive_activation_jailbreaks_all" />
+      <item itemvalue="Python.run_plot_jailbreak_performance_all" />
       <item itemvalue="Python.run_plot_pca_layers" />
       <item itemvalue="Python.run_pipeline_filter_data" />
       <item itemvalue="Python.run_statistics_honest_addition" />
@@ -475,10 +569,12 @@
       <item itemvalue="Python.run_pipeline_honesty_performance" />
       <item itemvalue="Python.run_pipeline_honesty_stage" />
       <item itemvalue="Python.run_statistics_intervention_layer_accuracy" />
+      <item itemvalue="Python.run_stage_statistics_jailbreak" />
       <item itemvalue="Python.run_statistics_intervention_layer_refusal_score" />
       <item itemvalue="Python.honest_performance_cosine_all_models" />
       <item itemvalue="Python.run_evaluate_jailbreak_intervention" />
       <item itemvalue="Python.run_evaluate_jailbreak_generation" />
+      <item itemvalue="Python tests.Doctests in " />
     </list>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
@@ -497,7 +593,7 @@
       <workItem from="1722963951936" duration="61267000" />
       <workItem from="1723263166813" duration="27623000" />
       <workItem from="1723583174476" duration="92517000" />
-      <workItem from="1723840743178" duration="20265000" />
+      <workItem from="1723840743178" duration="69379000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit, copy from model_steering">
       <created>1720826847520</created>
@@ -646,7 +742,14 @@
       <option name="project" value="LOCAL" />
       <updated>1723862701839</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="add different jailbreaks">
+      <created>1723864387902</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1723864387902</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -683,7 +786,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pipeline/utils/hook_utils.py</url>
-          <line>567</line>
+          <line>596</line>
           <option name="timeStamp" value="99" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -703,7 +806,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pipeline/submodules/activation_pca_intervention.py</url>
-          <line>476</line>
+          <line>491</line>
           <option name="timeStamp" value="150" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -718,17 +821,17 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pipeline/submodules/activation_pca_intervention.py</url>
-          <line>420</line>
+          <line>435</line>
           <option name="timeStamp" value="225" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pipeline/utils/hook_utils.py</url>
-          <line>176</line>
+          <line>205</line>
           <option name="timeStamp" value="226" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pipeline/utils/hook_utils.py</url>
-          <line>339</line>
+          <line>368</line>
           <option name="timeStamp" value="231" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -798,7 +901,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pipeline/utils/hook_utils.py</url>
-          <line>315</line>
+          <line>344</line>
           <option name="timeStamp" value="552" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -823,7 +926,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pipeline/submodules/evaluate_jailbreak.py</url>
-          <line>166</line>
+          <line>171</line>
           <option name="timeStamp" value="609" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -838,7 +941,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pipeline/analysis/stage_statistics.py</url>
-          <line>455</line>
+          <line>456</line>
           <option name="timeStamp" value="638" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -888,12 +991,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pipeline/submodules/activation_pca_intervention.py</url>
-          <line>774</line>
+          <line>789</line>
           <option name="timeStamp" value="793" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pipeline/submodules/evaluate_jailbreak.py</url>
-          <line>193</line>
+          <line>198</line>
           <option name="timeStamp" value="806" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -903,12 +1006,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pipeline/submodules/activation_pca_intervention.py</url>
-          <line>447</line>
+          <line>462</line>
           <option name="timeStamp" value="827" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pipeline/run_pipeline_jailbreak_generation_intervention.py</url>
-          <line>143</line>
+          <line>147</line>
           <option name="timeStamp" value="828" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -941,6 +1044,36 @@
           <line>206</line>
           <option name="timeStamp" value="837" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pipeline/analysis/stage_statistics.py</url>
+          <line>377</line>
+          <option name="timeStamp" value="883" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pipeline/analysis/stage_statistics.py</url>
+          <line>382</line>
+          <option name="timeStamp" value="884" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pipeline/analysis/stage_statistics.py</url>
+          <line>371</line>
+          <option name="timeStamp" value="885" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pipeline/submodules/evaluate_jailbreak.py</url>
+          <line>317</line>
+          <option name="timeStamp" value="962" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pipeline/submodules/activation_pca_intervention.py</url>
+          <line>340</line>
+          <option name="timeStamp" value="965" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pipeline/utils/hook_utils.py</url>
+          <line>157</line>
+          <option name="timeStamp" value="966" />
+        </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
         <breakpoint type="python-exception">
@@ -958,26 +1091,29 @@
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/honesty$run_statistics_honest_addition.coverage" NAME="run_statistics_honest_addition Coverage Results" MODIFIED="1721697489148" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/honesty$run_statistics_intervention_layer_accuracy.coverage" NAME="run_statistics_intervention_layer_accuracy Coverage Results" MODIFIED="1723350939634" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_generation.coverage" NAME="run_pipeline_honesty_generation Coverage Results" MODIFIED="1723670386727" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_generation_skip_connection.coverage" NAME="run_pipeline_honesty_generation_intervention Coverage Results" MODIFIED="1721961234434" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_generation_honest_addition.coverage" NAME="run_pipeline_honesty_generation Coverage Results" MODIFIED="1722630880726" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/honesty$run_evaluate_jailbreak.coverage" NAME="run_evaluate_jailbreak_generation Coverage Results" MODIFIED="1723863048458" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
     <SUITE FILE_PATH="coverage/honesty$run_statistics_honest.coverage" NAME="run_statistics_accuracy_change Coverage Results" MODIFIED="1721371080514" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$blog1_plot_pca_layer_with_centroid_vector.coverage" NAME="blog1_plot_pca_layer_with_centroid_vector Coverage Results" MODIFIED="1721545072305" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_plot_pca_layers.coverage" NAME="run_plot_pca_layers Coverage Results" MODIFIED="1723699011530" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_generation_correct_wrong.coverage" NAME="run_pipeline_honesty_generation_correct_wrong Coverage Results" MODIFIED="1722303088066" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_statistics_skip_coonection.coverage" NAME="run_statistics_intervention_layer_accuracy Coverage Results" MODIFIED="1721854237689" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/honesty$run_stage_statistics_jailbreak.coverage" NAME="run_stage_statistics_jailbreak Coverage Results" MODIFIED="1723945223515" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/honesty$filter_data.coverage" NAME="run_pipeline_filter_data Coverage Results" MODIFIED="1722636142481" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/honesty$run_pipeline_filter_data.coverage" NAME="run_pipeline_filter_data Coverage Results" MODIFIED="1722807448618" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/honesty$run_statistics_intervention_layer_accuracy.coverage" NAME="run_statistics_intervention_layer_accuracy Coverage Results" MODIFIED="1723350939634" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/honesty$plot_layer_pca_jailbreaks.coverage" NAME="run_plot_contrastive_activation_jailbreaks_all Coverage Results" MODIFIED="1723876003914" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_generation_skip_connection.coverage" NAME="run_pipeline_honesty_generation_intervention Coverage Results" MODIFIED="1721961234434" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/honesty$run_evaluate_jailbreak.coverage" NAME="run_evaluate_jailbreak_generation Coverage Results" MODIFIED="1723957660251" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_generation_correct_wrong.coverage" NAME="run_pipeline_honesty_generation_correct_wrong Coverage Results" MODIFIED="1722303088066" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_stage.coverage" NAME="run_pipeline_honesty_stage Coverage Results" MODIFIED="1722119145371" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_pipeline_jailbreak_generation.coverage" NAME="run_pipeline_jailbreak_generation Coverage Results" MODIFIED="1723863086647" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$test_pythia.coverage" NAME="test_pythia Coverage Results" MODIFIED="1722636121405" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_performance.coverage" NAME="run_pipeline_honesty_performance Coverage Results" MODIFIED="1722623202918" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_pipeline_jailbreak_contrastive_SAE.coverage" NAME="run_pipeline_jailbreak_contrastive_SAE Coverage Results" MODIFIED="1723774670819" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$honest_performance_cosine_all_models.coverage" NAME="honest_performance_cosine_all_models Coverage Results" MODIFIED="1723670670917" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/honesty$filter_data.coverage" NAME="run_pipeline_filter_data Coverage Results" MODIFIED="1722636142481" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/honesty$run_plot_jailbreak_performance_all.coverage" NAME="run_plot_jailbreak_performance_all Coverage Results" MODIFIED="1723961803401" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/" />
     <SUITE FILE_PATH="coverage/honesty$run_pipeline_jailbreak_generation_intervention.coverage" NAME="run_pipeline_jailbreak_generation_intervention Coverage Results" MODIFIED="1723665636189" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/honesty$run_statistics_intervention_layer_refusal_score.coverage" NAME="run_statistics_intervention_layer_refusal_score Coverage Results" MODIFIED="1723682429313" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/honesty$run_pipeline_filter_data.coverage" NAME="run_pipeline_filter_data Coverage Results" MODIFIED="1722807448618" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/honesty$run_statistics_intervention_layer_refusal_score.coverage" NAME="run_statistics_intervention_layer_refusal_score Coverage Results" MODIFIED="1723989986054" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_generation_intervention.coverage" NAME="run_pipeline_honesty_generation_intervention Coverage Results" MODIFIED="1723354812737" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

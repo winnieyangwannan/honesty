@@ -127,7 +127,7 @@ def contrastive_extraction_generation_intervention_and_plot_pca(cfg, model_base,
     activations_negative = results['activations_negative']
     stage_stats_original = results['stage_stats']
     print("done extraction")
-    
+
     # 2. get steering vector = get mean difference of the source layer
     if intervention != "no_intervention":
         mean_activation_positive = activations_positive.mean(dim=0)
@@ -139,6 +139,10 @@ def contrastive_extraction_generation_intervention_and_plot_pca(cfg, model_base,
             mean_diff = mean_activation_negative - mean_activation_positive
         elif "skip_connection_mlp" or "skip_connection_attn" in intervention:
             mean_diff = 0.000001*torch.ones_like(mean_activation_positive) # 0 ablation
+        elif "positive_projection":
+            activations_positive = activations_positive[:cfg.n_train] - activations_positive[cfg.n_train:]
+            activations_negative = activations_negative[:cfg.n_train] - activations_negative[cfg.n_train:]
+            mean_diff = activations_positive - activations_negative
 
         # 3.1  generate with adding steering vector and get activations
         intervention_results = generate_with_intervention_contrastive_activations_pca(cfg,

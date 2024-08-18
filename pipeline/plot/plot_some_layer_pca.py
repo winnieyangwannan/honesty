@@ -249,7 +249,7 @@ def plot_one_layer_3d(activations_1, activations_2,
     df['label'] = labels_all
     df['pca0'] = activations_pca_all[:, 0]
     df['pca1'] = activations_pca_all[:, 1]
-    df['pca2'] = activations_pca_all[:, 1]
+    df['pca2'] = activations_pca_all[:, 2]
     df['label_text'] = label_text
     fig.add_trace(
         go.Scatter3d(x=df['pca0'][:n_contrastive_data],
@@ -266,29 +266,10 @@ def plot_one_layer_3d(activations_1, activations_2,
                          colorbar=dict(
                              title="probability"
                          ),
-
                      ),
                      text=df['label_text'][:n_contrastive_data]),
         row=1, col=1,
     )
-
-    # fig.add_trace(
-    #     go.Scatter3d(x=df['pca0'][n_contrastive_data:n_contrastive_data * 2],
-    #                  y=df['pca1'][n_contrastive_data:n_contrastive_data * 2],
-    #                  z=df['pca2'][n_contrastive_data:n_contrastive_data * 2],
-    #                  mode="markers",
-    #                  showlegend=False,
-    #                  marker=dict(
-    #                      symbol="circle",
-    #                      size=5,
-    #                      line=dict(width=1, color="DarkSlateGrey"),
-    #                      color=df['label'][n_contrastive_data:n_contrastive_data * 2],
-    #                      colorscale="Viridis",
-    #
-    #                  ),
-    #                  text=df['label_text'][n_contrastive_data:n_contrastive_data * 2]),
-    #     row=1, col=1,
-    # )
 
     fig.update_layout(height=500, width=500)
     fig.write_html(f'pca_layer_3d_layer_{layer}.html')
@@ -409,13 +390,107 @@ def plot_one_layer_with_centroid_and_vector(activations_pca_all,
         ),
         name='lying_false_centeroid',
     ))
-    fig.update_layout(height=600, width=600,
-                      title=dict(text=f"Layer {layer}", font=dict(size=30), automargin=True, yref='paper')
-                      )
+
     fig.write_html(save_path + os.sep + f'pca_centroid_layer_{layer}.html')
     pio.write_image(fig, save_path + os.sep + f'pca_centroid_layer_{layer}.png',
                     scale=6)
     pio.write_image(fig, save_path + os.sep + f'pca_centroid_layer_{layer}.pdf',
                     scale=6)
+
+    return fig
+
+
+def plot_contrastive_activation_pca_one_layer_jailbreaks(cfg,
+                                                         activations_all,
+                                                         contrastive_labels_all,
+                                                         contrastive_type,
+                                                         prompt_labels_all,
+                                                         prompt_type,
+                                                         layer_plot=10
+                                                         ):
+    print("plot")
+    n_layers = activations_all.shape[1]
+    # layers = np.arange(n_layers)
+    n_contrastive_data = cfg.n_train
+    n_contrastive_groups = int(len(activations_all)/n_contrastive_data/2)
+    colors = ['yellow', 'red', 'blue']
+
+    label_text = []
+    for ii in range(len(activations_all)):
+        if int(prompt_labels_all[ii]) == 0:
+             label_text = np.append(label_text, f'{contrastive_labels_all[ii]}_{prompt_type[0]}')
+        if int(prompt_labels_all[ii]) == 1:
+             label_text = np.append(label_text, f'{contrastive_labels_all[ii]}_{prompt_type[1]}')
+
+    cols = 4
+    # rows = math.ceil(n_layers/cols)
+    fig = make_subplots(rows=1, cols=1,
+                        subplot_titles=[f"layer {layer_plot}"])
+
+    pca = PCA(n_components=3)
+
+    # print(f'layer{layer}')
+    activations_pca = pca.fit_transform(activations_all[:, layer_plot, :].cpu())
+    df = {}
+    df['label'] = contrastive_labels_all
+    df['pca0'] = activations_pca[:, 0]
+    df['pca1'] = activations_pca[:, 1]
+    df['pca2'] = activations_pca[:, 2]
+    df['label_text'] = label_text
+
+    for ii in range(n_contrastive_groups):
+        fig.add_trace(
+            go.Scatter(x=df['pca0'][ii*n_contrastive_data*2:ii*n_contrastive_data*2+n_contrastive_data],
+                       y=df['pca1'][ii*n_contrastive_data*2:ii*n_contrastive_data*2+n_contrastive_data],
+                         # z=df['pca2'][:n_contrastive_data],
+                         mode="markers",
+                         showlegend=False,
+                         marker=dict(
+                         symbol="star",
+                         size=8,
+                         line=dict(width=1, color="DarkSlateGrey"),
+                         color=colors[ii]
+                         ),
+                       text=df['label_text'][ii*n_contrastive_data*2:ii*n_contrastive_data*2+n_contrastive_data]),
+            row=1, col=1)
+
+        fig.add_trace(
+            go.Scatter(x=df['pca0'][ii*n_contrastive_data*2+n_contrastive_data:(ii+1)*n_contrastive_data*2],
+                       y=df['pca1'][ii*n_contrastive_data*2+n_contrastive_data:(ii+1)*n_contrastive_data*2],
+                       # z=df['pca2'][:n_contrastive_data],
+                       mode="markers",
+                       showlegend=False,
+                       marker=dict(
+                           symbol="circle",
+                           size=8,
+                           line=dict(width=1, color="DarkSlateGrey"),
+                           color=colors[ii],
+                       ),
+                       text=df['label_text'][ii*n_contrastive_data*2+n_contrastive_data:(ii+1)*n_contrastive_data*2]),
+            row=1, col=1)
+
+    # legend
+    for ii in range(n_contrastive_groups):
+        fig.add_trace(
+            go.Scatter(x=[None],
+                       y=[None],
+                       # z=[None],
+                       mode='markers',
+                       marker=dict(
+                           symbol="star",
+                           size=5,
+                           line=dict(width=1, color="DarkSlateGrey"),
+                           color=colors[0],
+                         ),
+                       name=f'{label_text[ii*n_contrastive_data*2]}',
+                       marker_color=colors[ii],
+                       ),
+            row=1, col=1,
+        )
+
+    fig.update_layout(height=600, width=600,
+                      title=dict(text=f"Layer {layer_plot}", font=dict(size=30), automargin=True, yref='paper')
+                      )
+    fig.show()
 
     return fig
