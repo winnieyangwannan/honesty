@@ -98,6 +98,7 @@ def run_pipeline(model_path, save_path,
             # color="RebeccaPurple"
         )
     )
+
     fig.show()
 
     # contrastive_type = list(contrastive_type)

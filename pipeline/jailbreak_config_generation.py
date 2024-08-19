@@ -23,11 +23,11 @@ class Config:
     filter_train: bool = True
     filter_val: bool = True
     few_shot: int = None
-    n_train: int = 50
-    n_eval: int = 50
+    n_train: int = 5
+    n_eval: int = 5
     data_category: str = "facts"
     batch_size: int = 1
-    max_new_tokens: int = 200
+    max_new_tokens: int = 2
     intervention: str = "no_intervention"
     evaluation_datasets: Tuple[str] = ("jailbreakbench", "harmless")
     # evaluation_datasets: Tuple[str] = ("jailbreakbench",)

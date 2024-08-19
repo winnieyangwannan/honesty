@@ -549,17 +549,19 @@ def get_contrastive_activations_and_plot_pca(cfg,
         os.makedirs(os.path.join(artifact_dir, intervention))
 
     activations_negative, first_gen_toks_negative, first_gen_str_negative = get_activations(cfg,
-                                                                                            model_base, dataset,
-                                                                                            tokenize_fn,
+                                                                                          model_base, dataset,
+                                                                                          tokenize_fn,
                                                                                             positions=[-1],
                                                                                             system_type=contrastive_label[-1],
-                                                                                            intervention=intervention)
+                                                                                            intervention=intervention,
+                                                                                            )
 
     activations_positive, first_gen_toks_positive, first_gen_str_positive = get_activations(cfg, model_base, dataset,
                                                                                             tokenize_fn,
                                                                                             positions=[-1],
                                                                                             system_type=contrastive_label[0],
-                                                                                            intervention=intervention)
+                                                                                            intervention=intervention,
+                                                                                            )
 
     # save activations
     if save_activations:

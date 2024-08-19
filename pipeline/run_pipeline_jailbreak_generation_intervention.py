@@ -24,6 +24,7 @@ def parse_arguments():
     parser.add_argument('--target_layer_s', type=int, required=False, default=14)
     parser.add_argument('--target_layer_e', type=int, required=False, default=None)
     parser.add_argument('--intervention', type=str, required=False, default="skip_connection_mlp")
+    parser.add_argument('--jailbreak_type', type=str, required=False, default='evil_confidant')
 
     return parser.parse_args()
 
@@ -78,7 +79,8 @@ def filter_data(cfg, model_base, harmful_train, harmless_train, harmful_val, har
 
 def contrastive_extraction_generation_intervention_and_plot_pca(cfg, model_base, 
                                                                 harmful_train, harmless_train, 
-                                                                harmful_val, harmless_val):
+                                                                harmful_val, harmless_val,
+                                                                jailbreak_type):
 
     model_name = cfg.model_alias
     data_category = cfg.data_category
@@ -121,8 +123,9 @@ def contrastive_extraction_generation_intervention_and_plot_pca(cfg, model_base,
                                                        labels=labels_train,
                                                        save_activations=False,
                                                        save_plot=True,
-                                                       contrastive_label=["HHH", "BREAK"],
-                                                       prompt_label=['harmless', 'harmful'])
+                                                       contrastive_label=["HHH", jailbreak_type],
+                                                       prompt_label=['harmless', 'harmful'],
+                                                       )
     activations_positive = results['activations_positive']
     activations_negative = results['activations_negative']
     stage_stats_original = results['stage_stats']
@@ -130,8 +133,8 @@ def contrastive_extraction_generation_intervention_and_plot_pca(cfg, model_base,
 
     # 2. get steering vector = get mean difference of the source layer
     if intervention != "no_intervention":
-        mean_activation_positive = activations_positive.mean(dim=0)
-        mean_activation_negative = activations_negative.mean(dim=0)
+        mean_activation_positive = activations_positive[:cfg.n_train].mean(dim=0) # only use harmful data
+        mean_activation_negative = activations_negative[:cfg.n_train].mean(dim=0)
 
         if "positive_addition" in intervention or "positive_direction_ablation" in intervention or "positive_direction_addition" in intervention:
             mean_diff = mean_activation_positive - mean_activation_negative
@@ -154,8 +157,9 @@ def contrastive_extraction_generation_intervention_and_plot_pca(cfg, model_base,
                                                                                       labels_ori=labels_train,
                                                                                       labels_int=labels_val,
                                                                                       save_activations=False,
-                                                                                      contrastive_label=["HHH", "BREAK"],
-                                                                                      categories=categories_val)
+                                                                                      contrastive_label=["HHH", jailbreak_type],
+                                                                                      categories=categories_val,
+                                                                                      )
 
         # 4.1 Compare and plot stage statistics with and without intervention
         stage_stats_intervention = intervention_results['stage_stats_intervention'] 
@@ -164,7 +168,8 @@ def contrastive_extraction_generation_intervention_and_plot_pca(cfg, model_base,
         if not os.path.exists(save_path):
             os.makedirs(save_path)
         plot_stage_quantification_original_intervention(cfg, stage_stats_original, stage_stats_intervention,
-                                                        n_layers, save_path)
+                                                        n_layers, save_path,
+                                                        jailbreak_type)
 
         # 4.2 save stage statistics with and without intervention
         stage_stats = {
@@ -173,11 +178,13 @@ def contrastive_extraction_generation_intervention_and_plot_pca(cfg, model_base,
         }
         with open(save_path + os.sep + model_name + '_' + f'{data_category}' +
                   '_stage_stats_' + intervention + '_' + str(source_layer) + '_' + str(target_layer_s) +
-                  '_' + str(target_layer_e) + '.pkl', "wb") as f:
+                  '_' + str(target_layer_e) + '_' + jailbreak_type + '.pkl', "wb") as f:
             pickle.dump(stage_stats, f)
 
 
-def run_pipeline(model_path, save_path, intervention, source_layer, target_layer_s, target_layer_e):
+def run_pipeline(model_path, save_path, intervention,
+                 source_layer, target_layer_s, target_layer_e,
+                 jailbreak_type):
     """Run the full pipeline."""
 
     # 1. Load model
@@ -185,7 +192,9 @@ def run_pipeline(model_path, save_path, intervention, source_layer, target_layer
     cfg = Config(model_alias=model_alias, model_path=model_path, save_path=save_path,
                  intervention=intervention,
                  source_layer=source_layer,
-                 target_layer_s=target_layer_s, target_layer_e=target_layer_e)
+                 target_layer_s=target_layer_s, target_layer_e=target_layer_e,
+                 jailbreak_type=jailbreak_type,
+                 )
     print(cfg)
     model_base = construct_model_base(cfg.model_path)
 
@@ -200,7 +209,10 @@ def run_pipeline(model_path, save_path, intervention, source_layer, target_layer
     #                                                                        harmless_val)
 
     # 3. Generate candidate refusal directions
-    contrastive_extraction_generation_intervention_and_plot_pca(cfg, model_base, harmful_train, harmless_train, harmful_val, harmless_val)
+    contrastive_extraction_generation_intervention_and_plot_pca(cfg, model_base,
+                                                                harmful_train, harmless_train,
+                                                                harmful_val, harmless_val,
+                                                                jailbreak_type=jailbreak_type)
 
 
 if __name__ == "__main__":
@@ -208,4 +220,5 @@ if __name__ == "__main__":
     run_pipeline(model_path=args.model_path, save_path=args.save_path,
                  intervention=args.intervention,
                  source_layer=args.source_layer,
-                 target_layer_s=args.target_layer_s, target_layer_e=args.target_layer_e)
+                 target_layer_s=args.target_layer_s, target_layer_e=args.target_layer_e,
+                 jailbreak_type=args.jailbreak_type)

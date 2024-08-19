@@ -1,6 +1,5 @@
 import os
 import argparse
-from pipeline.honesty_config_generation_intervention import Config
 from pipeline.model_utils.model_factory import construct_model_base
 import pickle
 import csv
@@ -8,6 +7,7 @@ import math
 from tqdm import tqdm
 from pipeline.utils.hook_utils import add_hooks
 from pipeline.model_utils.model_base import ModelBase
+from sklearn.metrics.pairwise import pairwise_distances
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -30,6 +30,22 @@ from scipy import stats
 
 
 # 0. Perform PCA layer by layer
+
+def get_pca_layer_by_layer_dunn(activations_all,
+                                n_components=3):
+    n_layers = activations_all.shape[2]
+    n_samples = activations_all.shape[1]
+    n_contrastive_group = activations_all.shape[0]
+    pca = PCA(n_components=n_components)
+
+    activations_pca = np.zeros((n_contrastive_group, n_samples, n_layers, n_components))
+    for group in range(n_contrastive_group):
+        for layer in range(n_layers):
+            activations_pca[group, :, layer, :] = pca.fit_transform(activations_all[group, :, layer, :].cpu().numpy())
+
+    return activations_pca
+
+
 def get_pca_layer_by_layer(activations_positive, activations_negative, n_layers,
                            n_components=3, save_plot=True):
     n_samples = activations_positive.shape[0]
@@ -42,9 +58,9 @@ def get_pca_layer_by_layer(activations_positive, activations_negative, n_layers,
     return activations_pca
 
 
-# 1. Stage 1: Separation between Honest and Lying (or harmful and harmless)
-# Measurement: The distance between a pair of honest and lying prompt
-# Future: Measure the within group (lying and honest) vs across group distance
+# 1. Stage 1: Separation between positive and negative (or harmful and harmless)
+# Measurement: The distance between a pair of positive and negative prompt
+# Future: Measure the within group (negative and positive) vs across group distance
 def get_distance_pair_contrastive(activations_all, activations_pca, n_layers, save_path,
                                    contrastive_label=['HHH', 'evil_confidant'], save_plot=True):
     n_samples = int(activations_all.shape[0] / 2)
@@ -141,8 +157,217 @@ def get_distance_pair_contrastive(activations_all, activations_pca, n_layers, sa
 
 # 2. Stage 2:  Separation between True and False
 # Measurement: the distance between centroid between centroids of true and false
-def get_dist_centroid_true_false(activations_all, activations_pca, labels, n_layers, save_path,
-                                 contrastive_label=['HHH', 'evil_confidant'], save_plot=True):
+def get_intra_cluster_distance(cluster_1, cluster_2):
+
+    """
+    intra_cluster_distance measures the compactness or cohesion of data points within a cluster.
+    The smaller the intra-cluster distance, the more similar and tightly packed the data points are within the cluster.
+
+    input:
+        cluster_1 [n_data, d_data]
+        cluster_2 [n_data, d_data]
+    output:
+        cluster_1 [n_data, n_data]
+        cluster_2 [n_data, n_data]
+    """
+
+    distance_intra_1 = pairwise_distances(cluster_1, metric='euclidean')
+    distance_intra_2 = pairwise_distances(cluster_2, metric='euclidean')
+    # distance_intra_1 = np.tril(distance_intra_1, k=-1)
+    # distance_intra_2 = np.tril(distance_intra_2, k=-1)
+
+    return distance_intra_1, distance_intra_2
+
+
+def intra_cluster_distance_high_pca(activations_all, activations_pca):
+    """
+    measures the separation or dissimilarity between clusters.
+    The larger the inter-cluster distance, the more distinct and well-separated the clusters are from each other.
+    """
+    activations_all_1 = activations_all[0]
+    activations_all_2 = activations_all[1]
+
+    activations_pca_1 = activations_pca[0]
+    activations_pca_2 = activations_pca[1]
+
+    distance_intra_cluster_1, distance_intra_cluster_2 = get_intra_cluster_distance(activations_all_1,
+                                                                                    activations_all_2)
+    distance_intra_cluster_1_pca, distance_intra_cluster_2_pca = get_intra_cluster_distance(activations_pca_1,
+                                                                                            activations_pca_2)
+    distance_intra = np.stack((distance_intra_cluster_1, distance_intra_cluster_2), axis=0)
+    distance_intra_pca = np.stack((distance_intra_cluster_1_pca, distance_intra_cluster_2_pca), axis=0)
+
+    return distance_intra, distance_intra_pca
+
+
+def get_inter_cluster_distance(cluster_1, cluster_2):
+    n_data = cluster_1.shape[0]
+    cluster_all = np.concatenate((cluster_1, cluster_2), axis=0)
+    distance_all = pairwise_distances(cluster_all, metric='euclidean')
+    distance_inter_cluster = distance_all[n_data:, :n_data]
+
+    return distance_inter_cluster
+
+
+def inter_cluster_distance_high_pca(activations_all, activations_pca):
+    activations_all_1 = activations_all[0]
+    activations_all_2 = activations_all[1]
+
+    activations_pca_1 = activations_pca[0]
+    activations_pca_2 = activations_pca[1]
+
+    distance_inter_cluster = get_inter_cluster_distance(activations_all_1, activations_all_2)
+    distance_inter_cluster_pca = get_inter_cluster_distance(activations_pca_1, activations_pca_2)
+
+    return distance_inter_cluster, distance_inter_cluster_pca
+
+
+def get_dunn_index(distance_intra_cluster, distance_inter_cluster):
+    """
+    Index = min_intercluster_distance / max_intracluster_distance
+    see nice explanation here: https://medium.com/@Suraj_Yadav/understanding-intra-cluster-distance-inter-cluster-distance-and-dun-index-a-comprehensive-guide-a8de726f5769 )
+
+    min_intercluster_distance: The minimum distance between any pair of data points from different clusters.
+    max_intracluster_distance: The maximum distance between any pair of data points within the same cluster.
+    the Dunn Index compares the smallest distance between two clusters with the largest distance within a cluster. A higher Dunn Index value indicates a better clustering solution with more distinct and well-separated clusters.
+
+    """
+    # distance_intra_cluster_norm = MinMaxScaler().fit_transform(distance_intra_cluster.reshape(-1, 1))
+    # distance_inter_cluster_norm = MinMaxScaler().fit_transform(distance_inter_cluster.reshape(-1, 1))
+
+    # distance_intra_cluster_norm = stats.zscore(distance_intra_cluster, axis=None)
+    # distance_inter_cluster_norm = stats.zscore(distance_inter_cluster, axis=None)
+
+    max_intracluster_distance = np.mean(distance_intra_cluster)
+    min_intercluster_distance = np.mean(distance_inter_cluster)
+
+    # max_intracluster_distance = np.max(distance_intra_cluster)
+    # min_intercluster_distance = np.min(distance_inter_cluster)
+    index = min_intercluster_distance/max_intracluster_distance
+    return index
+
+
+def dunn_index_contrastive(distance_intra_cluster, distance_intra_cluster_pca,
+                           distance_inter_cluster, distance_inter_cluster_pca):
+
+    dunn_index = get_dunn_index(distance_intra_cluster, distance_inter_cluster)
+    dunn_index_pca = get_dunn_index(distance_intra_cluster_pca, distance_inter_cluster_pca)
+
+    return dunn_index, dunn_index_pca
+
+
+def plot_stage_2_dunn(dunn_index_all, dunn_index_pca, contrastive_type):
+    n_layers = dunn_index_all.shape[1]
+    line_width = 2
+    marker_size = 4
+    fig = make_subplots(rows=1, cols=2,
+                        subplot_titles=('Original High Dimensional Space', 'PCA',
+                                       )
+                        )
+    fig.add_trace(go.Scatter(
+        x=np.arange(n_layers), y=np.mean(dunn_index_all[0], axis=1),
+        mode='lines+markers',
+        name=contrastive_type[0],
+        showlegend=False,
+        marker=dict(size=marker_size),
+        line=dict(color="royalblue", width=line_width)
+    ), row=1, col=1)
+    fig.add_trace(go.Scatter(
+        x=np.arange(n_layers), y=np.mean(dunn_index_all[1], axis=1),
+        mode='lines+markers',
+        name=contrastive_type[1],
+        showlegend=False,
+        marker=dict(size=marker_size),
+        line=dict(color="firebrick", width=line_width)
+    ), row=1, col=1)
+
+    fig.add_trace(go.Scatter(
+        x=np.arange(n_layers), y=np.mean(dunn_index_pca[0], axis=1),
+        mode='lines+markers',
+        name=contrastive_type[0],
+        showlegend=False,
+        marker=dict(size=marker_size),
+        line=dict(color="royalblue", width=line_width)
+    ), row=1, col=2)
+    fig.add_trace(go.Scatter(
+        x=np.arange(n_layers), y=np.mean(dunn_index_pca[1], axis=1),
+        mode='lines+markers',
+        name=contrastive_type[1],
+        showlegend=False,
+        marker=dict(size=marker_size),
+        line=dict(color="firebrick", width=line_width)
+    ), row=1, col=2)
+    fig.show()
+
+    return fig
+
+
+def stage_2_get_distance_contrastive_dunn_index(activations_all, activations_all_pca,
+                                                labels_all,
+                                                contrastive_type, save_path
+                                                 ):
+    activations_all = activations_all.cpu().numpy()
+    n_data = int(activations_all[0].shape[0]/2)
+    n_layers = activations_all.shape[2]
+
+    dunn_index_all = np.zeros((2, n_layers, 1))
+    dunn_index_pca_all = np.zeros((2, n_layers, 1))
+    for ii in range(2):
+        # first half of data
+        activations_positive = activations_all[ii][:n_data, :, :]
+        activations_positive_pca = activations_all_pca[ii][:n_data, :, :]
+        labels_positive = labels_all[ii][:n_data]
+        # second half of data
+        activations_negative = activations_all[ii][n_data:, :, :]
+        activations_negative_pca = activations_all_pca[ii][n_data:, :, :]
+        labels_negative = labels_all[ii][n_data:]
+        # concatenate two contrastive group
+        activations = np.stack((activations_positive, activations_negative))
+        activations_pca = np.stack((activations_positive_pca, activations_negative_pca))
+        labels = np.stack((labels_positive, labels_negative))
+
+
+        dist_all = np.zeros((n_layers, 2*n_data, 2*n_data))
+        dist_all_pca = np.zeros((n_layers, 2*n_data, 2*n_data))
+        for layer in range(n_layers):
+            # dist = pairwise_distances(activations[:, layer, :])
+            # dist_pca = pairwise_distances(activations_pca[:, layer, :])
+            # dist_all[layer] = dist
+            # dist_all_pca[layer] = dist_pca
+
+            # step 1: get intra-cluster distance (within one contrastive cluster)
+            distance_intra_cluster, distance_intra_cluster_pca = intra_cluster_distance_high_pca(activations[:, :, layer, :],
+                                                                                                 activations_pca[:, :, layer, :])
+
+            # step 2: get inter-cluster distance (between contrastive clusters)
+            distance_inter_cluster, distance_inter_cluster_pca = inter_cluster_distance_high_pca(activations_all[:, :, layer, :],
+                                                                                                 activations_pca[:, :, layer, :])
+
+            # step 3: calculate Dunn-index (see a nice explanation here: https://medium.com/@Suraj_Yadav/understanding-intra-cluster-distance-inter-cluster-distance-and-dun-index-a-comprehensive-guide-a8de726f5769 )
+            dunn_index, dunn_index_pca = dunn_index_contrastive(distance_intra_cluster, distance_intra_cluster_pca,
+                                                                distance_inter_cluster, distance_inter_cluster_pca)
+            dunn_index_all[ii, layer] = dunn_index
+            dunn_index_pca_all[ii, layer] = dunn_index_pca
+
+    fig = plot_stage_2_dunn(dunn_index_all, dunn_index_pca_all, contrastive_type=contrastive_type)
+    fig.write_html(save_path + os.sep + 'stage_2_dunn_index_' +
+                   f'_{contrastive_type[0]}_{contrastive_type[1]}' + '.html')
+    pio.write_image(fig, save_path + os.sep + 'stage_2_dunn_index_' +
+                    f'_{contrastive_type[0]}_{contrastive_type[1]}' + '.png',
+                    scale=6)
+
+    stage_2_dunn = {
+        'dunn_index_all': dunn_index_all,
+        'dunn_index_pca_all': dunn_index_pca_all,
+    }
+
+    return stage_2_dunn
+
+
+def get_dist_centroid_true_false(activations_all, activations_pca, labels,
+                                 n_layers, save_path,
+                                 contrastive_label=['HHH', 'evil_confidant'],
+                                 save_plot=True):
     n_samples = int(activations_all.shape[0] / 2)
     centroid_dist_positive = np.zeros((n_layers))
     centroid_dist_negative = np.zeros((n_layers))
@@ -227,44 +452,44 @@ def get_centroid_dist(arr, labels):
     return centroid_dist
 
 
-# 3. Stage 3: cosine similarity between the honest vector and lying vector
+# 3. Stage 3: cosine similarity between the positive vector and negative vector
 # Measurement:
-def get_cos_sim_honest_lying_vector(activations_all, activations_pca, labels, n_layers, save_path,
+def get_cos_sim_positive_negative_vector(activations_all, activations_pca, labels, n_layers, save_path,
                                     contrastive_label=['HHH', 'evil_confidant'], save_plot=True):
     n_samples = int(activations_all.shape[0] / 2)
     n_components = activations_pca.shape[-1]
-    cos_honest_lying = np.zeros((n_layers))
-    cos_honest_lying_pca = np.zeros((n_layers))
+    cos_positive_negative = np.zeros((n_layers))
+    cos_positive_negative_pca = np.zeros((n_layers))
     activations_positive = activations_all[:n_samples, :, :]
     activations_negative = activations_all[n_samples:, :, :]
-    centroid_lying_true_pca_all = np.zeros((n_layers, n_components))
-    centroid_lying_false_pca_all = np.zeros((n_layers, n_components))
-    centroid_lying_vector_pca_all = np.zeros((n_layers, n_components))
-    centroid_honest_true_pca_all = np.zeros((n_layers, n_components))
-    centroid_honest_false_pca_all = np.zeros((n_layers, n_components))
-    centroid_honest_vector_pca_all = np.zeros((n_layers, n_components))
+    centroid_negative_true_pca_all = np.zeros((n_layers, n_components))
+    centroid_negative_false_pca_all = np.zeros((n_layers, n_components))
+    centroid_negative_vector_pca_all = np.zeros((n_layers, n_components))
+    centroid_positive_true_pca_all = np.zeros((n_layers, n_components))
+    centroid_positive_false_pca_all = np.zeros((n_layers, n_components))
+    centroid_positive_vector_pca_all = np.zeros((n_layers, n_components))
 
     for layer in range(n_layers):
         activations_pca_positive = activations_pca[:n_samples, layer, :]
         activations_pca_negative = activations_pca[n_samples:, layer, :]
         # original high d
-        centroid_honest_true, centroid_honest_false, centroid_vector_honest = get_centroid_vector(activations_positive[:, layer, :].cpu().numpy(), labels) # [n_samples by n_samples]
-        centroid_lying_true, centroid_lying_false, centroid_vector_lying = get_centroid_vector(activations_negative[:, layer, :].cpu().numpy(), labels) # [n_samples by n_samples]
-        centroid_dir_honest = unit_vector(centroid_vector_honest)
-        centroid_dir_lying = unit_vector(centroid_vector_lying)
-        cos_honest_lying[layer] = cosine_similarity(centroid_dir_honest, centroid_dir_lying)
+        centroid_positive_true, centroid_positive_false, centroid_vector_positive = get_centroid_vector(activations_positive[:, layer, :].cpu().numpy(), labels) # [n_samples by n_samples]
+        centroid_negative_true, centroid_negative_false, centroid_vector_negative = get_centroid_vector(activations_negative[:, layer, :].cpu().numpy(), labels) # [n_samples by n_samples]
+        centroid_dir_positive = unit_vector(centroid_vector_positive)
+        centroid_dir_negative = unit_vector(centroid_vector_negative)
+        cos_positive_negative[layer] = cosine_similarity(centroid_dir_positive, centroid_dir_negative)
         # pca
-        centroid_honest_true, centroid_honest_false, centroid_vector_honest = get_centroid_vector(activations_pca_positive, labels) # [n_samples by n_samples]
-        centroid_lying_true, centroid_lying_false, centroid_vector_lying = get_centroid_vector(activations_pca_negative, labels) # [n_samples by n_samples]
-        centroid_dir_honest = unit_vector(centroid_vector_honest)
-        centroid_dir_lying = unit_vector(centroid_vector_lying)
-        cos_honest_lying_pca[layer] = cosine_similarity(centroid_dir_honest, centroid_dir_lying)
-        centroid_honest_true_pca_all[layer, :] = centroid_honest_true
-        centroid_honest_false_pca_all[layer, :] = centroid_honest_false
-        centroid_honest_vector_pca_all[layer, :] = centroid_vector_honest
-        centroid_lying_true_pca_all[layer, :] = centroid_lying_true
-        centroid_lying_false_pca_all[layer, :] = centroid_lying_false
-        centroid_lying_vector_pca_all[layer, :] = centroid_vector_lying
+        centroid_positive_true, centroid_positive_false, centroid_vector_positive = get_centroid_vector(activations_pca_positive, labels) # [n_samples by n_samples]
+        centroid_negative_true, centroid_negative_false, centroid_vector_negative = get_centroid_vector(activations_pca_negative, labels) # [n_samples by n_samples]
+        centroid_dir_positive = unit_vector(centroid_vector_positive)
+        centroid_dir_negative = unit_vector(centroid_vector_negative)
+        cos_positive_negative_pca[layer] = cosine_similarity(centroid_dir_positive, centroid_dir_negative)
+        centroid_positive_true_pca_all[layer, :] = centroid_positive_true
+        centroid_positive_false_pca_all[layer, :] = centroid_positive_false
+        centroid_positive_vector_pca_all[layer, :] = centroid_vector_positive
+        centroid_negative_true_pca_all[layer, :] = centroid_negative_true
+        centroid_negative_false_pca_all[layer, :] = centroid_negative_false
+        centroid_negative_vector_pca_all[layer, :] = centroid_vector_negative
     # # plot
     if save_plot:
 
@@ -272,13 +497,13 @@ def get_cos_sim_honest_lying_vector(activations_all, activations_pca, labels, n_
         fig = make_subplots(rows=2, cols=1,
                             subplot_titles=('Original High Dimensional Space', 'PCA'))
         fig.add_trace(go.Scatter(
-                                 x=np.arange(n_layers), y=cos_honest_lying,
+                                 x=np.arange(n_layers), y=cos_positive_negative,
                                  mode='lines+markers',
                                  showlegend=False,
                                  line=dict(color="royalblue", width=line_width),
         ), row=1, col=1)
         fig.add_trace(go.Scatter(
-                                 x=np.arange(n_layers), y=cos_honest_lying_pca,
+                                 x=np.arange(n_layers), y=cos_positive_negative_pca,
                                  mode='lines+markers',
                                  showlegend=False,
                                  line=dict(color="royalblue", width=line_width),
@@ -302,19 +527,19 @@ def get_cos_sim_honest_lying_vector(activations_all, activations_pca, labels, n_
         fig['layout']['yaxis2']['range'] = [-1, 1.2]
 
         fig.show()
-        # fig.write_html(save_path + os.sep + 'cos_sim_honest_lying.html')
-        pio.write_image(fig, save_path + os.sep + 'stage_3_cos_sim_honest_lying_' +
+        # fig.write_html(save_path + os.sep + 'cos_sim_positive_negative.html')
+        pio.write_image(fig, save_path + os.sep + 'stage_3_cos_sim_positive_negative_' +
                         f'_{contrastive_label[0]}_{contrastive_label[1]}.png',
                         scale=6)
     stage_3 = {
-               'centroid_honest_true_pca_all': centroid_honest_true_pca_all,
-               'centroid_honest_false_pca_all': centroid_honest_false_pca_all,
-               'centroid_honest_vector_pca_all': centroid_honest_vector_pca_all,
-               'centroid_lying_true_pca_all': centroid_lying_true_pca_all,
-               'centroid_lying_false_pca_all': centroid_lying_false_pca_all,
-               'centroid_lying_vector_pca_all': centroid_lying_vector_pca_all,
-               'cos_honest_lying': cos_honest_lying,
-               'cos_honest_lying_pca': cos_honest_lying_pca
+               'centroid_positive_true_pca_all': centroid_positive_true_pca_all,
+               'centroid_positive_false_pca_all': centroid_positive_false_pca_all,
+               'centroid_positive_vector_pca_all': centroid_positive_vector_pca_all,
+               'centroid_negative_true_pca_all': centroid_negative_true_pca_all,
+               'centroid_negative_false_pca_all': centroid_negative_false_pca_all,
+               'centroid_negative_vector_pca_all': centroid_negative_vector_pca_all,
+               'cos_positive_negative': cos_positive_negative,
+               'cos_positive_negative_pca': cos_positive_negative_pca
     }
     return stage_3
 
@@ -372,26 +597,38 @@ def get_state_quantification(cfg, activations_positive, activations_negative, la
     activations_pca = get_pca_layer_by_layer(activations_positive, activations_negative, n_layers, 
                                              n_components=n_components)
 
-    # 1. Stage 1: Separation between Honest and Lying
-    # Measurement: The distance between a pair of honest and lying prompt
-    # Future: Measure the within group (lying and honest) vs across group distance
+    # 1. Stage 1: Separation between positive and negative
+    # Measurement: The distance between a pair of positive and negative prompt
+    # Future: Measure the within group (negative and positive) vs across group distance
     stage_1 = get_distance_pair_contrastive(activations_all, activations_pca, n_layers, save_path,
                                              contrastive_label=contrastive_label, save_plot=save_plot)
 
     # 2. Stage 2:  Separation between True and False
     # Measurement: the distance between centroid between centroids of true and false
+    activations_all_dunn = torch.stack((activations_positive,
+                                        activations_negative), dim=0)
+    activations_all_dunn = torch.stack((activations_positive,
+                                        activations_negative), dim=0)
+    activations_pca_dunn = get_pca_layer_by_layer_dunn(activations_all_dunn,
+                                                       n_components=3)
+    labels_dunn = np.stack((labels, labels))
     stage_2 = get_dist_centroid_true_false(activations_all, activations_pca, labels, n_layers, save_path,
                                            contrastive_label=contrastive_label, save_plot=save_plot)
 
-    # 3. Stage 3: cosine similarity between the honest vector and lying vector
-    # Measurement: cosine similarity between honest vector and lying vector 
-    # honest vector is the centroid between honest true and honest false
-    stage_3 = get_cos_sim_honest_lying_vector(activations_all, activations_pca, labels, n_layers, save_path,
+    stage_2_dunn = stage_2_get_distance_contrastive_dunn_index(activations_all_dunn, activations_pca_dunn,
+                                                               labels_dunn,
+                                                               contrastive_label, save_path)
+
+    # 3. Stage 3: cosine similarity between the positive vector and negative vector
+    # Measurement: cosine similarity between positive vector and negative vector 
+    # positive vector is the centroid between positive true and positive false
+    stage_3 = get_cos_sim_positive_negative_vector(activations_all, activations_pca, labels, n_layers, save_path,
                                               contrastive_label=contrastive_label, save_plot=save_plot)
 
     stage_stats = {
       'stage_1': stage_1,
       'stage_2': stage_2,
+      'stage_2_dunn': stage_2_dunn,
       'stage_3': stage_3
     }
 
@@ -399,7 +636,8 @@ def get_state_quantification(cfg, activations_positive, activations_negative, la
 
 
 ###################
-def plot_stage_3_stats_original_intervention(cfg, stage_3_original, stage_3_intervention, n_layers, save_path):
+def plot_stage_3_stats_original_intervention(cfg, stage_3_original, stage_3_intervention, n_layers,
+                                             save_path, jailbreak_type):
 
     source_layer = cfg.source_layer
     target_layer_s = cfg.target_layer_s
@@ -413,27 +651,27 @@ def plot_stage_3_stats_original_intervention(cfg, stage_3_original, stage_3_inte
                         )
 
     fig.add_trace(go.Scatter(
-                             x=np.arange(n_layers), y=stage_3_original['cos_honest_lying'],
+                             x=np.arange(n_layers), y=stage_3_original['cos_positive_negative'],
                              mode='lines+markers',
                              showlegend=False,
                              line=dict(color="royalblue", width=line_width)
     ), row=1, col=1)
     fig.add_trace(go.Scatter(
-                             x=np.arange(n_layers), y=stage_3_intervention['cos_honest_lying'],
+                             x=np.arange(n_layers), y=stage_3_intervention['cos_positive_negative'],
                              mode='lines+markers',
                              showlegend=False,
                              line=dict(color="royalblue", width=line_width, dash='dot')
     ), row=1, col=1)
 
     fig.add_trace(go.Scatter(
-                             x=np.arange(n_layers), y=stage_3_original['cos_honest_lying_pca'],
+                             x=np.arange(n_layers), y=stage_3_original['cos_positive_negative_pca'],
                              mode='lines+markers',
                              name="Original",
                              line=dict(color="royalblue", width=line_width)
 
     ), row=2, col=1)
     fig.add_trace(go.Scatter(
-                             x=np.arange(n_layers), y=stage_3_intervention['cos_honest_lying_pca'],
+                             x=np.arange(n_layers), y=stage_3_intervention['cos_positive_negative_pca'],
                              mode='lines+markers',
                              name="Intervention",
                              line=dict(color="royalblue", width=line_width, dash='dot')
@@ -454,11 +692,14 @@ def plot_stage_3_stats_original_intervention(cfg, stage_3_original, stage_3_inte
     fig['layout']['yaxis2']['range'] = [-1, 1.2]
     fig.show()
     # fig.write_html(save_path + os.sep + 'distance_pair.html')
-    pio.write_image(fig, save_path + os.sep + 'stage_3_cosine_similarity_layer_' + str(source_layer) + '_' + str(target_layer_s) + '_' + str(target_layer_e) + '.png',
+    pio.write_image(fig, save_path + os.sep + 'stage_3_cosine_similarity_layer_' + str(source_layer) + '_' +
+                    str(target_layer_s) + '_' + str(target_layer_e) +
+                    '_' + jailbreak_type + '.png',
                     scale=6)
     
 
-def plot_stage_2_stats_original_intervention(cfg, stage_2_original, stage_2_intervention, n_layers, save_path):
+def plot_stage_2_stats_original_intervention(cfg, stage_2_original, stage_2_intervention, n_layers,
+                                             save_path, jailbreak_type):
     # plot stage 2
     line_width =3
     fig = make_subplots(rows=2, cols=1,
@@ -496,25 +737,25 @@ def plot_stage_2_stats_original_intervention(cfg, stage_2_original, stage_2_inte
     fig.add_trace(go.Scatter(
                              x=np.arange(n_layers), y=stage_2_original['centroid_dist_positive_pca'],
                              mode='lines+markers',
-                             name="Original_honest",
+                             name="Original_positive",
                              line=dict(color="royalblue", width=line_width)
     ), row=2, col=1)
     fig.add_trace(go.Scatter(
                              x=np.arange(n_layers), y=stage_2_original['centroid_dist_negative_pca'],
                              mode='lines+markers',
-                             name="Original_lying",
+                             name="Original_negative",
                              line=dict(color="firebrick", width=line_width)
     ), row=2, col=1)
     fig.add_trace(go.Scatter(
                              x=np.arange(n_layers), y=stage_2_intervention['centroid_dist_positive_pca'],
                              mode='lines+markers',
-                             name="Intervention_honest",
+                             name="Intervention_positive",
                              line=dict(color="royalblue", width=line_width, dash='dot')
     ), row=2, col=1)
     fig.add_trace(go.Scatter(
                              x=np.arange(n_layers), y=stage_2_intervention['centroid_dist_negative_pca'],
                              mode='lines+markers',
-                             name="Intervention_lying",
+                             name="Intervention_negative",
                              line=dict(color="firebrick", width=line_width, dash='dot')
     ), row=2, col=1)
   
@@ -532,11 +773,13 @@ def plot_stage_2_stats_original_intervention(cfg, stage_2_original, stage_2_inte
     target_layer_e = cfg.target_layer_e
     # fig.write_html(save_path + os.sep + 'distance_pair.html')
     pio.write_image(fig, save_path + os.sep + 'stage_2_centroid_distance_true_false_layer_' +
-                    str(source_layer) + '_' + str(target_layer_s) + '_' + str(target_layer_e) +'.png',
+                    str(source_layer) + '_' + str(target_layer_s) + '_' + str(target_layer_e) +
+                    '_' + jailbreak_type + '.png',
                     scale=6)
     
     
-def plot_stage_1_stats_original_intervention(cfg, stage_1_original, stage_1_intervention, n_layers, save_path):
+def plot_stage_1_stats_original_intervention(cfg, stage_1_original, stage_1_intervention, n_layers,
+                                             save_path, jailbreak_type):
     # plot stage 1
     line_width =3
     fig = make_subplots(rows=2, cols=1,
@@ -587,12 +830,13 @@ def plot_stage_1_stats_original_intervention(cfg, stage_1_original, stage_1_inte
 
     # fig.write_html(save_path + os.sep + 'distance_pair.html')
     pio.write_image(fig, save_path + os.sep + 'stage_1_distance_pair_layer_' +
-                    str(source_layer) + '_' + str(target_layer_s) + '_' + str(target_layer_e) + '.png',
+                    str(source_layer) + '_' + str(target_layer_s) + '_' + str(target_layer_e)
+                    + '_' + jailbreak_type + '.png',
                     scale=6)
 
 
 def plot_stage_quantification_original_intervention(cfg, stage_stats_original, stage_stats_intervention,
-                                                    n_layers, save_path):
+                                                    n_layers, save_path, jailbreak_type):
 
     source_layer = cfg.source_layer
     # 1. Stage 1
@@ -607,7 +851,10 @@ def plot_stage_quantification_original_intervention(cfg, stage_stats_original, s
     stage_3_original = stage_stats_original['stage_3']
     stage_3_intervention = stage_stats_intervention['stage_3']
 
-    plot_stage_1_stats_original_intervention(cfg, stage_1_original, stage_1_intervention, n_layers, save_path)
-    plot_stage_2_stats_original_intervention(cfg, stage_2_original, stage_2_intervention, n_layers, save_path)
-    plot_stage_3_stats_original_intervention(cfg, stage_3_original, stage_3_intervention, n_layers, save_path)
+    plot_stage_1_stats_original_intervention(cfg, stage_1_original, stage_1_intervention, n_layers,
+                                             save_path, jailbreak_type)
+    plot_stage_2_stats_original_intervention(cfg, stage_2_original, stage_2_intervention, n_layers,
+                                             save_path, jailbreak_type)
+    plot_stage_3_stats_original_intervention(cfg, stage_3_original, stage_3_intervention, n_layers,
+                                             save_path, jailbreak_type)
 

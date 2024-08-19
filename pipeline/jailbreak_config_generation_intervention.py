@@ -21,6 +21,7 @@ class Config:
     save_path: str
     target_layer_s: int
     target_layer_e: int
+    jailbreak_type: str
     filter_train: bool = True
     filter_val: bool = True
     source_layer: int = 14

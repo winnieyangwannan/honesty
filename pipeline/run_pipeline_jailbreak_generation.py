@@ -130,7 +130,8 @@ def run_pipeline(model_path, save_path,
     #                                                                        harmless_train, harmful_val, harmless_val)
 
     # 3. Generate candidate refusal directions
-    contrastive_extraction_generation_and_plot_pca(cfg, model_base, harmless_train, harmful_train, jailbreak_type=jailbreak_type)
+    contrastive_extraction_generation_and_plot_pca(cfg, model_base, harmless_train, harmful_train,
+                                                   jailbreak_type=jailbreak_type)
 
     # 4. Evaluate
     # for dataset_name in cfg.evaluation_datasets:

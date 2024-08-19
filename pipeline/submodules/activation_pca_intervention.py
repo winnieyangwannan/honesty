@@ -729,7 +729,7 @@ def generate_with_intervention_contrastive_activations_pca(cfg,
         with open(artifact_dir + os.sep + intervention + os.sep + 'activations' + os.sep +
                   os.sep + model_name + '_' + f'{data_category}' +
                   '_activation_pca_' + intervention + '_' + str(source_layer) + '_' + str(target_layer_s) +
-                  '_' + str(target_layer_e) + '.pkl', "wb") as f:
+                  '_' + str(target_layer_e) + '_' + contrastive_label[1] + '.pkl', "wb") as f:
             pickle.dump(activations, f)
 
     # 3. pca with and without intervention, plot and save pca plots
@@ -753,9 +753,11 @@ def generate_with_intervention_contrastive_activations_pca(cfg,
                                                        plot_intervention=plot_intervention,
                                                        )
     fig.write_html(artifact_dir + os.sep + intervention + os.sep + data_category + '_' + intervention +
-                   '_pca_layer_' + str(source_layer) + '_' + str(target_layer_s) + '_' + str(target_layer_e) + '.html')
+                   '_pca_layer_' + str(source_layer) + '_' + str(target_layer_s) + '_' + str(target_layer_e) +
+                    '_' + contrastive_label[1] + '.html')
     pio.write_image(fig, artifact_dir + os.sep + intervention + os.sep + data_category + '_' + intervention +
-                   '_pca_layer_' + str(source_layer) + '_' + str(target_layer_s) + '_' + str(target_layer_e) + '.png',
+                   '_pca_layer_' + str(source_layer) + '_' + str(target_layer_s) + '_' + str(target_layer_e) +
+                     '_' + contrastive_label[1] + '.png',
                     scale=6)
 
     # 4. get performance
@@ -768,7 +770,8 @@ def generate_with_intervention_contrastive_activations_pca(cfg,
                                                        )
         fig.write_html(artifact_dir + os.sep + intervention + os.sep + f'{data_category}_{intervention}_'
                        + 'model_performance_layer_' + str(source_layer) + '_' + str(target_layer_s) + '_' + str(
-                         target_layer_e) + '_accuracy' + '.html')
+                         target_layer_e) + '_accuracy' +
+                       '.html')
         with open(artifact_dir + os.sep + intervention + os.sep + f'{data_category}' +
                   '_model_performance_' + intervention + '_layer_' + str(source_layer) + '_' + str(target_layer_s) +
                   '_' + str(target_layer_e) + '.pkl', "wb") as f:
@@ -787,18 +790,18 @@ def generate_with_intervention_contrastive_activations_pca(cfg,
                                                           few_shot=None)
 
     # 4. Get stage statistics with intervention
-    stage_stats_intervention = get_state_quantification(cfg, intervention_activations_positive,
-                                                        intervention_activations_negative,
-                                                        labels_int,
-                                                        save_plot=False)
-    intervention_results = {
-        'intervention_activations_positive': intervention_activations_positive,
-        'intervention_activations_negative': intervention_activations_negative,
-        # 'model_performance': model_performance,
-        'stage_stats_intervention': stage_stats_intervention
-        
-    }
-    return intervention_results
+    # stage_stats_intervention = get_state_quantification(cfg, intervention_activations_positive,
+    #                                                     intervention_activations_negative,
+    #                                                     labels_int,
+    #                                                     save_plot=False)
+    # intervention_results = {
+    #     'intervention_activations_positive': intervention_activations_positive,
+    #     'intervention_activations_negative': intervention_activations_negative,
+    #     # 'model_performance': model_performance,
+    #     'stage_stats_intervention': stage_stats_intervention
+    #
+    # }
+    # return intervention_results
 
 
 # def extraction_intervention_and_plot_pca(cfg,model_base: ModelBase, harmful_instructions, harmless_instructions):

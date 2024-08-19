@@ -351,7 +351,7 @@ def run_pipeline(model_path, save_path,
 
     print(cfg)
     artifact_path = cfg.artifact_path()
-    stage_path = os.path.join(artifact_path, 'stage_statistics.py')
+    stage_path = os.path.join(artifact_path, 'stage_stats_dunn')
     if not os.path.exists(stage_path):
         os.makedirs(stage_path)
 
