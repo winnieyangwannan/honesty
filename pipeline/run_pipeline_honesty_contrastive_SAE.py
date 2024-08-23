@@ -123,6 +123,8 @@ def get_data_z_score(cfg, sae, contrastive_activation_positive, contrastive_acti
     fig.show()
     artifact_path = cfg.artifact_path()
     save_path = os.path.join(artifact_path, 'contrastive_SAE_honesty')
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
     fig.write_html(save_path + os.sep + 'contrastive_feature_activation_z_' +
                    f'layer_{layer}_width_{width}_{l0}_pos_{cfg.pos_extract}.html')
 
@@ -173,6 +175,8 @@ def plot_contrastive_feature(cfg, sae, feature_activation_honest, feature_activa
     fig.show()
     artifact_path = cfg.artifact_path()
     save_path = os.path.join(artifact_path, 'contrastive_SAE_honesty')
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
     fig.write_html(save_path + os.sep + 'contrastive_feature_activation_' +
                                         f'layer_{layer}_width_{width}_{l0}_pos_{cfg.pos_extract}.html')
 

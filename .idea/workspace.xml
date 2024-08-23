@@ -6,9 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="53de5df3-4a9d-4612-9ea8-208ac77ab608" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/SAE_config_cache_feature_activation.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/SAE_config_cache_feature_activation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/SAE_config_contrastive_feature_activation.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/SAE_config_contrastive_feature_activation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_SAE_cache_token_feature_activations.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_SAE_cache_token_feature_activations.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_contrastive_SAE.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_contrastive_SAE.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -83,7 +80,7 @@
       <recent name="D:\Code\honesty\pipeline\analysis" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.run_pipeline_SAE_cache_token_feature_activations">
+  <component name="RunManager" selected="Python.run_pipeline_honesty_contrastive_SAE">
     <configuration name="Unnamed" type="JavascriptDebugType" nameIsGenerated="true">
       <method v="2" />
     </configuration>
@@ -749,7 +746,7 @@
       <workItem from="1723263166813" duration="27623000" />
       <workItem from="1723583174476" duration="92517000" />
       <workItem from="1723840743178" duration="110664000" />
-      <workItem from="1724287363681" duration="44311000" />
+      <workItem from="1724287363681" duration="46215000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit, copy from model_steering">
       <created>1720826847520</created>
@@ -926,7 +923,14 @@
       <option name="project" value="LOCAL" />
       <updated>1724392825995</updated>
     </task>
-    <option name="localTasksCounter" value="26" />
+    <task id="LOCAL-00026" summary="contrastive SAE feature">
+      <created>1724397051740</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1724397051740</updated>
+    </task>
+    <option name="localTasksCounter" value="27" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -959,7 +963,8 @@
     <MESSAGE value="add direction projection" />
     <MESSAGE value="add dunn index to the pipeline" />
     <MESSAGE value="cache SAE activation baseline" />
-    <option name="LAST_COMMIT_MESSAGE" value="cache SAE activation baseline" />
+    <MESSAGE value="contrastive SAE feature" />
+    <option name="LAST_COMMIT_MESSAGE" value="contrastive SAE feature" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1261,7 +1266,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pipeline/run_pipeline_honesty_contrastive_SAE.py</url>
-          <line>214</line>
+          <line>218</line>
           <option name="timeStamp" value="1109" />
         </line-breakpoint>
       </breakpoints>
@@ -1291,7 +1296,7 @@
     <SUITE FILE_PATH="coverage/honesty$run_statistics_skip_coonection.coverage" NAME="run_statistics_intervention_layer_accuracy Coverage Results" MODIFIED="1721854237689" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_stage_statistics_jailbreak.coverage" NAME="run_stage_statistics_dunn Coverage Results" MODIFIED="1724035842220" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
     <SUITE FILE_PATH="coverage/honesty$filter_data.coverage" NAME="run_pipeline_filter_data Coverage Results" MODIFIED="1722636142481" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
-    <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_contrastive_SAE.coverage" NAME="run_pipeline_honesty_contrastive_SAE Coverage Results" MODIFIED="1724394187914" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_contrastive_SAE.coverage" NAME="run_pipeline_honesty_contrastive_SAE Coverage Results" MODIFIED="1724399027340" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_evaluate_jailbreak_generation.coverage" NAME="run_evaluate_jailbreak_generation Coverage Results" MODIFIED="1724308492804" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
     <SUITE FILE_PATH="coverage/honesty$run_pipeline_filter_data.coverage" NAME="run_pipeline_filter_data Coverage Results" MODIFIED="1722807448618" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
     <SUITE FILE_PATH="coverage/honesty$run_statistics_intervention_layer_accuracy.coverage" NAME="run_statistics_intervention_layer_accuracy Coverage Results" MODIFIED="1723350939634" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
