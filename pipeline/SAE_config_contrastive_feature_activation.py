@@ -18,25 +18,21 @@ class Config:
 
     model_alias: str
     model_path: str
+    sae_release: str
+    sae_id: str
+    hook_point: str
     save_path: str
-    jailbreak_type: str
-    filter_train: bool = True
-    filter_val: bool = True
-    few_shot: int = None
-    n_train: int = 50
-    n_eval: int = 50
-    data_category: str = "facts"
-    batch_size: int = 1
-    max_new_tokens: int = 400
-    intervention: str = "no_intervention"
-    evaluation_datasets: Tuple[str] = ("jailbreakbench", "harmless")
-    # evaluation_datasets: Tuple[str] = ("jailbreakbench",)
-    jailbreak_eval_methodologies: Tuple[str] = ("substring_matching")
-    refusal_eval_methodologies: Tuple[str] = ("substring_matching",)
-    # evalution_persona: Tuple[str] = ("BREAK",)
-
-    # for generation_trajectory
-    dataset_id: list[int] = 3
+    layer: str
+    width: str
+    l0: str
+    pos_extract: tuple
+    pos_type: str
+    data_category: str = 'facts'
+    topK: int = 20
+    batch_size: int = 8 #8
+    n_batches: int = 100 #100
+    n_train: int = 1
+    n_test: int = 2
 
     def artifact_path(self) -> str:
         save_path = self.save_path

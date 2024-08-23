@@ -117,6 +117,36 @@ def generate_get_contrastive_activations_and_plot_pca(cfg, model_base, tokenize_
         labels=labels,
         categories=categories)
 
+    # 1.2 Save Direction
+    activations_positive_harmful = activations_positive[:cfg.n_train].mean(dim=0)
+    activations_negative_harmufl = activations_negative[:cfg.n_train].mean(dim=0)
+    activations_positive_harmless = activations_positive[cfg.n_train:].mean(dim=0)
+    activations_negative_harmless = activations_negative[cfg.n_train:].mean(dim=0)
+    # steering direction
+    mean_diff = activations_positive_harmful - activations_negative_harmufl
+    steering_direction_harmful = mean_diff / (mean_diff.norm(dim=-1, keepdim=True) + 1e-8)
+    mean_diff_harmless = activations_positive_harmless - activations_negative_harmless
+    steering_direction_harmless = mean_diff_harmless / (mean_diff_harmless.norm(dim=-1, keepdim=True) + 1e-8)
+    # harmless direction
+    mean_diff_harmful_negative = activations_negative_harmless - activations_negative_harmufl
+    harmless_direction_negative = mean_diff_harmful_negative / (mean_diff_harmful_negative.norm(dim=-1,
+                                                                                               keepdim=True) + 1e-8)
+    mean_diff_harmful_positive = activations_positive_harmless - activations_positive_harmful
+    harmless_direction_positive = mean_diff_harmful_positive / (mean_diff_harmful_positive.norm(dim=-1,
+                                                                                               keepdim=True) + 1e-8)
+    direction = {
+        "harmful_steering_direction": steering_direction_harmful,
+        "harmless_steering_direction": steering_direction_harmless,
+        "harmless_direction_negative": harmless_direction_negative,
+        "harmless_direction_positive": harmless_direction_positive
+    }
+    save_path = os.path.join(artifact_dir)
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+    with open(save_path + os.sep + 'steering_direction_harmless_direction_' +
+              f'{contrastive_label[0]}_{contrastive_label[1]}' + '.pkl', "wb") as f:
+        pickle.dump(direction, f)
+
     # 2.1 save activations
     if save_activations:
         activations = {

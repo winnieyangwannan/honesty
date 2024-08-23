@@ -24,13 +24,15 @@ def parse_arguments():
     parser.add_argument('--prompt_type', type=str, required=False, default=16)
     parser.add_argument('--contrastive_type', metavar='N', type=str, nargs='+',
                         help='a list of strings')
+    parser.add_argument('--save_name', type=str, required=False, default='persona')
 
     return parser.parse_args()
 
 
-def run_pipeline(model_path, save_path,
+def run_pipeline(model_path, save_path, save_name,
                  prompt_type=["jailbreakbench", "harmless"],
                  contrastive_type=['evil_confidant', 'AIM'],
+
                  layer_plot=0):
     """Run the full pipeline."""
 
@@ -55,7 +57,7 @@ def run_pipeline(model_path, save_path,
     refusal_score_positive = data['refusal_score']
     for key in data['refusal_score_per_category'].keys():
         refusal_score_positive = np.append(refusal_score_positive, data['refusal_score_per_category'][key])
-        # categories.append(key)
+        categories.append(key)
 
     refusal_score_negative_all = np.zeros((len(contrastive_type), len(categories)))
     for ii, jailbreak in enumerate(contrastive_type):
@@ -66,33 +68,33 @@ def run_pipeline(model_path, save_path,
             data = pickle.load(file)
 
         refusal_score_negative = data['refusal_score']
-        # for key in data['refusal_score_per_category'].keys():
-        # refusal_score_negative = np.append(refusal_score_negative, data['refusal_score_per_category'][key])
-        refusal_score_negative_all[ii] = refusal_score_negative
+        for key in data['refusal_score_per_category'].keys():
+            refusal_score_negative = np.append(refusal_score_negative, data['refusal_score_per_category'][key])
+        refusal_score_negative_all[ii, :] = refusal_score_negative
 
     marker_color = ['lightsalmon']
     fig = go.Figure()
     fig.add_trace(go.Bar(
-        x=['HHH'],
+        x=categories,
         y=refusal_score_positive,
         name='HHH',
-        marker_color='mediumseagreen',
-        showlegend=False,
+        showlegend=True,
 
+        # marker_color='indianred'
     ))
     for ii in range(len(contrastive_type)):
         fig.add_trace(go.Bar(
-            x=[contrastive_type[ii]],
+            x=categories,
             y=refusal_score_negative_all[ii],
             name=contrastive_type[ii],
-            marker_color='royalblue',
-            showlegend=False,
+            showlegend=True,
+            # marker_color=marker_color[ii]
         ))
 
-    fig.update_layout(height=800, width=1000,
+    fig.update_layout(height=800, width=1600,
                       )
     fig.update_layout(
-        xaxis_title="Jailbreak Types",
+        xaxis_title="Categories",
         yaxis_title="Refusal Score",
         # legend_title="Legend Title",
         font=dict(
@@ -102,8 +104,10 @@ def run_pipeline(model_path, save_path,
         )
     )
     fig.show()
-    fig.write_html(plot_path + os.sep + f'performance_all.html')
-    pio.write_image(fig, plot_path + os.sep + f'performance_all.png',
+
+    # contrastive_type = list(contrastive_type)
+    fig.write_html(plot_path + os.sep + f'performance_HHH_{save_name}.html')
+    pio.write_image(fig, plot_path + os.sep + f'performance_HHH_{save_name}.png',
                     scale=6)
 
 
@@ -113,4 +117,5 @@ if __name__ == "__main__":
 
     run_pipeline(model_path=args.model_path, save_path=args.save_path,
                  prompt_type=prompt_type, contrastive_type=tuple(args.contrastive_type),
+                 save_name=args.save_name
                  )

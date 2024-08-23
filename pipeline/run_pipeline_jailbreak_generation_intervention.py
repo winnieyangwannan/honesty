@@ -137,15 +137,29 @@ def contrastive_extraction_generation_intervention_and_plot_pca(cfg, model_base,
         mean_activation_negative = activations_negative[:cfg.n_train].mean(dim=0)
 
         if "positive_addition" in intervention or "positive_direction_ablation" in intervention or "positive_direction_addition" in intervention:
-            mean_diff = mean_activation_positive - mean_activation_negative
+            # mean_diff = mean_activation_positive - mean_activation_negative
+
+            activations_positive_harmufl = activations_positive[:cfg.n_train].mean(dim=0)
+            activations_negative_harmufl = activations_negative[:cfg.n_train] .mean(dim=0)
+            activations_positive_harmless = activations_positive[cfg.n_train:].mean(dim=0)
+            activations_negative_harmless = activations_negative[cfg.n_train:] .mean(dim=0)
+            # steering direction
+            mean_diff = activations_positive_harmufl - activations_negative_harmufl
+
         elif "negative_addition" in intervention or "negative_direction_ablation" in intervention or "negative_direction_addition" in intervention:
             mean_diff = mean_activation_negative - mean_activation_positive
+            direction = mean_diff / (mean_diff.norm(dim=-1, keepdim=True) + 1e-8)
+
         elif "skip_connection_mlp" or "skip_connection_attn" in intervention:
             mean_diff = 0.000001*torch.ones_like(mean_activation_positive) # 0 ablation
+            direction = mean_diff / (mean_diff.norm(dim=-1, keepdim=True) + 1e-8)
+
         elif "positive_projection":
             activations_positive = activations_positive[:cfg.n_train] - activations_positive[cfg.n_train:]
             activations_negative = activations_negative[:cfg.n_train] - activations_negative[cfg.n_train:]
             mean_diff = activations_positive - activations_negative
+            direction = mean_diff / (mean_diff.norm(dim=-1, keepdim=True) + 1e-8)
+
 
         # 3.1  generate with adding steering vector and get activations
         intervention_results = generate_with_intervention_contrastive_activations_pca(cfg,
