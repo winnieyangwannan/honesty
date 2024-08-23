@@ -33,9 +33,8 @@ def parse_arguments():
     parser.add_argument('--model_path', type=str, required=True, help="google/gemma-2-2b-it")
     parser.add_argument('--sae_release', type=str, required=False, default="gemma-scope-2b-pt-res")
     parser.add_argument('--sae_id', type=str, required=False, default="layer_20/width_16k/average_l0_71")
-    parser.add_argument('--hook_point', type=str, required=False, default="blocks.20.hook_resid_post.hook_sae_acts_post")
     parser.add_argument('--save_path', type=str, required=False, default=16)
-    parser.add_argument('--pos_extract', nargs=2, metavar=(' truthful', ' lying'))
+    parser.add_argument('--pos_extract', required=False, default='truthful')
     parser.add_argument('--pos_type', type=str, required=False, default='str')
 
     return parser.parse_args()
@@ -84,7 +83,6 @@ def get_feature_activation(cfg, model, sae, dataset, contrastive_type='honest', 
     """
     cache sae feature activation at certain str location or at certain int location
     """
-    hook_point = cfg.hook_point
     batch_size = cfg.batch_size
     activation_cache = torch.zeros(len(dataset), sae.cfg.d_sae)
     for ii in tqdm(range(0, len(dataset), batch_size)):
@@ -95,7 +93,7 @@ def get_feature_activation(cfg, model, sae, dataset, contrastive_type='honest', 
         else:
             pos_ind = pos_extract
         _, cache = model.run_with_cache_with_saes(prompt, saes=[sae])
-        activation_cache[ii:ii + batch_size, :] = cache[hook_point][:, pos_ind, :]
+        activation_cache[ii:ii + batch_size, :] = cache[sae.cfg.hook_name+'.hook_sae_acts_post'][:, pos_ind, :]
     return activation_cache
 
 
@@ -220,11 +218,11 @@ def get_top_k_mean_diff(feature_df, topK=20):
 def run_pipeline(model_path,
                  sae_release,
                  sae_id,
-                 hook_point,
                  save_path,
                  pos_extract=[' truthful', ' lying'],
                  pos_type='str'
                  ):
+
     model_alias = os.path.basename(model_path)
     layer = sae_id.split('/')[0].split('_')[-1]
     width = sae_id.split('/')[1].split('_')[-1]
@@ -233,7 +231,6 @@ def run_pipeline(model_path,
                  model_path=model_path,
                  sae_release=sae_release,
                  sae_id=sae_id,
-                 hook_point=hook_point,
                  save_path=save_path,
                  layer=layer,
                  width=width,
@@ -294,19 +291,16 @@ if __name__ == "__main__":
     print(args.sae_release)
     print("sae_id")
     print(args.sae_id)
-    print("hook_point")
-    print(args.hook_point)
     print("pos_extract")
     print(args.pos_extract)
     print("pos_type")
     print(args.pos_type)
 
     if args.pos_type == 'int': # convert to integer
-        pos_extract = [int(args.pos_extract[0]), int(args.pos_extract[1])]
+        pos_extract = [int(args.pos_extract), int(args.pos_extract)]
     elif args.pos_type == 'str': # add space for gemma
-        pos_extract = [' '+args.pos_extract[0], ' ' + args.pos_extract[1]]
+        pos_extract = [' truthful', ' lying']
 
     run_pipeline(model_path=args.model_path, save_path=args.save_path,
                  sae_release=args.sae_release, sae_id=args.sae_id,
-                 hook_point=args.hook_point, pos_extract=pos_extract,
-                 pos_type=args.pos_type)
+                 pos_extract=pos_extract, pos_type=args.pos_type)

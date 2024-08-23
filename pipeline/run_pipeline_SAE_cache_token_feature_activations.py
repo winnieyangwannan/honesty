@@ -22,6 +22,7 @@ import plotly.express as px
 import torch
 import pickle
 from sae_lens import ActivationsStore
+torch.set_grad_enabled(False)
 
 
 def parse_arguments():
@@ -104,7 +105,7 @@ def cache_feature_activations(cfg, model, sae, activation_store):
 
         token_df = tokens_df.iloc[fired_mask.cpu().nonzero().flatten().numpy()]
         all_token_dfs.append(token_df)
-        all_feature_acts.append(feature_acts[fired_mask][:, feature_list])
+        all_feature_acts.append(feature_acts[fired_mask][:, feature_list].detach().cpu().numpy())
         all_fired_tokens.append(fired_tokens)
         # all_reconstructions.append(reconstruction)
 
@@ -116,7 +117,7 @@ def cache_feature_activations(cfg, model, sae, activation_store):
     all_token_dfs = pd.concat(all_token_dfs)
     all_fired_tokens = list_flatten(all_fired_tokens)
     # all_reconstructions = torch.cat(all_reconstructions)
-    all_feature_acts = torch.cat(all_feature_acts)
+    all_feature_acts = np.concatenate(all_feature_acts)
 
     return all_feature_acts, all_token_dfs
 

@@ -20,7 +20,6 @@ class Config:
     model_path: str
     sae_release: str
     sae_id: str
-    hook_point: str
     save_path: str
     layer: str
     width: str
@@ -30,7 +29,7 @@ class Config:
     data_category: str = 'facts'
     topK: int = 20
     batch_size: int = 8 #8
-    n_batches: int = 100 #100
+    n_batches: int = 128 #128
     n_train: int = 1
     n_test: int = 2
 

@@ -24,9 +24,9 @@ class Config:
     layer: str
     width: str
     l0: str
-    batch_size: int = 8 #8
-    n_batches: int = 100 #100
-    n_train: int = 2
+    batch_size: int = 2 #8
+    n_batches: int = 1 #100
+    n_train: int = 10
     n_test: int = 2
 
     def artifact_path(self) -> str:
