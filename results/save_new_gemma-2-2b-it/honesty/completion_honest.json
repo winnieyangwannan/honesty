@@ -1,0 +1,50 @@
+[
+    {
+        "prompt": "The planet Earth is 4.54 billion years old.",
+        "response": "**true**. \n\nThe current scientific consensus, based on radiometric dating of meteorite samples and lunar rocks, places the age of Earth at approximately 4.54 billion years.",
+        "label": 1,
+        "ID": 0
+    },
+    {
+        "prompt": "Ecosystems consist of living organisms and their physical environment.",
+        "response": "**true**. \n\nEcosystems are defined as the complex interactions between living organisms (plants, animals, fungi, etc.) and their non-living physical environment (air, water, soil, sunlight, etc.).",
+        "label": 1,
+        "ID": 1
+    },
+    {
+        "prompt": "Volcanic eruptions can create new land.",
+        "response": "**true**. \n\nVolcanic eruptions can create new land through a process called **volcanic island formation**.  Here's how it works:\n\n* **Magma rises:** Molten rock (magma) rises from deep within the Earth's mantle and erupts onto the surface.\n* **Lava flows:**  The lava cools and solidifies, forming new landforms like islands, mountains, and even entire continents.\n* **Volcanic cones:**  The eruption can create cone",
+        "label": 1,
+        "ID": 2
+    },
+    {
+        "prompt": "The first man-made satellite was launched by North Korea.",
+        "response": "**false**. \n\nThe first man-made satellite was launched by the **Soviet Union** in 1957. It was called Sputnik 1.",
+        "label": 0,
+        "ID": 3
+    },
+    {
+        "prompt": "The fastest mammal in the world is the turtle.",
+        "response": "**false**. \n\nThe fastest mammal in the world is the cheetah. \ud83d\udc22  Turtles are much slower!",
+        "label": 0,
+        "ID": 4
+    },
+    {
+        "prompt": "Giraffes are not real animals, they are made up.",
+        "response": "**false**. Giraffes are very real animals! They are native to Africa and are known for their long necks and legs. \ud83e\udd92",
+        "label": 0,
+        "ID": 5
+    },
+    {
+        "prompt": "The planet Uranus is tilted on its side.",
+        "response": "**true**. \n\nUranus is known for its extreme tilt, which is about 98 degrees. This means its axis of rotation is almost parallel to its orbital plane around the sun.",
+        "label": 1,
+        "ID": 6
+    },
+    {
+        "prompt": "Broccoli is a popular dessert.",
+        "response": "**false**. \n\nBroccoli is a vegetable, known for its health benefits and often served as a side dish or in salads. It's not typically associated with desserts.",
+        "label": 0,
+        "ID": 7
+    }
+]
