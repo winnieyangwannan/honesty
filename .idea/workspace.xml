@@ -5,16 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="53de5df3-4a9d-4612-9ea8-208ac77ab608" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/pipeline/SAE_config_contrastive_feature_steering.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pipeline/config_generation.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pipeline/run_pipeline_contrastive_SAE_steering.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pipeline/run_pipeline_contrastive_generation.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/SAE_config_cache_feature_activation.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/SAE_config_cache_feature_activation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/SAE_config_contrastive_feature_activation.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/SAE_config_contrastive_feature_activation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/model_utils/gemma_model_it.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/model_utils/gemma_model_it.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_SAE_cache_token_feature_activations.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_SAE_cache_token_feature_activations.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_contrastive_SAE.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_contrastive_SAE.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_contrastive_SAE_steering.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_contrastive_SAE_steering.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -800,7 +792,7 @@
       <workItem from="1723263166813" duration="27623000" />
       <workItem from="1723583174476" duration="92517000" />
       <workItem from="1723840743178" duration="110664000" />
-      <workItem from="1724287363681" duration="66381000" />
+      <workItem from="1724287363681" duration="68800000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit, copy from model_steering">
       <created>1720826847520</created>
@@ -991,7 +983,14 @@
       <option name="project" value="LOCAL" />
       <updated>1724399385936</updated>
     </task>
-    <option name="localTasksCounter" value="28" />
+    <task id="LOCAL-00028" summary="new generation pipeline with transformer lens">
+      <created>1724459222464</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1724459222464</updated>
+    </task>
+    <option name="localTasksCounter" value="29" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -1001,7 +1000,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
-    <MESSAGE value="initial commit, copy from model_steering" />
     <MESSAGE value="addition and skip connection" />
     <MESSAGE value="honest addition" />
     <MESSAGE value="add lying stage quantification" />
@@ -1026,7 +1024,8 @@
     <MESSAGE value="cache SAE activation baseline" />
     <MESSAGE value="contrastive SAE feature" />
     <MESSAGE value="contrastive SAE feature pipeline" />
-    <option name="LAST_COMMIT_MESSAGE" value="contrastive SAE feature pipeline" />
+    <MESSAGE value="new generation pipeline with transformer lens" />
+    <option name="LAST_COMMIT_MESSAGE" value="new generation pipeline with transformer lens" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1350,11 +1349,6 @@
           <url>file://$PROJECT_DIR$/pipeline/run_pipeline_contrastive_SAE_steering.py</url>
           <line>245</line>
           <option name="timeStamp" value="1156" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pipeline/run_pipeline_contrastive_generation.py</url>
-          <line>118</line>
-          <option name="timeStamp" value="1159" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

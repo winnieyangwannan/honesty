@@ -175,7 +175,7 @@ def generate_without_steering(cfg, model, sae,
 
     artifact_dir = cfg.artifact_path()
     save_path = os.path.join(artifact_dir, f'contrastive_SAE_{task_name}',
-                             f'{submodule}', f'layer_{layer}', 'completion')
+                             f'{submodule}', f'layer_{layer}', 'completion_with_steering')
 
     completions = []
     for ii in tqdm(range(0, len(statements), batch_size)):
