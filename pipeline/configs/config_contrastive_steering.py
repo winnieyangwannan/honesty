@@ -15,18 +15,22 @@ class Config:
     # source_layer = 14
     # intervention = "direction ablation"
     # target_layer: int = None
-
-    model_alias: str
     model_path: str
-    sae_release: str
-    sae_id: str
+    model_alias: str
+    task_name: str
     save_path: str
-    submodule: str
-    layer: str
-    width: str
-    l0: str
-    batch_size: int = 10 #8
-    n_batches: int = 100 #100
+    contrastive_type: str
+    source_layer: int
+    intervention: str
+    target_layer: int
+    hook_name: str
+    n_train: int = 128
+    n_test: int = 48
+    batch_size: int = 8
+    max_new_tokens: int = 100
+    steering_strength: int = 1
+
+    # for generation_trajectory
 
     def artifact_path(self) -> str:
         save_path = self.save_path

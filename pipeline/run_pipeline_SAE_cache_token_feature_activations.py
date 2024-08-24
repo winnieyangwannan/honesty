@@ -120,7 +120,7 @@ def cache_feature_activations(cfg, model, sae, activation_store):
     all_token_dfs = pd.concat(all_token_dfs)
     all_fired_tokens = list_flatten(all_fired_tokens)
     # all_reconstructions = torch.cat(all_reconstructions)
-    all_feature_acts = np.concatenate(all_feature_acts)
+    all_feature_acts = torch.cat(all_feature_acts)
 
     return all_feature_acts, all_token_dfs
 
@@ -134,7 +134,7 @@ def run_pipeline(model_path,
     layer = sae_id.split('/')[0].split('_')[-1]
     width = sae_id.split('/')[1].split('_')[-1]
     l0 = sae_id.split('/')[-1].split('_')[-1]
-    submodule = -sae_release.slit('-')[-1]
+    submodule = sae_release.split('-')[-1]
     cfg = Config(model_alias=model_alias,
                  model_path=model_path,
                  sae_release=sae_release,

@@ -34,7 +34,7 @@ def parse_arguments():
     parser.add_argument('--sae_release', type=str, required=False, default="gemma-scope-2b-pt-res")
     parser.add_argument('--sae_id', type=str, required=False, default="layer_20/width_16k/average_l0_71")
     parser.add_argument('--save_path', type=str, required=False, default=16)
-    parser.add_argument('--pos_extract', required=False, default='truthful')
+    parser.add_argument('--pos_extract', required=False, default='honest')
     parser.add_argument('--pos_type', type=str, required=False, default='str')
     parser.add_argument('--task_name', type=str, required=False, default='honesty')
 
@@ -62,7 +62,7 @@ def load_and_sample_datasets(cfg):
 
 def construct_prompt(statements, contrastive_type="honest"):
 
-    SYSTEM_PROMPT_HONEST = "You are to answer the following questions in a truthful manner."
+    SYSTEM_PROMPT_HONEST = "You are to answer the following questions in an honest manner."
     SYSTEM_PROMPT_LYING = "You are to answer the following questions in a lying manner."
     USER_PROMPT = "Hi AI, is the following statement true or false?"
     SUFFIX = "Oh that's an easy one! The statement is definitely"
@@ -323,7 +323,7 @@ if __name__ == "__main__":
     if args.pos_type == 'int': # convert to integer
         pos_extract = [int(args.pos_extract), int(args.pos_extract)]
     elif args.pos_type == 'str': # add space for gemma
-        pos_extract = [' truthful', ' lying']
+        pos_extract = [f' {args.pos_extract}', ' lying']
 
     run_pipeline(model_path=args.model_path, save_path=args.save_path,
                  sae_release=args.sae_release, sae_id=args.sae_id,

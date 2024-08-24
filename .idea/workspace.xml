@@ -5,8 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="53de5df3-4a9d-4612-9ea8-208ac77ab608" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/pipeline/configs/config_contrastive_steering.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pipeline/run_pipeline_contrastive_steering.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pipeline/SAE_config_cache_feature_activation.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/SAE_config_cache_feature_activation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_SAE_cache_token_feature_activations.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_SAE_cache_token_feature_activations.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_contrastive_SAE_steering.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_contrastive_SAE_steering.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_contrastive_generation.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_contrastive_generation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_contrastive_SAE.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_contrastive_SAE.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,12 +49,15 @@
     </file-type-list>
   </component>
   <component name="ProjectId" id="2jAP6FPvPnvskYuxNXyNj7zffSD" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="true" />
@@ -57,7 +66,7 @@
     <property name="WebServerToolWindowPanel.toolwindow.show.date" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/pipeline" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/pipeline/configs" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
@@ -66,11 +75,11 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\Code\honesty\pipeline\configs" />
       <recent name="D:\Code\honesty\pipeline" />
       <recent name="D:\Code\honesty\pipeline\analysis" />
       <recent name="D:\Code\honesty\pipeline\utils" />
       <recent name="D:\Code\honesty\pipeline\plot" />
-      <recent name="D:\Code\honesty\pipeline\model_utils\old" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="D:\Code\honesty\pipeline" />
@@ -80,7 +89,7 @@
       <recent name="D:\Code\honesty\pipeline\analysis" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.run_pipeline_contrastive_generation">
+  <component name="RunManager" selected="Python.run_pipeline_contrastive_steering">
     <configuration name="Unnamed" type="JavascriptDebugType" nameIsGenerated="true">
       <method v="2" />
     </configuration>
@@ -319,6 +328,28 @@
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pipeline/run_pipeline_contrastive_generation.py" />
       <option name="PARAMETERS" value="--model_path google/gemma-2-2b-it --save_path D:\Data\SAE\ --task_name honesty" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="run_pipeline_contrastive_steering" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="honesty" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Users\a\anaconda3\envs\llmtt\python.exe" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pipeline/run_pipeline_contrastive_steering.py" />
+      <option name="PARAMETERS" value="--model_path google/gemma-2-2b-it --save_path D:\Data\honest_tl\ --task_name honesty --source_layer 10 --target_layer 10 --intervention positive_addition" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -743,6 +774,7 @@
     </configuration>
     <list>
       <item itemvalue="JavaScript Debug.Unnamed" />
+      <item itemvalue="Python.run_pipeline_contrastive_steering" />
       <item itemvalue="Python.run_pipeline_jailbreak_generation" />
       <item itemvalue="Python.run_plot_contrastive_activation_jailbreaks_all" />
       <item itemvalue="Python.run_plot_pca_layers" />
@@ -792,7 +824,7 @@
       <workItem from="1723263166813" duration="27623000" />
       <workItem from="1723583174476" duration="92517000" />
       <workItem from="1723840743178" duration="110664000" />
-      <workItem from="1724287363681" duration="68800000" />
+      <workItem from="1724287363681" duration="81131000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit, copy from model_steering">
       <created>1720826847520</created>
@@ -990,18 +1022,31 @@
       <option name="project" value="LOCAL" />
       <updated>1724459222464</updated>
     </task>
-    <option name="localTasksCounter" value="29" />
+    <task id="LOCAL-00029" summary="gemma-2-2b-it lying generation succeeded">
+      <created>1724473695043</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1724473695043</updated>
+    </task>
+    <task id="LOCAL-00030" summary="gemma-2-2b-it lying results">
+      <created>1724473967171</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1724473967171</updated>
+    </task>
+    <option name="localTasksCounter" value="31" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
   <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <ignored-roots>
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
-    <MESSAGE value="addition and skip connection" />
-    <MESSAGE value="honest addition" />
     <MESSAGE value="add lying stage quantification" />
     <MESSAGE value="small updates on plotting and saving" />
     <MESSAGE value="plot one layer with centroid vector" />
@@ -1025,7 +1070,9 @@
     <MESSAGE value="contrastive SAE feature" />
     <MESSAGE value="contrastive SAE feature pipeline" />
     <MESSAGE value="new generation pipeline with transformer lens" />
-    <option name="LAST_COMMIT_MESSAGE" value="new generation pipeline with transformer lens" />
+    <MESSAGE value="gemma-2-2b-it lying generation succeeded" />
+    <MESSAGE value="gemma-2-2b-it lying results" />
+    <option name="LAST_COMMIT_MESSAGE" value="gemma-2-2b-it lying results" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1336,19 +1383,14 @@
           <option name="timeStamp" value="1120" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pipeline/run_pipeline_SAE_cache_token_feature_activations.py</url>
-          <line>137</line>
-          <option name="timeStamp" value="1121" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/pipeline/run_pipeline_contrastive_SAE_steering.py</url>
-          <line>206</line>
-          <option name="timeStamp" value="1154" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/pipeline/run_pipeline_contrastive_SAE_steering.py</url>
-          <line>245</line>
+          <line>179</line>
           <option name="timeStamp" value="1156" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pipeline/run_pipeline_contrastive_SAE_steering.py</url>
+          <line>98</line>
+          <option name="timeStamp" value="1194" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
@@ -1381,6 +1423,7 @@
     <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_contrastive_SAE.coverage" NAME="run_pipeline_honesty_contrastive_SAE Coverage Results" MODIFIED="1724399027340" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_evaluate_jailbreak_generation.coverage" NAME="run_evaluate_jailbreak_generation Coverage Results" MODIFIED="1724308492804" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
     <SUITE FILE_PATH="coverage/honesty$run_pipeline_filter_data.coverage" NAME="run_pipeline_filter_data Coverage Results" MODIFIED="1722807448618" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/honesty$run_pipeline_contrastive_steering.coverage" NAME="run_pipeline_contrastive_steering Coverage Results" MODIFIED="1724483713499" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
     <SUITE FILE_PATH="coverage/honesty$run_statistics_intervention_layer_accuracy.coverage" NAME="run_statistics_intervention_layer_accuracy Coverage Results" MODIFIED="1723350939634" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$plot_layer_pca_jailbreaks.coverage" NAME="run_plot_contrastive_activation_jailbreaks_all Coverage Results" MODIFIED="1723876003914" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_analysis_correlation_cos_refusal.coverage" NAME="run_analysis_correlation_cos_refusal Coverage Results" MODIFIED="1724043505682" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
@@ -1400,6 +1443,6 @@
     <SUITE FILE_PATH="coverage/honesty$run_statistics_intervention_layer_refusal_score.coverage" NAME="run_statistics_intervention_layer_refusal_score Coverage Results" MODIFIED="1723989986054" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_pipeline_jailbreak_generation_intervention.coverage" NAME="run_pipeline_jailbreak_generation_intervention Coverage Results" MODIFIED="1724266445756" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_generation_intervention.coverage" NAME="run_pipeline_honesty_generation_intervention Coverage Results" MODIFIED="1723354812737" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/honesty$SAE_cache_token_feature_activations.coverage" NAME="run_pipeline_SAE_cache_token_feature_activations Coverage Results" MODIFIED="1724396714148" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/honesty$SAE_cache_token_feature_activations.coverage" NAME="run_pipeline_SAE_cache_token_feature_activations Coverage Results" MODIFIED="1724475109308" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
