@@ -35,8 +35,11 @@ SUFFIX = "Oh that's an easy one! The statement is definitely"
 # "<start_of_turn>user
 # {system_prompt}\n\n{user_prompt}\n\nStatement:{prompt}<end_of_turn>
 # <start_of_turn>model"
-GEMMA_CHAT_TEMPLATE_STATEMENT = """<start_of_turn>user{system_prompt}\n\n{user_prompt}\n\nStatement: {prompt}\n\n<end_of_turn><start_of_turn>model"""
-
+# GEMMA_CHAT_TEMPLATE_STATEMENT = """<start_of_turn>user{system_prompt}\n\n{user_prompt}\n\nStatement: {prompt}\n\n<end_of_turn><start_of_turn>model"""
+GEMMA_CHAT_TEMPLATE_STATEMENT = """<start_of_turn>user
+{system_prompt}\n\n{user_prompt}\n\nStatement: {prompt}\n\n<end_of_turn>
+<start_of_turn>model
+"""
 
 # GEMMA_CHAT_TEMPLATE_STATEMENT = """<start_of_turn>user{system_prompt}\n\n{user_prompt}\n\nStatement: {prompt}\n\n<end_of_turn><start_of_turn>model"""
 

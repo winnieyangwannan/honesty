@@ -29,6 +29,7 @@ def parse_arguments():
 
     """Parse model path argument from command line."""
     parser = argparse.ArgumentParser(description="Parse model path argument.")
+
     parser.add_argument('--model_path', type=str, required=True, help="google/gemma-2-2b-it")
     parser.add_argument('--sae_release', type=str, required=False, default="gemma-scope-2b-pt-res")
     parser.add_argument('--sae_id', type=str, required=False, default="layer_20/width_16k/average_l0_71")
@@ -53,7 +54,7 @@ def make_token_df(model, tokens, len_prefix=5, len_suffix=3):
     for b in range(tokens.shape[0]):
         for p in range(tokens.shape[1]):
             prefix = "".join(str_tokens[b][max(0, p-len_prefix):p])
-            if p==tokens.shape[1]-1:
+            if p == tokens.shape[1]-1:
                 suffix = ""
             else:
                 suffix = "".join(str_tokens[b][p+1:min(tokens.shape[1]-1, p+1+len_suffix)])
@@ -105,7 +106,9 @@ def cache_feature_activations(cfg, model, sae, activation_store):
 
         token_df = tokens_df.iloc[fired_mask.cpu().nonzero().flatten().numpy()]
         all_token_dfs.append(token_df)
-        all_feature_acts.append(feature_acts[fired_mask][:, feature_list].detach().cpu().numpy())
+        # all_feature_acts.append(feature_acts[fired_mask][:, feature_list].detach().cpu().numpy())
+        all_feature_acts.append(feature_acts[fired_mask][:, feature_list])
+
         all_fired_tokens.append(fired_tokens)
         # all_reconstructions.append(reconstruction)
 
@@ -131,11 +134,13 @@ def run_pipeline(model_path,
     layer = sae_id.split('/')[0].split('_')[-1]
     width = sae_id.split('/')[1].split('_')[-1]
     l0 = sae_id.split('/')[-1].split('_')[-1]
+    submodule = -sae_release.slit('-')[-1]
     cfg = Config(model_alias=model_alias,
                  model_path=model_path,
                  sae_release=sae_release,
                  sae_id=sae_id,
                  save_path=save_path,
+                 submodule=submodule,
                  layer=layer,
                  width=width,
                  l0=l0
@@ -181,7 +186,7 @@ def run_pipeline(model_path,
     save_path = os.path.join(artifact_dir, 'SAE_activation_cache')
     if not os.path.exists(save_path):
         os.makedirs(save_path)
-    with open(save_path + os.sep + f'feature_activation_store_layer_{layer}_width_{width}_l0_{l0}.pkl', "wb") as f:
+    with open(save_path + os.sep + f'feature_activation_store_{submodule}_layer_{layer}_width_{width}_l0_{l0}.pkl', "wb") as f:
         pickle.dump(activation_store, f)
 
 
@@ -198,7 +203,6 @@ if __name__ == "__main__":
     print(args.sae_release)
     print("sae_id")
     print(args.sae_id)
-
 
     run_pipeline(model_path=args.model_path, save_path=args.save_path,
                  sae_release=args.sae_release, sae_id=args.sae_id,

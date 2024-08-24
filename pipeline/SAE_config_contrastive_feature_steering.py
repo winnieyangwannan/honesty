@@ -3,6 +3,7 @@ import os
 
 from dataclasses import dataclass
 from typing import Tuple
+from typing import List
 
 @dataclass
 class Config:
@@ -25,10 +26,17 @@ class Config:
     layer: str
     width: str
     l0: str
-    batch_size: int = 2 #8
-    n_batches: int = 1 #100
-    n_train: int = 10
-    n_test: int = 2
+    pos_extract: tuple
+    pos_type: str
+    task_name: str
+    contrastive_type: str
+    steering_type: str = 'max'
+    data_category: str = 'facts'
+    topK: int = 20
+    batch_size: int = 8  #8
+    max_new_tokens: int = 100
+    n_train: int = 8
+    n_test: int = 8
 
     def artifact_path(self) -> str:
         save_path = self.save_path

@@ -21,11 +21,13 @@ class Config:
     sae_release: str
     sae_id: str
     save_path: str
+    submodule: str
     layer: str
     width: str
     l0: str
     pos_extract: tuple
     pos_type: str
+    task_name: str
     data_category: str = 'facts'
     topK: int = 20
     batch_size: int = 8 #8

@@ -36,6 +36,7 @@ def parse_arguments():
     parser.add_argument('--save_path', type=str, required=False, default=16)
     parser.add_argument('--pos_extract', required=False, default='truthful')
     parser.add_argument('--pos_type', type=str, required=False, default='str')
+    parser.add_argument('--task_name', type=str, required=False, default='honesty')
 
     return parser.parse_args()
 
@@ -66,7 +67,10 @@ def construct_prompt(statements, contrastive_type="honest"):
     USER_PROMPT = "Hi AI, is the following statement true or false?"
     SUFFIX = "Oh that's an easy one! The statement is definitely"
     # STATEMENT = "The planet Earth is 4.54 billion years old."
-    GEMMA_CHAT_TEMPLATE_STATEMENT = """<start_of_turn>user{system_prompt}\n\n{user_prompt}\n\nStatement: {statement}\n\n<end_of_turn><start_of_turn>model"""
+    GEMMA_CHAT_TEMPLATE_STATEMENT = """<start_of_turn>user
+    {system_prompt}\n\n{user_prompt}\n\nStatement: {statement}\n\n<end_of_turn>
+    <start_of_turn>model
+    """
 
     if contrastive_type == "honest":
         prompt = [GEMMA_CHAT_TEMPLATE_STATEMENT.format(system_prompt=SYSTEM_PROMPT_HONEST,
@@ -104,15 +108,19 @@ def get_data_z_score(cfg, sae, contrastive_activation_positive, contrastive_acti
     contrastive_activation_z_positive = data_z[:n_contrastive, :]
     contrastive_activation_z_negative = data_z[n_contrastive: n_contrastive+n_contrastive, :]
 
-    layer = cfg.layer
-    width = cfg.width
-    l0 = cfg.l0
     feature_activation_df = pd.DataFrame(np.mean(contrastive_activation_z_positive, 0),
                                          index=[f"feature_{i}" for i in range(sae.cfg.d_sae)],
                                          )
     feature_activation_df.columns = ["positive"]
     feature_activation_df["negative"] = np.mean(contrastive_activation_z_negative, 0)
     feature_activation_df["diff"] = feature_activation_df["positive"] - feature_activation_df["negative"]
+
+    layer = cfg.layer
+    width = cfg.width
+    l0 = cfg.l0
+    submodule = cfg.submodule
+    task_name = cfg.task_name
+
     fig = px.line(
         feature_activation_df,
         title=f"Feature activations (z_scored): Layer {layer}",
@@ -122,11 +130,12 @@ def get_data_z_score(cfg, sae, contrastive_activation_positive, contrastive_acti
     fig.update_xaxes(showticklabels=False)
     fig.show()
     artifact_path = cfg.artifact_path()
-    save_path = os.path.join(artifact_path, 'contrastive_SAE_honesty')
+    save_path = os.path.join(artifact_path, f'contrastive_SAE_{task_name}',
+                             f'{submodule}', f'layer_{layer}', 'top_k_feature')
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     fig.write_html(save_path + os.sep + 'contrastive_feature_activation_z_' +
-                   f'layer_{layer}_width_{width}_{l0}_pos_{cfg.pos_extract}.html')
+                   f'_{submodule}_layer_{layer}_width_{width}_{l0}_pos_{cfg.pos_extract}.html')
 
     return feature_activation_df
 
@@ -138,10 +147,11 @@ def get_feature_activation_z_score(cfg, sae, contrastive_activation_positive, co
     layer = cfg.layer
     width = cfg.width
     l0 = cfg.l0
+    submodule = cfg.submodule
 
     # 1. load baseline SAE activation cache [n_tokens, n_feature]
     sae_path = os.path.join(cfg.artifact_path(), 'SAE_activation_cache')
-    with open(sae_path + os.sep + f'feature_activation_store_layer_{layer}_width_{width}_l0_{l0}.pkl', "rb") as f:
+    with open(sae_path + os.sep + f'feature_activation_store_{submodule}_layer_{layer}_width_{width}_l0_{l0}.pkl', "rb") as f:
         data = pickle.load(f)
     baseline_activation_cache = data['all_feature_acts']
 
@@ -159,6 +169,8 @@ def plot_contrastive_feature(cfg, sae, feature_activation_honest, feature_activa
     layer = cfg.layer
     width = cfg.width
     l0 = cfg.l0
+    submodule = cfg.submodule
+    task_name = cfg.task_name
     feature_activation_df = pd.DataFrame(torch.mean(feature_activation_honest, 0).cpu().numpy(),
                                          index=[f"feature_{i}" for i in range(sae.cfg.d_sae)],
                                          )
@@ -174,10 +186,11 @@ def plot_contrastive_feature(cfg, sae, feature_activation_honest, feature_activa
     fig.update_xaxes(showticklabels=False)
     fig.show()
     artifact_path = cfg.artifact_path()
-    save_path = os.path.join(artifact_path, 'contrastive_SAE_honesty')
+    save_path = os.path.join(artifact_path, f'contrastive_SAE_{task_name}',
+                             f'{submodule}', f'layer_{layer}', 'top_k_feature')
     if not os.path.exists(save_path):
         os.makedirs(save_path)
-    fig.write_html(save_path + os.sep + 'contrastive_feature_activation_' +
+    fig.write_html(save_path + os.sep + f'contrastive_feature_activation_{submodule}_' +
                                         f'layer_{layer}_width_{width}_{l0}_pos_{cfg.pos_extract}.html')
 
 
@@ -224,23 +237,28 @@ def run_pipeline(model_path,
                  sae_id,
                  save_path,
                  pos_extract=[' truthful', ' lying'],
-                 pos_type='str'
+                 pos_type='str',
+                 task_name='honesty'
                  ):
 
     model_alias = os.path.basename(model_path)
     layer = sae_id.split('/')[0].split('_')[-1]
     width = sae_id.split('/')[1].split('_')[-1]
     l0 = sae_id.split('/')[-1].split('_')[-1]
+    submodule = sae_release.split('-')[-1]
+
     cfg = Config(model_alias=model_alias,
                  model_path=model_path,
                  sae_release=sae_release,
                  sae_id=sae_id,
                  save_path=save_path,
+                 submodule=submodule,
                  layer=layer,
                  width=width,
                  l0=l0,
                  pos_extract=pos_extract,
-                 pos_type=pos_type
+                 pos_type=pos_type,
+                 task_name=task_name
                  )
 
     # 1. Load Model and SAE
@@ -274,10 +292,12 @@ def run_pipeline(model_path,
         'top_k_val': top_k_val,
     }
     artifact_dir = cfg.artifact_path()
-    save_path = os.path.join(artifact_dir, 'contrastive_SAE_honesty')
+    save_path = os.path.join(artifact_dir, f'contrastive_SAE_{cfg.task_name}',
+                             f'{submodule}', f'layer_{layer}', 'top_k_feature')
     if not os.path.exists(save_path):
         os.makedirs(save_path)
-    with open(save_path + os.sep + f'feature_contrastive_activation_top_k_layer_{layer}_width_{width}_l0_{l0}_pos_{pos_extract}.pkl',
+    with open(save_path + os.sep + f'feature_contrastive_activation_top_k_'
+                                   f'{submodule}_layer_{layer}_width_{width}_l0_{l0}_pos_{pos_extract}.pkl',
               "wb") as f:
         pickle.dump(top_k, f)
 
@@ -307,4 +327,5 @@ if __name__ == "__main__":
 
     run_pipeline(model_path=args.model_path, save_path=args.save_path,
                  sae_release=args.sae_release, sae_id=args.sae_id,
-                 pos_extract=pos_extract, pos_type=args.pos_type)
+                 pos_extract=pos_extract, pos_type=args.pos_type,
+                 task_name=args.task_name)
