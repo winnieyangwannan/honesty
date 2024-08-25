@@ -2,29 +2,12 @@ import random
 import json
 import os
 import argparse
-from pipeline.config_generation import Config
-from pipeline.model_utils.model_factory import construct_model_base
-from pipeline.submodules.activation_pca import plot_contrastive_activation_pca, plot_contrastive_activation_intervention_pca
-from pipeline.submodules.select_direction import get_refusal_scores
-from pipeline.submodules.activation_pca import get_activations
-from pipeline.submodules.activation_pca import generate_get_contrastive_activations_and_plot_pca
-from dataset.load_dataset import load_dataset_split
+from pipeline.configs.config_generation import Config
 from datasets import load_dataset
-import numpy as np
 import sae_lens
-import transformer_lens
-from sae_lens import SAE, HookedSAETransformer
+from sae_lens import HookedSAETransformer
 from tqdm import tqdm
-import pandas as pd
-from plotly.subplots import make_subplots
-import plotly.graph_objects as go
-import plotly.io as pio
-import plotly.express as px
-import torch
-import pickle
-from sae_lens import ActivationsStore
-from scipy import stats
-
+from pipeline.submodules.run_evaluate_generation_honesty import evaluate_generation_honesty
 
 def parse_arguments():
 
@@ -122,6 +105,7 @@ def generate_without_steering(cfg, model,
             save_path + os.sep + f'completion_{contrastive_type}.json',
             "w") as f:
         json.dump(completions, f, indent=4)
+    return completions
 
 
 def contrastive_generation(cfg, model, dataset):
@@ -166,6 +150,9 @@ def run_pipeline(model_path,
     # 3. get generation
     contrastive_generation(cfg, model, dataset_train)
 
+    # 4. evaluate performance
+    evaluate_generation_honesty(cfg, contrastive_type=contrastive_type[0])
+    evaluate_generation_honesty(cfg, contrastive_type=contrastive_type[1])
 
 if __name__ == "__main__":
     args = parse_arguments()

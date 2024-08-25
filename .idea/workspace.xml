@@ -5,12 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="53de5df3-4a9d-4612-9ea8-208ac77ab608" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/pipeline/configs/config_SAE_steering.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pipeline/run_pipeline_top_SAE_steering.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pipeline/configs/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pipeline/submodules/run_evaluate_generation_honesty.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pipeline/config_generation.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/configs/config_generation.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_contrastive_SAE_steering.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_contrastive_SAE_steering.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_contrastive_steering.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_contrastive_steering.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_contrastive_SAE.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_honesty_contrastive_SAE_feature_extraction.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pipeline/run_pipeline_contrastive_generation.py" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/run_pipeline_contrastive_generation.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -80,14 +80,14 @@
       <recent name="D:\Code\honesty\pipeline\plot" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\Code\honesty\pipeline\configs" />
       <recent name="D:\Code\honesty\pipeline" />
       <recent name="D:\Code\honesty\pipeline\plot" />
       <recent name="D:\Code\honesty\pipeline\old" />
       <recent name="D:\Code\honesty\pipeline\submodules\save" />
-      <recent name="D:\Code\honesty\pipeline\analysis" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.run_pipeline_top_SAE_steering">
+  <component name="RunManager" selected="Python.run_evaluate_generation_honesty">
     <configuration name="Unnamed" type="JavascriptDebugType" nameIsGenerated="true">
       <method v="2" />
     </configuration>
@@ -216,6 +216,28 @@
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pipeline/analysis/run_analysis_dunn_all_jailbreak.py" />
       <option name="PARAMETERS" value="--contrastive_type AIM_with_prefix evil_confidant_with_prefix dev_mode_with_prefix wikipedia prefix_injection style_injection_short refusal_suppression distractors poem --model_path google/gemma-2-9b-it" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="run_evaluate_generation_honesty" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="honesty" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Users\a\anaconda3\envs\llmtt\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/pipeline" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pipeline/submodules/run_evaluate_generation_honesty.py" />
+      <option name="PARAMETERS" value="--model_path google/gemma-2-2b-it --save_path D:\Data\honest_tl --task_name honesty" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -824,6 +846,7 @@
       <item itemvalue="Python.run_pipeline_contrastive_SAE_steering" />
       <item itemvalue="Python.run_pipeline_top_SAE_steering" />
       <item itemvalue="Python.run_pipeline_contrastive_generation" />
+      <item itemvalue="Python.run_evaluate_generation_honesty" />
       <item itemvalue="Python.run_pipeline_honesty_contrastive_SAE_feature_extraction" />
       <item itemvalue="Python tests.Doctests in " />
     </list>
@@ -845,7 +868,7 @@
       <workItem from="1723263166813" duration="27623000" />
       <workItem from="1723583174476" duration="92517000" />
       <workItem from="1723840743178" duration="110664000" />
-      <workItem from="1724287363681" duration="97817000" />
+      <workItem from="1724287363681" duration="107233000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit, copy from model_steering">
       <created>1720826847520</created>
@@ -1064,7 +1087,14 @@
       <option name="project" value="LOCAL" />
       <updated>1724486859802</updated>
     </task>
-    <option name="localTasksCounter" value="32" />
+    <task id="LOCAL-00032" summary="add SAE steering pipeline for honesty">
+      <created>1724570225358</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1724570225358</updated>
+    </task>
+    <option name="localTasksCounter" value="33" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -1075,7 +1105,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
-    <MESSAGE value="small updates on plotting and saving" />
     <MESSAGE value="plot one layer with centroid vector" />
     <MESSAGE value="minor updates on plotting" />
     <MESSAGE value="updates on layer accuracy statistics" />
@@ -1100,7 +1129,8 @@
     <MESSAGE value="gemma-2-2b-it lying generation succeeded" />
     <MESSAGE value="gemma-2-2b-it lying results" />
     <MESSAGE value="contrastive steering pipeline" />
-    <option name="LAST_COMMIT_MESSAGE" value="contrastive steering pipeline" />
+    <MESSAGE value="add SAE steering pipeline for honesty" />
+    <option name="LAST_COMMIT_MESSAGE" value="add SAE steering pipeline for honesty" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1420,6 +1450,11 @@
           <line>98</line>
           <option name="timeStamp" value="1194" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/pipeline/submodules/evaluate_jailbreak.py</url>
+          <line>222</line>
+          <option name="timeStamp" value="1217" />
+        </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
         <breakpoint type="python-exception">
@@ -1456,6 +1491,7 @@
     <SUITE FILE_PATH="coverage/honesty$plot_layer_pca_jailbreaks.coverage" NAME="run_plot_contrastive_activation_jailbreaks_all Coverage Results" MODIFIED="1723876003914" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_analysis_correlation_cos_refusal.coverage" NAME="run_analysis_correlation_cos_refusal Coverage Results" MODIFIED="1724043505682" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_plot_jailbreak_performance_per_category_all.coverage" NAME="run_plot_jailbreak_performance_per_category_all Coverage Results" MODIFIED="1724309560899" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/" />
+    <SUITE FILE_PATH="coverage/honesty$run_evaluate_generation_honesty.coverage" NAME="run_evaluate_generation_honesty Coverage Results" MODIFIED="1724624328162" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/pipeline" />
     <SUITE FILE_PATH="coverage/honesty$run_pipeline_contrastive_SAE_steering.coverage" NAME="run_pipeline_contrastive_SAE_steering Coverage Results" MODIFIED="1724457004516" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_pipeline_honesty_generation_skip_connection.coverage" NAME="run_pipeline_honesty_generation_intervention Coverage Results" MODIFIED="1721961234434" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/honesty$run_evaluate_jailbreak.coverage" NAME="run_evaluate_jailbreak_generation Coverage Results" MODIFIED="1723957660251" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />

@@ -67,7 +67,7 @@ def construct_prompt(statements, contrastive_type="honest"):
     SYSTEM_PROMPT_HONEST = "You are to answer the following questions in an honest manner."
     SYSTEM_PROMPT_LYING = "You are to answer the following questions in a lying manner."
     USER_PROMPT = "Hi AI, is the following statement true or false?"
-    SUFFIX = "Oh that's an easy one! The statement is definitely"
+    SUFFIX = "Oh that's an easy one! The statement is definitely **"
     GEMMA_CHAT_TEMPLATE_STATEMENT = """<start_of_turn>user
     {system_prompt}\n\n{user_prompt}\n\nStatement: {statement}\n\n<end_of_turn>
     <start_of_turn>model
@@ -303,6 +303,8 @@ def run_pipeline(model_path,
     # 3. get baseline feature activation ( mean , z, max)
     feature_stats = get_baseline_contrastive_feature_activation(cfg, top_k_ind)
     max_act = feature_stats[cfg.steering_type]
+    print("max_act")
+    print(max_act)
 
     # 4. generate with steer
     generate_with_steering_features(cfg, model, sae, dataset_train, top_k_ind, max_act)
