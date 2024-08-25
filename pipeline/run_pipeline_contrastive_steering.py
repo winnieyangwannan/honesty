@@ -149,8 +149,8 @@ def generate_with_steering(cfg, model, steering_vector,
 
     # 6. Store all generation results (all batches)
     with open(
-            save_path + os.sep + f'contrastive_steering_generation_{intervention}_{contrastive_type}_'
-                                 f'layer_s_{source_layer}_layer_t_{target_layer}.json',
+            save_path + os.sep + f'contrastive_steering_generation_{intervention}_'
+                                 f'layer_s_{source_layer}_layer_t_{target_layer}_{contrastive_type}.json',
             "w") as f:
         json.dump(completions, f, indent=4)
 

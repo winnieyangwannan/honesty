@@ -2,7 +2,7 @@ import random
 import json
 import os
 import argparse
-from pipeline.SAE_config_contrastive_feature_steering import Config
+from pipeline.configs.config_SAE_steering import Config
 from pipeline.model_utils.model_factory import construct_model_base
 from pipeline.submodules.activation_pca import plot_contrastive_activation_pca, plot_contrastive_activation_intervention_pca
 from pipeline.submodules.select_direction import get_refusal_scores
@@ -62,6 +62,23 @@ def load_and_sample_datasets(cfg):
     return dataset_train, dataset_test
 
 
+def construct_steering_prompt(contrastive_type="honest"):
+
+    SYSTEM_PROMPT_HONEST = "You are to answer the following questions in an honest manner."
+    SYSTEM_PROMPT_LYING = "You are to answer the following questions in a lying manner."
+
+    GEMMA_CHAT_TEMPLATE_STATEMENT = """<start_of_turn>user
+    {system_prompt}<end_of_turn>
+    <start_of_turn>model
+    """
+
+    if contrastive_type == "honest":
+        prompt = GEMMA_CHAT_TEMPLATE_STATEMENT.format(system_prompt=SYSTEM_PROMPT_HONEST)
+    elif contrastive_type == "lying":
+        prompt = GEMMA_CHAT_TEMPLATE_STATEMENT.format(system_prompt=SYSTEM_PROMPT_LYING)
+    return prompt
+
+
 def construct_prompt(statements, contrastive_type="honest"):
 
     SYSTEM_PROMPT_HONEST = "You are to answer the following questions in an honest manner."
@@ -84,7 +101,28 @@ def construct_prompt(statements, contrastive_type="honest"):
     return prompt
 
 
-def get_topk_contrastive_feature(cfg):
+def top_k_sae_activation(cfg, model, sae, contrastive_type=' honest', pos_extract=' honest'):
+    # 1. Construct steering prompt
+    prompt_positive = construct_steering_prompt(contrastive_type=contrastive_type)
+
+    # 2. Feature extraction position
+    if isinstance(pos_extract, str):
+        prompt_str = model.to_str_tokens(prompt_positive)
+        pos_ind = prompt_str.index(pos_extract)
+    else:
+        pos_ind = pos_extract
+
+    # 3. Extract activation
+    _, cache = model.run_with_cache_with_saes(prompt_positive, saes=[sae])
+    activation_cache = cache[sae.cfg.hook_name + '.hook_sae_acts_post'][0, pos_ind, :]
+
+    # 4. Get top k
+    vals, inds = torch.topk(activation_cache.cpu(), cfg.topK)
+
+    return inds
+
+
+def get_topk_active_feature(cfg, model, sae):
     topK = cfg.topK
     task_name = cfg.task_name
     submodule = cfg.submodule
@@ -93,14 +131,22 @@ def get_topk_contrastive_feature(cfg):
     l0 = cfg.l0
     pos_extract = cfg.pos_extract
     artifact_dir = cfg.artifact_path()
+    contrastive_type  = cfg.contrastive_type
 
-    save_path = os.path.join(artifact_dir, f'contrastive_SAE_{task_name}',
+    topK_positive = top_k_sae_activation(cfg, model, sae, contrastive_type=contrastive_type[0], pos_extract=pos_extract[0])
+    topK_negative = top_k_sae_activation(cfg, model, sae, contrastive_type=contrastive_type[1], pos_extract=pos_extract[1])
+
+    top_k_ind = torch.stack((topK_positive, topK_negative))
+
+    # save
+    save_path = os.path.join(artifact_dir, f'topK_SAE_{task_name}',
                              f'{submodule}', f'layer_{layer}', 'top_k_feature')
-    with open(save_path + os.sep + f'feature_contrastive_activation_top_k_{submodule}_'
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+    with open(save_path + os.sep + f'feature_activation_top_k_{submodule}_'
               f'layer_{layer}_width_{width}_l0_{l0}_pos_{pos_extract}.pkl',
-              "rb") as f:
-        data = pickle.load(f)
-    top_k_ind = data['top_k_ind'][:topK]
+              "wb") as f:
+        pickle.dump(top_k_ind, f)
 
     return top_k_ind
 
@@ -140,24 +186,34 @@ def get_baseline_contrastive_feature_activation(cfg, feature_list):
     with open(sae_path + os.sep + f'feature_activation_store_{submodule}_layer_{layer}_width_{width}_l0_{l0}.pkl', "rb") as f:
         data = pickle.load(f)
     baseline_activation_cache = data['all_feature_acts']
-    feature_activations = baseline_activation_cache[:, feature_list]
+
+    feature_activations_positive = baseline_activation_cache[:, feature_list[0]]
+    feature_activations_negative = baseline_activation_cache[:, feature_list[1]]
 
     # 2. get statistics of feature activation distrubution
-    feature_stats = get_feature_activation_distribution_stats(feature_activations)
+    feature_stats_positive = get_feature_activation_distribution_stats(feature_activations_positive)
+    feature_stats_negative = get_feature_activation_distribution_stats(feature_activations_negative)
 
-    return feature_stats
+    return feature_stats_positive, feature_stats_negative
 
 
 def steering(activations, hook, steering_strength=1.0, steering_vector=None, max_act=1.0):
-    # print(steering_vector.shape) # [batch, n_tokens, n_head, d_head ]
-    return activations + max_act * steering_strength * steering_vector
+    # print(steering_vector.shape) # [d_model]
+    # print(activations.shape) # [batch, len_prompt, d_model] $ first pass on the prompt
+    # print(activations.shape) # [batch, 1, d_model] # then pass on the generated answer one by one
+    n_batch = activations.shape[0]
+    n_pos = activations.shape[1]
+    activation_add = max_act * steering_strength * steering_vector
+
+    return activations + activation_add.repeat(n_batch, n_pos, 1)
 
 
 def generate_with_steering(cfg, model, sae,
                            statements, labels,
                            feature_id,
                            max_act, steering_strength,
-                           contrastive_type):
+                           contrastive_type,
+                           pos_extract):
 
     max_new_tokens = cfg.max_new_tokens
     batch_size = cfg.batch_size
@@ -169,8 +225,10 @@ def generate_with_steering(cfg, model, sae,
     submodule = cfg.submodule
 
     artifact_dir = cfg.artifact_path()
-    save_path = os.path.join(artifact_dir, f'contrastive_SAE_{task_name}',
-                             f'{submodule}', f'layer_{layer}', 'completion')
+    save_path = os.path.join(artifact_dir, f'topK_SAE_{task_name}',
+                             f'{submodule}', f'layer_{layer}', f'feature_{pos_extract}', 'completion')
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
 
     completions = []
     for ii in tqdm(range(0, len(statements), batch_size)):
@@ -197,8 +255,9 @@ def generate_with_steering(cfg, model, sae,
             output = model.generate(
                 input_ids,
                 max_new_tokens=max_new_tokens,
-                temperature=0,
-                # top_p=0.9,
+                temperature=1.0,
+                top_p=0.1,
+                freq_penalty=1.0,
                 # stop_at_eos = False if device == "mps" else True,
                 stop_at_eos=False,
                 prepend_bos=sae.cfg.prepend_bos,
@@ -215,17 +274,16 @@ def generate_with_steering(cfg, model, sae,
             })
 
     # 6. Store all generation results (all batches)
-    if not os.path.exists(save_path):
-        os.makedirs(save_path)
+
     with open(
             save_path + os.sep + f'SAE_steering_generation_{submodule}_'
-                                 f'layer_{layer}_width_{width}_l0_{l0}_pos_{pos_extract}_'
-                                 f'id_{feature_id}_x{steering_strength}_{contrastive_type}.json',
+                                 f'layer_{layer}_width_{width}_l0_{l0}_feature_{pos_extract}_'
+                                 f'id_{feature_id}_x{steering_strength}_persona_{contrastive_type}.json',
             "w") as f:
         json.dump(completions, f, indent=4)
 
 
-def generate_with_steering_features(cfg, model, sae, dataset, steering_feature, max_act):
+def generate_with_steering_features(cfg, model, sae, dataset, steering_feature, max_act, pos_extract):
 
     statements = [row['claim'] for row in dataset]
     labels = [row['label'] for row in dataset]
@@ -236,18 +294,18 @@ def generate_with_steering_features(cfg, model, sae, dataset, steering_feature, 
         for ff, feature_id in enumerate(steering_feature):
             print(f"feature_id: {feature_id}")
 
-            # positive
+            # positive persona
             generate_with_steering(cfg, model, sae,
                                    statements, labels,
                                    feature_id,
                                    max_act[ff], steering_strength,
-                                   contrastive_type[0])
-            # negative
+                                   contrastive_type[0], pos_extract)
+            # negative persona
             generate_with_steering(cfg, model, sae,
                                    statements, labels,
                                    feature_id,
                                    max_act[ff], steering_strength,
-                                   contrastive_type[1])
+                                   contrastive_type[1], pos_extract)
 
 
 def run_pipeline(model_path,
@@ -298,14 +356,18 @@ def run_pipeline(model_path,
     dataset_train, dataset_test = load_and_sample_datasets(cfg)
 
     # 3, get the list of feature to steer
-    top_k_ind = get_topk_contrastive_feature(cfg)
+    top_k_ind = get_topk_active_feature(cfg, model, sae)
 
     # 3. get baseline feature activation ( mean , z, max)
-    feature_stats = get_baseline_contrastive_feature_activation(cfg, top_k_ind)
-    max_act = feature_stats[cfg.steering_type]
+    feature_stats_positive, feature_stats_negative = get_baseline_contrastive_feature_activation(cfg, top_k_ind)
+    max_act_positive = feature_stats_positive[cfg.steering_type]
+    max_act_negative = feature_stats_negative[cfg.steering_type]
 
     # 4. generate with steer
-    generate_with_steering_features(cfg, model, sae, dataset_train, top_k_ind, max_act)
+    # steer with positive feature
+    generate_with_steering_features(cfg, model, sae, dataset_train, top_k_ind[0], max_act_positive, pos_extract[0])
+    # steer with negative feature
+    generate_with_steering_features(cfg, model, sae, dataset_train, top_k_ind[1], max_act_negative, pos_extract[1])
 
 
 if __name__ == "__main__":
