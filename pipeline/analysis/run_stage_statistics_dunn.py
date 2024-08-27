@@ -1,37 +1,16 @@
 import numpy as np
-import torch
-from pipeline.plot.plot_layer_pca_jailbreaks import plot_contrastive_activation_pca_one_layer_jailbreaks
-from pipeline.plot.plot_layer_pca_jailbreaks import plot_contrastive_activation_pca_one_layer_jailbreaks_3d
 import os
 import argparse
-from pipeline.honesty_config_generation_intervention import Config
-from pipeline.model_utils.model_factory import construct_model_base
-from pipeline.analysis.stage_statistics import get_state_quantification
+from pipeline.configs.honesty_config_generation_intervention import Config
 from pipeline.jailbreak_config_generation import Config
-from pipeline.run_pipeline_honesty_stage import load_and_sample_datasets
-from pipeline.plot.plot_some_layer_pca import plot_contrastive_activation_pca_layer
 import pickle
-import pandas as pd
 from sklearn.decomposition import PCA
-import plotly.io as pio
 from sklearn.metrics.pairwise import pairwise_distances
 import torch
-from torchmetrics.clustering import DunnIndex
-from jaxtyping import Float
-from torch import Tensor
-from scipy.spatial.distance import cdist
-from scipy import stats
-from scipy.spatial.distance import pdist
-from sklearn import preprocessing as pre
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from plotly.figure_factory import create_quiver
-import plotly.figure_factory as ff
 import plotly.io as pio
-from validclust import dunn
-from scipy import stats
-from sklearn.preprocessing import MinMaxScaler
 
 
 def parse_arguments():

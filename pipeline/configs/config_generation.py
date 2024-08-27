@@ -19,9 +19,9 @@ class Config:
     model_alias: str
     task_name: str
     save_path: str
-    contrastive_type: str
+    contrastive_label: str
     n_train: int = 100
-    n_test: int = 10
+    n_test: int = 50
     batch_size: int = 10
     max_new_tokens: int = 100
     # for generation_trajectory

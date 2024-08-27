@@ -2,7 +2,7 @@ import random
 import os
 import argparse
 from datasets import load_dataset
-from pipeline.honesty_config_generation import Config
+from pipeline.configs.honesty_config_generation import Config
 from pipeline.model_utils.model_factory import construct_model_base
 from pipeline.submodules.activation_pca import generate_get_contrastive_activations_and_plot_pca
 
@@ -14,6 +14,7 @@ def parse_arguments():
     parser.add_argument('--checkpoint', type=int, required=False, default=None, help='Checkpoint for pyhia model family')
     parser.add_argument('--few_shot', type=int, required=False, default=None)
     parser.add_argument('--save_path', type=str, required=False, default=16)
+    parser.add_argument('--task_name', type=str, required=False, default='honesty')
 
     return parser.parse_args()
 
@@ -55,7 +56,7 @@ def contrastive_extraction_generation_and_plot_pca(cfg, model_base, dataset_trai
                                                       save_activations=True,
                                                       save_plot=True,
                                                       labels=labels_train,
-                                                      contrastive_label=["honest", "lying"],
+                                                      contrastive_label=cfg.contrastive_label,
                                                       categories=categories_train)
     print("done extraction")
 
@@ -70,7 +71,8 @@ def run_pipeline(model_path, save_path,
                  model_path=model_path,
                  save_path=save_path,
                  checkpoint=checkpoint,
-                 few_shot=few_shot)
+                 few_shot=few_shot,
+                 contrastive_label=['honest', 'lying'])
     print(cfg)
     model_base = construct_model_base(cfg.model_path,
                                       checkpoint=cfg.checkpoint,

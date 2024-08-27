@@ -29,7 +29,8 @@ class Config:
     pos_extract: tuple
     pos_type: str
     task_name: str
-    contrastive_type: str
+    contrastive_label: str
+    data_save_path: str = 'ss'
     steering_type: str = 'max'
     data_category: str = 'facts'
     topK: int = 3

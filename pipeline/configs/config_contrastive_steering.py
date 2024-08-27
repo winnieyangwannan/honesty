@@ -19,14 +19,15 @@ class Config:
     model_alias: str
     task_name: str
     save_path: str
-    contrastive_type: str
+    save_name: str
+    contrastive_label: str
     source_layer: int
     intervention: str
     target_layer: int
     hook_name: str
-    n_train: int = 128
-    n_test: int = 48
-    batch_size: int = 8
+    n_train: int = 100
+    n_test: int = 100
+    batch_size: int = 10
     max_new_tokens: int = 100
     steering_strength: int = 1
 

@@ -30,6 +30,8 @@ import pickle
 import json
 from pipeline.analysis.stage_statistics import get_state_quantification
 from pipeline.submodules.evaluate_jailbreak import evaluate_completions_and_save_results_for_dataset
+from pipeline.submodules.run_evaluate_generation_honesty import plot_lying_honest_performance
+from pipeline.submodules.run_evaluate_generation_honesty import evaluate_generation_honesty
 
 
 def get_ablation_activations_pre_hook(layer, cache: Float[Tensor, "batch layer d_model"], n_samples, positions: List[int],batch_id,batch_size):
@@ -193,12 +195,12 @@ def generate_get_contrastive_activations_and_plot_pca(cfg, model_base, tokenize_
             json.dump(completions_negative[cfg.n_train:], f, indent=4)
 
     else:
-        with open(f'{cfg.artifact_path()}' + os.sep + 'completions' + os.sep + f'{data_category}' +
-                  '_' + str(few_shot) + '_completions_' + contrastive_label[0] +'.json',
+        with open(f'{cfg.artifact_path()}' + os.sep + 'completions' + os.sep +
+                  'completions_' + contrastive_label[0] +'.json',
                   "w") as f:
             json.dump(completions_positive, f, indent=4)
-        with open(f'{cfg.artifact_path()}' + os.sep + 'completions' + os.sep + f'{data_category}' +
-                  '_' + str(few_shot) + '_completions_' + contrastive_label[1] + '.json',
+        with open(f'{cfg.artifact_path()}' + os.sep + 'completions' + os.sep + \
+                  'completions_' + contrastive_label[1] + '.json',
                   "w") as f:
             json.dump(completions_negative, f, indent=4)
 
@@ -216,21 +218,10 @@ def generate_get_contrastive_activations_and_plot_pca(cfg, model_base, tokenize_
 
     # 4. get performance
     if 'honest' in contrastive_label:
-        save_path = artifact_dir + os.sep + "performance"
-        if not os.path.exists(save_path):
-            os.makedirs(save_path)
-        model_performance, fig = get_performance_stats(cfg, first_gen_toks_positive, first_gen_str_positive,
-                                                       first_gen_toks_negative, first_gen_str_negative,
-                                                       labels,
-                                                       true_token_id, false_token_id
-                                                       )
-        fig.write_html(save_path + os.sep + f'{data_category}'
-                       + '_' + str(few_shot) + 'model_performance.html')
-        pio.write_image(fig, save_path + os.sep + f'{data_category}'
-                        + '_' + str(few_shot) + 'model_performance.png',
-                        scale=6)
-        with open(save_path + os.sep + model_name + '_model_performance.pkl', "wb") as f:
-            pickle.dump(model_performance, f)
+        completions_positive = evaluate_generation_honesty(cfg, contrastive_label=contrastive_label[0])
+        completions_negative = evaluate_generation_honesty(cfg, contrastive_label=contrastive_label[1])
+        plot_lying_honest_performance(cfg, completions_positive, completions_negative)
+
     elif 'HHH' in contrastive_label:
         dataset_name = cfg.evaluation_datasets
         save_path = f'{cfg.artifact_path()}' + os.sep
@@ -245,7 +236,7 @@ def generate_get_contrastive_activations_and_plot_pca(cfg, model_base, tokenize_
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     stage_stats = get_state_quantification(cfg, activations_positive, activations_negative,
-                                           labels,contrastive_label=contrastive_label,
+                                           labels, contrastive_label=contrastive_label,
                                            save_plot=True)
     if 'HHH' in contrastive_label:
         with open(save_path + os.sep + model_name +
@@ -377,7 +368,11 @@ def generate_and_get_activations(cfg, model_base, dataset,
     d_model = model.config.hidden_size
     n_samples = len(dataset)
 
-    generation_config = GenerationConfig(max_new_tokens=max_new_tokens, do_sample=False)
+    generation_config = GenerationConfig(max_new_tokens=max_new_tokens,
+                                         do_sample=True,
+                                         temperature=1.0,
+                                         top_p=0.1,
+                                         repetition_penalty=1.0)
     generation_config.pad_token_id = tokenizer.pad_token_id
 
     completions = []

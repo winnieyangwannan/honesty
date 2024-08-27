@@ -1,24 +1,11 @@
 import os
 import argparse
-from pipeline.honesty_config_generation_intervention import Config
+from pipeline.configs.honesty_config_generation_intervention import Config
 from pipeline.model_utils.model_factory import construct_model_base
 import pickle
 import plotly.io as pio
-import csv
-import math
-from tqdm import tqdm
-from pipeline.utils.hook_utils import add_hooks
-from pipeline.model_utils.model_base import ModelBase
-from plotly.subplots import make_subplots
 import plotly.graph_objects as go
-from sklearn.decomposition import PCA
 import numpy as np
-from transformers import AutoTokenizer, AutoModelForCausalLM, GenerationConfig
-import einops
-from typing import List, Tuple, Callable
-from jaxtyping import Float
-from torch import Tensor
-import plotly.express as px
 
 
 def parse_arguments():

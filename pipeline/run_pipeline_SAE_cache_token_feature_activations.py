@@ -1,27 +1,15 @@
-import random
-import json
 import os
 import argparse
-from pipeline.SAE_config_cache_feature_activation import Config
-from pipeline.model_utils.model_factory import construct_model_base
-from pipeline.submodules.activation_pca import plot_contrastive_activation_pca, plot_contrastive_activation_intervention_pca
-from pipeline.submodules.select_direction import get_refusal_scores
-from pipeline.submodules.activation_pca import get_activations
-from pipeline.submodules.activation_pca import generate_get_contrastive_activations_and_plot_pca
-from dataset.load_dataset import load_dataset_split, load_dataset
-import numpy as np
+from pipeline.configs.config_cache_SAE_activation import Config
 import sae_lens
-import transformer_lens
 from sae_lens import SAE, HookedSAETransformer
 from tqdm import tqdm
 import pandas as pd
-from plotly.subplots import make_subplots
-import plotly.graph_objects as go
-import plotly.io as pio
-import plotly.express as px
 import torch
 import pickle
 from sae_lens import ActivationsStore
+from datasets import DatasetDict, Dataset
+import numpy as np
 torch.set_grad_enabled(False)
 
 
@@ -125,6 +113,32 @@ def cache_feature_activations(cfg, model, sae, activation_store):
     return all_feature_acts, all_token_dfs
 
 
+def save_to_hf_hub(cfg, activation_store):
+    layer = cfg.layer
+    width = cfg.wdith
+    l0 = cfg.l0
+    submodule = cfg.submodule
+    sae_release = cfg.sae_release
+
+    all_feature_acts = {
+        'all_feature_acts': activation_store['all_feature_acts']
+    }
+    # Convert the filtered data points into the Huggingface datasets format
+    dataset_dict = Dataset.from_dict(all_feature_acts)
+    # upload to hugging face
+    dataset_dict.push_to_hub(f"winnieyangwannan/all_feature_acts_{sae_release}_"
+                             f"{submodule}_layer_{layer}_width_{width}_l0_{l0}")
+    # save in huggingface
+    all_token_dfs = {
+        'all_feature_acts': activation_store['all_token_dfs']
+    }
+    # Convert the filtered data points into the Huggingface datasets format
+    dataset_dict = Dataset.from_dict(all_token_dfs)
+    # upload to hugging face
+    dataset_dict.push_to_hub(f"winnieyangwannan/all_token_dfs_{sae_release}_"
+                             f"{submodule}_layer_{layer}_width_{width}_l0_{l0}")
+
+
 def run_pipeline(model_path,
                  sae_release,
                  sae_id,
@@ -147,7 +161,11 @@ def run_pipeline(model_path,
                  )
 
     # 1. Load Model and SAE
-    model = HookedSAETransformer.from_pretrained(model_path, device="cuda")
+
+    model = HookedSAETransformer.from_pretrained(model_path, device="cuda",
+                                                 dtype=torch.bfloat16)
+    print("free(Gb):", torch.cuda.mem_get_info()[0] / 1000000000, "total(Gb):",
+          torch.cuda.mem_get_info()[1] / 1000000000)
 
     # the cfg dict is returned alongside the SAE since it may contain useful information for analysing the SAE (eg: instantiating an activation store)
     # Note that this is not the same as the SAEs config dict, rather it is whatever was in the HF repo, from which we can extract the SAE config dict
@@ -176,7 +194,7 @@ def run_pipeline(model_path,
     # 3. cache feature activation
     all_feature_acts, all_token_dfs = cache_feature_activations(cfg, model, sae, activation_store)
 
-    # 4. store
+    # 4. save locally
     activation_store = {
         'all_feature_acts': all_feature_acts,
         'all_token_dfs': all_token_dfs
@@ -189,12 +207,17 @@ def run_pipeline(model_path,
     with open(save_path + os.sep + f'feature_activation_store_{submodule}_layer_{layer}_width_{width}_l0_{l0}.pkl', "wb") as f:
         pickle.dump(activation_store, f)
 
+    # save to hugging face hub
+    save_to_hf_hub(cfg, activation_store)
+
+    print('done!')
+
 
 if __name__ == "__main__":
     args = parse_arguments()
     print(sae_lens.__version__)
     print(sae_lens.__version__)
-    print("run_pipieline_jailbreak_contrastive_SAE\n\n")
+    print("run_pipieline_SAE_cache_token_feature_activation\n\n")
     print("model_path")
     print(args.model_path)
     print("save_path")

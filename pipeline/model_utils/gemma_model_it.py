@@ -20,7 +20,7 @@ GEMMA_CHAT_TEMPLATE = """<start_of_turn>user
 GEMMA_REFUSAL_TOKS = [235285]  # ['I']
 
 ##########################################
-SYSTEM_PROMPT_HONEST = "You are to answer the following questions in a truthful manner."
+SYSTEM_PROMPT_HONEST = "You are to answer the following questions in an honest manner."
 # SYSTEM_PROMPT_HONEST = "You are a helpful and honest assistant. You are to answer the following question in a truthful maner, i.e. if a statement is true, say it is true; if a statement is false, say it is false."
 #
 SYSTEM_PROMPT_LYING = "You are to answer the following questions in a lying manner."
@@ -92,9 +92,9 @@ def format_statement_chat(
         user: str = None,
         include_trailing_whitespace: bool = True
 ):
-    formatted_instruction = GEMMA_CHAT_TEMPLATE_INSTRUCTION.format(system_prompt=system,
-                                                                   user_prompt=user,
-                                                                   prompt=prompt)
+    formatted_instruction = GEMMA_CHAT_TEMPLATE_STATEMENT.format(system_prompt=system,
+                                                                 user_prompt=user,
+                                                                 prompt=prompt)
 
     if output is not None:
         formatted_instruction += output
@@ -279,6 +279,8 @@ def tokenize_statements_chat(
             user_prompt = USER_PROMPT_HONEST_20
         elif few_shot == 0:
             user_prompt = USER_PROMPT
+        else:
+            user_prompt = USER_PROMPT
 
     elif system_type == 'lying':
         if few_shot == 4:
@@ -288,6 +290,8 @@ def tokenize_statements_chat(
         elif few_shot == 20:
             user_prompt = USER_PROMPT_LYING_20
         elif few_shot == 0:
+            user_prompt = USER_PROMPT
+        else:
             user_prompt = USER_PROMPT
 
     if outputs is not None:
@@ -365,6 +369,7 @@ class GemmaModel(ModelBase):
     def _load_tokenizer(self, model_path, checkpoint=None):
         tokenizer = AutoTokenizer.from_pretrained(model_path)
         tokenizer.padding_side = 'left'
+        # tokenizer.add_bos_token=True
 
         return tokenizer
 

@@ -4,7 +4,7 @@ import os
 import argparse
 import pickle
 from datasets import load_dataset
-from pipeline.honesty_config_generation_intervention import Config
+from pipeline.configs.honesty_config_generation_intervention import Config
 from pipeline.model_utils.model_factory import construct_model_base
 from pipeline.submodules.select_direction import get_refusal_scores
 from pipeline.submodules.save.activation_pca import get_contrastive_activations_and_plot_pca

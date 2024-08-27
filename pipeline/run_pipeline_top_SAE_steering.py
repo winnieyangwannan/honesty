@@ -16,6 +16,7 @@ import transformer_lens
 from sae_lens import SAE, HookedSAETransformer
 from tqdm import tqdm
 import pandas as pd
+from scipy import stats
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import plotly.io as pio
@@ -62,7 +63,7 @@ def load_and_sample_datasets(cfg):
     return dataset_train, dataset_test
 
 
-def construct_steering_prompt(contrastive_type="honest"):
+def construct_steering_prompt(contrastive_label="honest"):
 
     SYSTEM_PROMPT_HONEST = "You are to answer the following questions in an honest manner."
     SYSTEM_PROMPT_LYING = "You are to answer the following questions in a lying manner."
@@ -72,14 +73,14 @@ def construct_steering_prompt(contrastive_type="honest"):
     <start_of_turn>model
     """
 
-    if contrastive_type == "honest":
+    if contrastive_label == "honest":
         prompt = GEMMA_CHAT_TEMPLATE_STATEMENT.format(system_prompt=SYSTEM_PROMPT_HONEST)
-    elif contrastive_type == "lying":
+    elif contrastive_label == "lying":
         prompt = GEMMA_CHAT_TEMPLATE_STATEMENT.format(system_prompt=SYSTEM_PROMPT_LYING)
     return prompt
 
 
-def construct_prompt(statements, contrastive_type="honest"):
+def construct_prompt(statements, contrastive_label="honest"):
 
     SYSTEM_PROMPT_HONEST = "You are to answer the following questions in an honest manner."
     SYSTEM_PROMPT_LYING = "You are to answer the following questions in a lying manner."
@@ -90,20 +91,118 @@ def construct_prompt(statements, contrastive_type="honest"):
     <start_of_turn>model
     """
 
-    if contrastive_type == "honest":
+    if contrastive_label == "honest":
         prompt = [GEMMA_CHAT_TEMPLATE_STATEMENT.format(system_prompt=SYSTEM_PROMPT_HONEST,
                                                        user_prompt=USER_PROMPT,
                                                        statement=statement) + SUFFIX for statement in statements]
-    elif contrastive_type == "lying":
+    elif contrastive_label == "lying":
         prompt = [GEMMA_CHAT_TEMPLATE_STATEMENT.format(system_prompt=SYSTEM_PROMPT_LYING,
                                                        user_prompt=USER_PROMPT,
                                                        statement=statement) + SUFFIX for statement in statements]
     return prompt
 
 
-def top_k_sae_activation(cfg, model, sae, contrastive_type=' honest', pos_extract=' honest'):
+def plot_token_feature_acts(cfg, activation_cache, inds, vals, contrastive_label):
+    inds = inds.detach().cpu().numpy()
+    vals = vals.detach().cpu().numpy()
+    n_feature = len(activation_cache)
+    layer = cfg.layer
+
+    activation = activation_cache.detach().cpu().numpy()
+    activation_z = stats.zscore(activation)
+    # plot activation distribution for this token
+    # feature_activation_z = {
+    #     'Activations': activation,
+    #     'Activation (zscored)': activation_z
+    # }
+    feature_activation_df_z = pd.DataFrame(activation_z,
+                                         index=[f"feature_{i}" for i in range(n_feature)],
+                                         )    # plot activation for all features for this token
+    feature_activation_df = pd.DataFrame(activation,
+                                         index=[f"feature_{i}" for i in range(n_feature)],
+                                         )
+    # 1.token feature activation histogram
+    fig = px.histogram(
+        feature_activation_df_z,
+        log_y=True,
+        nbins=50,
+        title=f"Histogram of feature activations:  Layer {layer} at '{contrastive_label}' token",
+        width=800, )
+    fig.add_vline(x=activation_z[inds[0]],
+                  label=dict(
+                      text=f"feature: {inds[0]}",
+                      textposition="top left",
+                      font=dict(size=20, color="green"),
+                  ),
+                  line_width=3, line_dash="dash", line_color="green")
+    fig.add_vline(x=activation_z[inds[2]],
+                  label=dict(
+                      text=f"feature: {inds[2]}",
+                      textposition="top left",
+                      font=dict(size=20, color="red"),
+                  ),
+                  line_width=3, line_dash="dash", line_color="red")
+    fig.add_vline(x=np.percentile(activation, 99),
+                  label=dict(
+                      text=f"99 percentile",
+                      textposition="top left",
+                      font=dict(size=20, color="black"),
+                  ),
+                  line_width=3, line_dash="dash", line_color="black")
+    fig.show()
+    fig.update_layout(
+        font=dict(size=20),
+        width=1000, height=500,
+        xaxis_title='Activations (z-scored)',
+        yaxis_title='Count (log)'
+    )
+    pio.write_image(fig, cfg.data_save_path + os.sep + f'token_feature_activation_histogram_{contrastive_label}.png', scale=6, width=1080, height=1080)
+    fig.write_html(cfg.data_save_path + os.sep + f'token_feature_activation_histogram_{contrastive_label}.html')
+
+    # 2. Feature activation at token
+    fig = px.line(
+        feature_activation_df,
+        title=f"Feature activations: Layer {layer}",
+        labels={"index": "Feature", "value": "Activation"},
+    )
+    # hide the x-ticks
+    fig.update_xaxes(showticklabels=False)
+    fig.show()
+    fig.add_annotation(
+        x=inds[0],
+        y=vals[0],
+        text=f"feature: {inds[0]}",
+        showarrow=True,
+        xanchor="right",
+        font=dict(
+            color="green",
+            size=20
+        ),
+    )
+    fig.add_annotation(
+        x=inds[2],
+        y=vals[2],
+        text=f"feature: {inds[2]}",
+        showarrow=True,
+        xanchor="right",
+        font=dict(
+            color="red",
+            size=20
+        ),
+    )
+    fig.update_xaxes(showticklabels=False)
+    fig.update_layout(
+        font=dict(size=20)
+    )
+    fig.show()
+    pio.write_image(fig, cfg.data_save_path + os.sep + f'token_feature_activation_{contrastive_label}.png',
+                    width=1080, height=1080)
+    fig.write_html(cfg.data_save_path + os.sep + f'token_feature_activation_{contrastive_label}.html')
+
+
+def top_k_sae_activation(cfg, model, sae, contrastive_label=' honest', pos_extract=' honest'):
     # 1. Construct steering prompt
-    prompt_positive = construct_steering_prompt(contrastive_type=contrastive_type)
+    prompt_positive = construct_steering_prompt(contrastive_label=contrastive_label)
 
     # 2. Feature extraction position
     if isinstance(pos_extract, str):
@@ -119,6 +218,9 @@ def top_k_sae_activation(cfg, model, sae, contrastive_type=' honest', pos_extrac
     # 4. Get top k
     vals, inds = torch.topk(activation_cache.cpu(), cfg.topK)
 
+    # 5. plot activation
+    plot_token_feature_acts(cfg, activation_cache, inds, vals, contrastive_label)
+
     return inds
 
 
@@ -131,10 +233,10 @@ def get_topk_active_feature(cfg, model, sae):
     l0 = cfg.l0
     pos_extract = cfg.pos_extract
     artifact_dir = cfg.artifact_path()
-    contrastive_type  = cfg.contrastive_type
+    contrastive_label  = cfg.contrastive_label
 
-    topK_positive = top_k_sae_activation(cfg, model, sae, contrastive_type=contrastive_type[0], pos_extract=pos_extract[0])
-    topK_negative = top_k_sae_activation(cfg, model, sae, contrastive_type=contrastive_type[1], pos_extract=pos_extract[1])
+    topK_positive = top_k_sae_activation(cfg, model, sae, contrastive_label=contrastive_label[0], pos_extract=pos_extract[0])
+    topK_negative = top_k_sae_activation(cfg, model, sae, contrastive_label=contrastive_label[1], pos_extract=pos_extract[1])
 
     top_k_ind = torch.stack((topK_positive, topK_negative))
 
@@ -194,6 +296,11 @@ def get_baseline_contrastive_feature_activation(cfg, feature_list):
     feature_stats_positive = get_feature_activation_distribution_stats(feature_activations_positive)
     feature_stats_negative = get_feature_activation_distribution_stats(feature_activations_negative)
 
+    # 3. get top activation examples
+    all_token_dfs = baseline_activation_cache['all_token_dfs']
+    max_activation_example_positive = all_token_dfs.iloc[feature_list[0]]
+    max_activation_example_positive = all_token_dfs.iloc[feature_list[1]]
+
     return feature_stats_positive, feature_stats_negative
 
 
@@ -212,7 +319,7 @@ def generate_with_steering(cfg, model, sae,
                            statements, labels,
                            feature_id,
                            max_act, steering_strength,
-                           contrastive_type,
+                           contrastive_label,
                            pos_extract):
 
     max_new_tokens = cfg.max_new_tokens
@@ -234,7 +341,7 @@ def generate_with_steering(cfg, model, sae,
     for ii in tqdm(range(0, len(statements), batch_size)):
 
         # 1. prompt to input
-        prompt = construct_prompt(statements[ii:ii + batch_size], contrastive_type=contrastive_type)
+        prompt = construct_prompt(statements[ii:ii + batch_size], contrastive_label=contrastive_label)
         input_ids = model.to_tokens(prompt, prepend_bos=sae.cfg.prepend_bos)
 
         # 2. Steering vector
@@ -255,6 +362,7 @@ def generate_with_steering(cfg, model, sae,
             output = model.generate(
                 input_ids,
                 max_new_tokens=max_new_tokens,
+                do_sample=True,
                 temperature=1.0,
                 top_p=0.1,
                 freq_penalty=1.0,
@@ -278,7 +386,7 @@ def generate_with_steering(cfg, model, sae,
     with open(
             save_path + os.sep + f'SAE_steering_generation_{submodule}_'
                                  f'layer_{layer}_width_{width}_l0_{l0}_feature_{pos_extract}_'
-                                 f'id_{feature_id}_x{steering_strength}_persona_{contrastive_type}.json',
+                                 f'id_{feature_id}_x{steering_strength}_persona_{contrastive_label}.json',
             "w") as f:
         json.dump(completions, f, indent=4)
 
@@ -299,13 +407,13 @@ def generate_with_steering_features(cfg, model, sae, dataset, steering_feature, 
                                    statements, labels,
                                    feature_id,
                                    max_act[ff], steering_strength,
-                                   contrastive_type[0], pos_extract)
+                                   contrastive_label[0], pos_extract)
             # negative persona
             generate_with_steering(cfg, model, sae,
                                    statements, labels,
                                    feature_id,
                                    max_act[ff], steering_strength,
-                                   contrastive_type[1], pos_extract)
+                                   contrastive_label[1], pos_extract)
 
 
 def run_pipeline(model_path,
@@ -315,7 +423,7 @@ def run_pipeline(model_path,
                  pos_extract=[' honest', ' lying'],
                  pos_type='str',
                  task_name='honesty',
-                 contrastive_type=['honesty', 'lying']
+                 contrastive_label=['honesty', 'lying']
                  ):
 
     model_alias = os.path.basename(model_path)
@@ -336,12 +444,19 @@ def run_pipeline(model_path,
                  pos_extract=pos_extract,
                  pos_type=pos_type,
                  task_name=task_name,
-                 contrastive_type=contrastive_type
+                 contrastive_label=contrastive_label
                  )
-
+    data_save_path = os.path.join(cfg.artifact_path(), f'topK_SAE_{task_name}',
+                                  f'{submodule}', f'layer_{layer}', 'top_k_feature')
+    cfg.data_save_path = data_save_path
+    if not os.path.exists(data_save_path):
+        os.makedirs(data_save_path)
     # 1. Load Model and SAE
-    model = HookedSAETransformer.from_pretrained(model_path, device="cuda")
+    model = HookedSAETransformer.from_pretrained_no_processing(model_path, device="cuda",
+                                                             dtype=torch.bfloat16)
     model.tokenizer.padding_side = 'left'
+    print("free(Gb):", torch.cuda.mem_get_info()[0] / 1000000000, "total(Gb):",
+          torch.cuda.mem_get_info()[1] / 1000000000)
 
     # the cfg dict is returned alongside the SAE since it may contain useful information for analysing the SAE (eg: instantiating an activation store)
     # Note that this is not the same as the SAEs config dict, rather it is whatever was in the HF repo, from which we can extract the SAE config dict
@@ -360,10 +475,15 @@ def run_pipeline(model_path,
 
     # 3. get baseline feature activation ( mean , z, max)
     feature_stats_positive, feature_stats_negative = get_baseline_contrastive_feature_activation(cfg, top_k_ind)
+
+    # 4. get feature top activations
     max_act_positive = feature_stats_positive[cfg.steering_type]
     max_act_negative = feature_stats_negative[cfg.steering_type]
 
-    # 4. generate with steer
+    # 5. get feature top activation examples
+
+
+    # 6. generate with steer
     # steer with positive feature
     generate_with_steering_features(cfg, model, sae, dataset_train, top_k_ind[0], max_act_positive, pos_extract[0])
     # steer with negative feature
@@ -396,11 +516,11 @@ if __name__ == "__main__":
         pos_extract = [' honest', ' lying']
 
     if args.task_name == 'honesty':
-        contrastive_type = ['honest', 'lying']
+        contrastive_label = ['honest', 'lying']
     elif args.task_name == 'jailbreak':
-        contrastive_type = ['HHH', args.jailbreak]
+        contrastive_label = ['HHH', args.jailbreak]
 
     run_pipeline(model_path=args.model_path, save_path=args.save_path,
                  sae_release=args.sae_release, sae_id=args.sae_id,
                  pos_extract=pos_extract, pos_type=args.pos_type,
-                 task_name=args.task_name, contrastive_type=contrastive_type)
+                 task_name=args.task_name, contrastive_label=contrastive_label)

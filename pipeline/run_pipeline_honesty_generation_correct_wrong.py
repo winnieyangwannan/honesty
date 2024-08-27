@@ -2,7 +2,7 @@ import random
 import os
 import argparse
 from datasets import load_dataset
-from pipeline.honesty_config_generation import Config
+from pipeline.configs.honesty_config_generation import Config
 from pipeline.model_utils.model_factory import construct_model_base
 from pipeline.submodules.activation_pca_correct_wrong import generate_get_contrastive_activations_and_plot_pca
 
